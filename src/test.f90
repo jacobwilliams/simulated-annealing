@@ -61,7 +61,7 @@ write(output_unit, '(A)') '  ****   end of driver routine output   ****'
 write(output_unit, '(A)') '  ****   before call to sa.             ****'
 
 call sa(fcn, n, x, max, rt, eps, ns, nt, neps, maxevl, lb, ub, c, iprint, iseed1,  &
-        iseed2, t, vm, xopt, fopt, nacc, nfcnev, nobds, ier)
+        iseed2, 1, 0.0_dp, t, vm, xopt, fopt, nacc, nfcnev, nobds, ier, 6)
 
 write(output_unit, '(A)') '  ****   results after sa   ****   '
 call prtvec(output_unit,xopt, n, 'solution')
@@ -76,7 +76,7 @@ write(output_unit,'(/A,G20.13,/A,I10,/A,I10,/A,I10,/A,G20.13,/A,I3/)') &
 
 contains
 
-    subroutine fcn(n, theta, h)
+    subroutine fcn(n, theta, h, istat)
     !  this subroutine is from the example in judge et al., the theory and
     !  practice of econometrics, 2nd ed., pp. 956-7. there are two optima:
     !  f(.864,1.23) = 16.0817 (the global minumum) and f(2.35,-.319) = 20.9805.
@@ -86,6 +86,7 @@ contains
     integer, intent(in)    :: n
     real (dp), intent(in)  :: theta(:)
     real (dp), intent(out) :: h
+    integer,intent(out) :: istat
 
     integer   :: i
     real (dp) :: y(20), x2(20), x3(20)
@@ -157,6 +158,8 @@ contains
     do i = 1, 20
         h = (theta(1) + theta(n)*x2(i) + (theta(n)**2)*x3(i) - y(i))**2 + h
     end do
+
+    istat = 0
 
     end subroutine fcn
 

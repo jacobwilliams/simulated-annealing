@@ -1,11 +1,10 @@
 
 
 
-!TODO : - maybe just force all values between the bounds all the time... rather than having special logic for that
-!       - add a function flag to indicate a bad function eval, continue with best so far ...
-!          -- has to count toward fcn eval counter
-!       - maybe add a DMAX per variable per step ? or is that what the vm is doing ?
-!       - if initial point is outside the bounds, just move it inside and continue ...
+!TODO : - add a restart option. if the current point is > best found so far after so many iterations,
+!         then reset back to the best one and continue (increase temp and/or vm when this happens?)
+!       - input rand distributation option
+!       - monotonic option - only accept a step if solution is better
 
 
 !********************************************************************************
@@ -48,13 +47,20 @@
     private
 
     abstract interface
-        subroutine sa_func(n, x, f)
+        subroutine sa_func(n, x, f, istat)
             !! interface to function to be maximized/minimized
             import :: dp
             implicit none
             integer, intent(in)              :: n
             real(dp),dimension(:),intent(in) :: x
             real(dp), intent(out)            :: f
+            integer, intent(out)             :: istat !! status flag:
+                                                      !!
+                                                      !! * 0 : valid function evaluation
+                                                      !! * -1 : invalid function evaluation.
+                                                      !!   try a different input vector.
+                                                      !! * -2 : stop the optimization process
+
         end subroutine sa_func
     end interface
 
@@ -139,8 +145,8 @@
 !     2. write statements prettied up.
 !     3. references to paper updated.
 
-    subroutine sa(fcn, n, x, max, rt, eps, ns, nt, neps, maxevl, lb, ub, c, iprint,  &
-                  iseed1, iseed2, t, vm, xopt, fopt, nacc, nfcnev, nobds, ier, iunit)
+    subroutine sa(fcn, n, x, maximize, rt, eps, ns, nt, neps, maxevl, lb, ub, c, iprint,  &
+                  iseed1, iseed2, step_mode, vms, t, vm, xopt, fopt, nacc, nfcnev, nobds, ier, iunit)
 
     implicit none
 
@@ -148,7 +154,7 @@
     integer, intent(in)                     :: n      !! number of variables in the function to be optimized.
     real(dp), dimension(n), intent(inout)   :: x      !! on input: the starting values for the variables of the
                                                       !! function to be optimized. [Will be replaced by final point]
-    logical, intent(in)                     :: max    !! denotes whether the function should be maximized or minimized.
+    logical, intent(in)                     :: maximize    !! denotes whether the function should be maximized or minimized.
                                                       !! a true value denotes maximization while a false value denotes
                                                       !! minimization.  intermediate output (see iprint) takes this into
                                                       !! account.
@@ -160,11 +166,11 @@
                                                       !! eps and the final function value at the current temperature
                                                       !! differs from the current optimal function value by less than
                                                       !! eps, execution terminates and ier = 0 is returned.
-    integer, intent(in)                     :: ns     !! number of cycles.  after ns*n function evaluations, each element of
-                                                      !! vm is adjusted so that approximately half of all function evaluations
-                                                      !! are accepted.  the suggested value is 20.
+    integer, intent(in)                     :: ns     !! number of cycles.  after ns function evaluations, each element of
+                                                      !! vm is adjusted according to the input `step_mode`
+                                                      !! the suggested value is 20.
     integer, intent(in)                     :: nt     !! number of iterations before temperature reduction. after
-                                                      !! nt*ns*n function evaluations, temperature (t) is changed
+                                                      !! nt*ns function evaluations, temperature (t) is changed
                                                       !! by the factor rt.  value suggested by corana et al. is
                                                       !! max(100, 5*n).  see goffe et al. for further advice.
     integer, intent(in)                     :: neps   !! number of final function values used to decide upon
@@ -224,6 +230,13 @@
                                                       !! and decisions on downhill moves (when maximizing).
                                                       !! see goffe et al. on how this can be used to test
                                                       !! the results of sa.
+    integer,intent(in)                   :: step_mode !! how to variable `vm` after `ns` cycles.
+                                                      !!
+                                                      !! * 1 : original method: adjust vm so that approximately
+                                                      !!   half of all evaluations are accepted
+                                                      !! * 2 : keep vm constant
+                                                      !! * 3 : adjust by a constant `vms` factor
+    real(dp), intent(in)                    :: vms    !! for `step_mode=3`, the factor to adjust `vm`
     real(dp), intent(inout)                 :: t      !! on input, the initial temperature. see goffe et al. for advice.
                                                       !! on output, the final temperature.
     real(dp), dimension(n), intent(inout)   :: vm     !! the step length vector. on input it should encompass the region of
@@ -239,17 +252,15 @@
                                                       !! point, note that the first evaluation is not used in the
                                                       !! core of the algorithm; it simply initializes the
                                                       !! algorithm.
-    integer, intent(out)                    :: nobds  !! the total number of trial function evaluations that
-                                                      !! would have been out of bounds of lb and ub. note that
-                                                      !! a trial point is randomly selected between lb and ub.
+    integer, intent(out)                    :: nobds  !! [NO LONGER USED]
     integer, intent(out)                    :: ier    !! the error return number:
                                                       !!
                                                       !!  * 0 - normal return; termination criteria achieved.
                                                       !!  * 1 - number of function evaluations (nfcnev) is
                                                       !!    greater than the maximum number (maxevl).
-                                                      !!  * 2 - the starting value (x) is not inside the
-                                                      !!    bounds (lb and ub).
+                                                      !!  * 2 - at least one lb > ub.
                                                       !!  * 3 - the initial temperature is not positive.
+                                                      !!  * 4 - user stop in problem function.
                                                       !!  * 99 - should not be seen; only used internally.
     integer, intent(in), optional           :: iunit  !! unit number for prints. If not present, then
                                                       !! standard `output_unit` is used.
@@ -257,27 +268,29 @@
     real(dp)                 :: f, fp, p, pp, ratio
     real(dp),dimension(n)    :: xp
     real(dp),dimension(neps) :: fstar
-    integer                  :: nup, ndown, nrej, nnew, lnobds, h, i, j, m, unit, totmov
-    integer,dimension(n)     :: nacp
+    integer                  :: nup, ndown, nrej, nnew, lnobds, i, j, m, unit, totmov
+    !integer,dimension(n)     :: nacp
+    integer :: nacp  ! ... JW mod
     logical                  :: quit
+    integer                  :: istat !! function status flag
 
+    ! unit for printing:
     if (present(iunit)) then
         unit = iunit
     else
         unit = output_unit
     end if
 
-    !  initialize the random number generator
-    call rmarin(iseed1,iseed2)
-
     !  set initial values.
     nacc = 0
+    nacp = 0
     nobds = 0
     nfcnev = 0
     ier = 99
     xopt = x
-    nacp = 0
     fstar = huge(1.0_dp)
+    fopt = huge(1.0_dp)
+    vm = abs(vm) ! JW : just in case
 
     !  if the initial temperature is not positive, notify the user and
     !  return to the calling routine.
@@ -287,32 +300,41 @@
         return
     end if
 
-    !  if the initial value is out of bounds, notify the user and return
-    !  to the calling routine.
-    do i = 1, n
-        if ((x(i) > ub(i)) .or. (x(i) < lb(i))) then
-            if (iprint>0) then
-                write(unit, '(A)') '  the starting value (x) is outside the bounds'
-                write(unit, '(A)') '  (lb and ub). execution terminated without any'
-                write(unit, '(A)') '  optimization. respecify x, ub or lb so that'
-                write(unit, '(A)') '  lb(i) < x(i) < ub(i), i = 1, n.'
-            end if
-            ier = 2
-            return
-        end if
-    end do
+    ! check validity of bounds:
+    if (any(lb > ub)) then
+        if (iprint>0) write(unit, '(A)') '  Error: at least one LB > UB.'
+        ier = 2
+        return
+    end if
 
-    !  evaluate the function with input x and return value as f.
-    call fcn(n, x, f)
-    f = func(f,max)
+    ! if the initial value is out of bounds, then just put
+    ! the violated ones on the nearest bound.
+    where (x > ub)
+        x = ub
+    else where (x < lb)
+        x = lb
+    end where
 
-    nfcnev = nfcnev + 1
+    !  initialize the random number generator
+    call rand_init(iseed1,iseed2)
+
+    ! evaluate the function with input x and return value as f.
+    ! keep trying if necessary until there is a valid function
+    ! evaluation.
+    call perturb_and_evaluate(x,xp,f,first=.true.)
+    select case (ier)
+    case(1,4)
+        return
+    end select
+
+    f = func(f,maximize)
+    xopt = xp ! it may have been perturbed above
     fopt = f
     fstar(1) = f
     if (iprint >= 1) then
         write(*, '(A)') '  '
         call prtvec(unit,x,n,'initial x')
-        write(unit, '(A,1X,G25.18)')  '  initial f: ', func(f,max)
+        write(unit, '(A,1X,G25.18)')  '  initial f: ', func(f,maximize)
     end if
 
     do
@@ -327,136 +349,117 @@
 
         do m = 1, nt
             do j = 1, ns
-                do h = 1, n
 
-                    !  generate xp, the trial value of x. note use of vm to choose xp.
-                    do i = 1, n
-                        if (i == h) then
-                            xp(i) = x(i) + (ranmar()*2.0_dp - 1.0_dp) * vm(i)
-                        else
-                            xp(i) = x(i)
-                        end if
+                !  evaluate the function with the trial point xp and return as fp.
+                call perturb_and_evaluate(x,xp,fp)
+                select case (ier)
+                case(1,4)
+                    ! ... need to set outputs to something ...
+                    fopt = func(fopt,maximize)
+                    return
+                end select
 
-                        !  if xp is out of bounds, select a point in bounds for the trial.
-                        if ((xp(i) < lb(i)) .or. (xp(i) > ub(i))) then
-                            xp(i) = lb(i) + (ub(i) - lb(i))*ranmar()
-                            lnobds = lnobds + 1
-                            nobds = nobds + 1
-                            if (iprint >= 3) then
-                                write(unit, '(A)') '  '
-                                call prtvec(unit,x, n, 'current x')
-                                write(unit, '(A,1X,G25.18)') '  current f: ', func(f,max)
-                                call prtvec(unit,xp, n, 'trial x')
-                                write(unit, '(A)') '  point rejected since out of bounds'
-                            end if
-                        end if
-                    end do
+                !  evaluate the function with the trial point xp and return as fp.
+                !call fcn(n, xp, fp)
+                fp = func(fp,maximize)
+                !nfcnev = nfcnev + 1
+                if (iprint >= 3) then
+                    write(*,'(A)') ' '
+                    call prtvec(unit,x,n,'current x')
+                    write(*,'(A,G25.18)') ' current f: ', func(f,maximize)
+                    call prtvec(unit,xp,n,'trial x')
+                    write(*,'(A,G25.18)') ' resulting f: ', func(fp,maximize)
+                end if
 
-                    !  evaluate the function with the trial point xp and return as fp.
-                    call fcn(n, xp, fp)
-                    fp = func(fp,max)
-                    nfcnev = nfcnev + 1
+                !  accept the new point if the function value increases.
+                if (fp >= f) then
                     if (iprint >= 3) then
-                        write(*,'(A)') ' '
-                        call prtvec(unit,x,n,'current x')
-                        write(*,'(A,G25.18)') ' current f: ', func(f,max)
-                        call prtvec(unit,xp,n,'trial x')
-                        write(*,'(A,G25.18)') ' resulting f: ', func(fp,max)
+                        write(unit,'(A)') '  point accepted'
                     end if
+                    x = xp
+                    f = fp
+                    nacc = nacc + 1
+                    ! nacp(h) = nacp(h) + 1
+                    nacp = nacp + 1
+                    nup = nup + 1
 
-                    !  if too many function evaluations occur, terminate the algorithm.
-                    if (nfcnev >= maxevl) then
-                        if (iprint>0) then
-                            write(unit, '(A)') '  too many function evaluations; consider'
-                            write(unit, '(A)') '  increasing maxevl or eps, or decreasing'
-                            write(unit, '(A)') '  nt or rt. these results are likely to be'
-                            write(unit, '(A)') '  poor.'
-                        end if
-                        fopt = func(fopt,max)
-                        ier = 1
-                        return
-                    end if
-
-                    !  accept the new point if the function value increases.
-                    if (fp >= f) then
+                    !  if greater than any other point, record as new optimum.
+                    if (fp > fopt) then
                         if (iprint >= 3) then
-                            write(unit,'(A)') '  point accepted'
+                            write(unit,'(A)') '  new optimum'
+                        end if
+                        xopt = xp
+                        fopt = fp
+                        nnew = nnew + 1
+                    end if
+
+                !  if the point is lower, use the metropolis criteria to decide on
+                !  acceptance or rejection.
+                else
+                    p = exprep((fp - f)/t)
+                    pp = rand()
+                    if (pp < p) then
+                        if (iprint >= 3) then
+                            if (maximize) then
+                                write(unit,'(A)')  '  though lower, point accepted'
+                            else
+                                write(unit,'(A)')  '  though higher, point accepted'
+                            end if
                         end if
                         x = xp
                         f = fp
                         nacc = nacc + 1
-                        nacp(h) = nacp(h) + 1
-                        nup = nup + 1
-
-                        !  if greater than any other point, record as new optimum.
-                        if (fp > fopt) then
-                            if (iprint >= 3) then
-                                write(unit,'(A)') '  new optimum'
-                            end if
-                            xopt = xp
-                            fopt = fp
-                            nnew = nnew + 1
-                        end if
-
-                    !  if the point is lower, use the metropolis criteria to decide on
-                    !  acceptance or rejection.
+                        nacp = nacp + 1     ! .... JW mod : now same for all variables
+                        ndown = ndown + 1
                     else
-                        p = exprep((fp - f)/t)
-                        pp = ranmar()
-                        if (pp < p) then
-                            if (iprint >= 3) then
-                                if (max) then
-                                    write(unit,'(A)')  '  though lower, point accepted'
-                                else
-                                    write(unit,'(A)')  '  though higher, point accepted'
-                                end if
-                            end if
-                            x = xp
-                            f = fp
-                            nacc = nacc + 1
-                            nacp(h) = nacp(h) + 1
-                            ndown = ndown + 1
-                        else
-                            nrej = nrej + 1
-                            if (iprint >= 3) then
-                                if (max) then
-                                    write(unit,'(A)') '  lower point rejected'
-                                else
-                                    write(unit,'(A)') '  higher point rejected'
-                                end if
+                        nrej = nrej + 1
+                        if (iprint >= 3) then
+                            if (maximize) then
+                                write(unit,'(A)') '  lower point rejected'
+                            else
+                                write(unit,'(A)') '  higher point rejected'
                             end if
                         end if
                     end if
+                end if
 
+            end do ! j - ns loop
+
+            select case (step_mode)
+            case(1)
+                !  adjust vm so that approximately half of all evaluations are accepted.
+                ratio = real(nacp,dp) /real(ns,dp)  ! JW ... moved out of loop - now same for all vars
+                do i = 1, n
+                    if (ratio > 0.6_dp) then
+                        vm(i) = vm(i)*(1.0_dp + c(i)*(ratio - 0.6_dp)/0.4_dp)
+                    else if (ratio < 0.4_dp) then
+                        vm(i) = vm(i)/(1.0_dp + c(i)*((0.4_dp - ratio)/0.4_dp))
+                    end if
+                    if (vm(i) > (ub(i)-lb(i))) then
+                        vm(i) = ub(i) - lb(i)
+                    end if
                 end do
-            end do
-
-            !  adjust vm so that approximately half of all evaluations are accepted.
-            do i = 1, n
-                ratio = real(nacp(i),dp) /real(ns,dp)
-                if (ratio > 0.6_dp) then
-                    vm(i) = vm(i)*(1.0_dp + c(i)*(ratio - 0.6_dp)/0.4_dp)
-                else if (ratio < 0.4_dp) then
-                    vm(i) = vm(i)/(1.0_dp + c(i)*((0.4_dp - ratio)/0.4_dp))
+                if (iprint >= 2) then
+                    write(unit,'(/A)') '---------------------------------------------------'
+                    write(unit,'(A)')  ' intermediate results after step length adjustment '
+                    write(unit,'(A/)') '---------------------------------------------------'
+                    call prtvec(unit, vm, n, 'new step length (vm)')
+                    call prtvec(unit, xopt, n, 'current optimal x')
+                    call prtvec(unit, x, n, 'current x')
+                    write(unit,'(A)') ' '
                 end if
-                if (vm(i) > (ub(i)-lb(i))) then
-                    vm(i) = ub(i) - lb(i)
-                end if
-            end do
-
-            if (iprint >= 2) then
-                write(unit,'(/A)') '---------------------------------------------------'
-                write(unit,'(A)')  ' intermediate results after step length adjustment '
-                write(unit,'(A/)') '---------------------------------------------------'
-                call prtvec(unit, vm, n, 'new step length (vm)')
-                call prtvec(unit, xopt, n, 'current optimal x')
-                call prtvec(unit, x, n, 'current x')
-                write(unit,'(A)') ' '
-            end if
+            case (2)
+                ! keep vm as is
+            case (3)
+                ! use the constant factor:
+                vm = abs(vms) * vm
+            case default
+                error stop ' invalid value of step_mode'
+            end select
 
             nacp = 0
 
-        end do
+        end do ! m - nt loop
 
         if (iprint >= 1) then
             totmov = nup + ndown + nrej
@@ -464,7 +467,7 @@
             write(*,'(A)')     ' intermediate results before next temperature reduction '
             write(unit,'(A/)') '--------------------------------------------------------'
             write(*,'(A,G12.5)') '  current temperature:            ', t
-            if (max) then
+            if (maximize) then
                 write(*,'(A,G25.18)') '  max function value so far:  ', fopt
                 write(*,'(A,I8)')     '  total moves:                ', totmov
                 write(*,'(A,I8)')     '     uphill:                  ', nup
@@ -498,7 +501,7 @@
         if (quit) then
             x = xopt
             ier = 0
-            fopt = func(fopt,max)
+            fopt = func(fopt,maximize)
             if (iprint >= 1) then
                 write(unit,'(/A)') '----------------------------------------------'
                 write(unit, '(A)') '  sa achieved termination criteria. ier = 0.  '
@@ -508,7 +511,7 @@
         end if
 
         !  if termination criteria is not met, prepare for another loop.
-        t = rt*t
+        t = abs(rt)*t
         do i = neps, 2, -1
             fstar(i) = fstar(i-1)
         end do
@@ -516,6 +519,88 @@
         x = xopt
 
     end do
+
+    contains
+!********************************************************************************
+
+    !***********************************************************************
+    !>
+    !  Perturb the `x` vector and evaluate the function.
+    !
+    !  If the function evaluation is not valid, it will perturb
+    !  and try again. Until a valid function is obtained or the
+    !  maximum number of function evaluations is reached.
+
+        subroutine perturb_and_evaluate(x,xp,fp,first)
+
+        implicit none
+
+        real(dp),dimension(:),intent(in)  :: x     !! input optimization variable vector to perburb
+        real(dp),dimension(:),intent(out) :: xp    !! the perturbed `x` value
+        real(dp),intent(out)              :: fp    !! the value of the user function at `xp`
+        logical,intent(in),optional       :: first !! to use the input `x` the first time
+
+        integer :: i         !! counter
+        integer :: istat     !! user function status code
+        logical :: first_try !! local copy of `first`
+        real(dp) :: lower    !! lower bound to use for random interval
+        real(dp) :: upper    !! upper bound to use for random interval
+
+        if (present(first)) then
+            first_try = first
+        else
+            first_try = .false.
+        end if
+
+        do
+
+            if (first_try) then
+                xp = x
+                first_try = .false.
+            else
+                ! perturb all of them:
+                do i = 1, n
+                    lower = max( lb(i), x(i) - vm(i) )
+                    upper = min( ub(i), x(i) + vm(i) )
+                    xp(i) = lower + (upper-lower)*rand()
+                end do
+            end if
+
+            ! evaluate the function with the trial
+            ! point xp and return as fp.
+            call fcn(n, xp, fp, istat)
+            nfcnev = nfcnev + 1
+            !  if too many function evaluations occur, terminate the algorithm.
+            if (nfcnev > maxevl) then
+                if (iprint>0) then
+                    write(unit, '(A)') '  too many function evaluations; consider'
+                    write(unit, '(A)') '  increasing maxevl or eps, or decreasing'
+                    write(unit, '(A)') '  nt or rt. these results are likely to be'
+                    write(unit, '(A)') '  poor.'
+                end if
+                ier = 1
+                return
+            end if
+
+            select case (istat)
+            case(-2)
+                ! user stop
+                ier = 4
+                return
+            case(-1)
+                ! try another one until we
+                ! get a valid evaluation
+                cycle
+            case default
+                ! continue
+            end select
+
+            return ! finished
+
+        end do
+
+        end subroutine perturb_and_evaluate
+    !***********************************************************************
 
     end subroutine sa
 !********************************************************************************
@@ -526,15 +611,15 @@
 !  note that all intermediate and final output switches the sign back
 !  to eliminate any possible confusion for the user.
 
-    pure function func(f,max)
+    pure function func(f,maximize)
 
     implicit none
 
     real(dp),intent(in) :: f
-    logical,intent(in)  :: max
+    logical,intent(in)  :: maximize
     real(dp)            :: func
 
-    if (max) then
+    if (maximize) then
         func = f
     else
         func = -f
@@ -549,6 +634,9 @@
 !
 !  note that the maximum and minimum values of
 !  exprep are such that they has no effect on the algorithm.
+!
+!### History
+!  * Jacob Williams, 8/30/2019 : new version of this routine that uses IEEE flags.
 
     pure function exprep(x) result(f)
 
@@ -587,7 +675,7 @@
 !### Author
 !  * Jacob Williams, 8/30/2019
 
-    subroutine rmarin(seed1,seed2)
+    subroutine rand_init(seed1,seed2)
 
     implicit none
 
@@ -613,7 +701,7 @@
         call random_seed(put=s)
     end if
 
-    end subroutine rmarin
+    end subroutine rand_init
 !********************************************************************************
 
 !********************************************************************************
@@ -623,7 +711,7 @@
 !### Author
 !  * Jacob Williams, 8/30/2019
 
-    function ranmar() result(f)
+    function rand() result(f)
 
     implicit none
 
@@ -631,7 +719,7 @@
 
     call random_number(f)
 
-    end function ranmar
+    end function rand
 !********************************************************************************
 
 !********************************************************************************
