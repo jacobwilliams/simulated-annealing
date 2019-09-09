@@ -1,16 +1,18 @@
 program simann
 
 use iso_fortran_env, only: output_unit
-use simulated_anneal
+use simulated_anneal, only: simulated_annealing_type, dp, prtvec
 
 implicit none
 
 integer, parameter :: n = 2, neps = 4
 
-real (dp)   :: lb(n), ub(n), x(n), xopt(n), c(n), vm(n), t, eps, rt, fopt
+real (dp)   :: lb(n), ub(n), x(n), xopt(n), c(n), vm(n), t, eps, rt, fopt, vms
 integer     :: ns, nt, nfcnev, ier, iseed1, iseed2, i, maxevl, iprint,  &
-               nacc, nobds
+               nacc, nobds, step_mode, iunit
 logical     :: max
+
+type(simulated_annealing_type) :: sa
 
 !  set input parameters.
 max = .false.
@@ -36,6 +38,11 @@ x(2) = -0.319186_dp
 t = 5.0_dp
 vm(1:n) = 1.0_dp
 
+! others:
+step_mode = 1
+vms = 0.1_dp
+iunit = output_unit
+
 write(output_unit,&
         '(A,//A,I3,/,A,L5,/A,G9.2,/A,G9.2,/A,G9.2,/A,I4,/A,I4,/A,I4,/A,I10,/A,I4,/A,I4,/A,I4)') &
         ' simulated annealing example',&
@@ -60,8 +67,11 @@ call prtvec(output_unit,c, n, 'c vector')
 write(output_unit, '(A)') '  ****   end of driver routine output   ****'
 write(output_unit, '(A)') '  ****   before call to sa.             ****'
 
-call sa(fcn, n, x, max, rt, eps, ns, nt, neps, maxevl, lb, ub, c, iprint, iseed1,  &
-        iseed2, 1, 0.0_dp, t, vm, xopt, fopt, nacc, nfcnev, nobds, ier, 6)
+call sa%initialize(fcn,n,lb,ub,c,&
+                   max,eps,ns,nt,neps,maxevl,&
+                   iprint,iseed1,iseed2,step_mode,vms,iunit)
+
+call sa%optimize(x, rt, t, vm, xopt, fopt, nacc, nfcnev, ier)
 
 write(output_unit, '(A)') '  ****   results after sa   ****   '
 call prtvec(output_unit,xopt, n, 'solution')
@@ -76,14 +86,14 @@ write(output_unit,'(/A,G20.13,/A,I10,/A,I10,/A,I10,/A,G20.13,/A,I3/)') &
 
 contains
 
-    subroutine fcn(n, theta, h, istat)
+    subroutine fcn(me, theta, h, istat)
     !  this subroutine is from the example in judge et al., the theory and
     !  practice of econometrics, 2nd ed., pp. 956-7. there are two optima:
     !  f(.864,1.23) = 16.0817 (the global minumum) and f(2.35,-.319) = 20.9805.
 
     implicit none
 
-    integer, intent(in)    :: n
+    class(simulated_annealing_type),intent(inout) :: me
     real (dp), intent(in)  :: theta(:)
     real (dp), intent(out) :: h
     integer,intent(out) :: istat
