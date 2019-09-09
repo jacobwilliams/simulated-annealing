@@ -344,7 +344,8 @@
     real(dp), intent(in)                      :: rt      !! the temperature reduction factor.  the value suggested by
                                                          !! corana et al. is .85. see goffe et al. for more advice.
     real(dp), intent(inout)                   :: t       !! on input, the initial temperature. see goffe et al. for advice.
-                                                         !! on output, the final temperature.
+                                                         !! on output, the final temperature. Note that if `t=0`, then
+                                                         !! all downhill steps will be rejected
     real(dp), dimension(me%n), intent(inout)  :: vm      !! the step length vector. on input it should encompass the region of
                                                          !! interest given the starting value x.  for point x(i), the next
                                                          !! trial point is selected is from x(i) - vm(i)  to  x(i) + vm(i).
@@ -397,8 +398,8 @@
 
     !  if the initial temperature is not positive, notify the user and
     !  return to the calling routine.
-    if (t <= 0.0_dp) then
-        if (me%iprint>0) write(unit,'(A)') 'Error: The initial temperature is not positive.'
+    if (t < 0.0_dp) then
+        if (me%iprint>0) write(unit,'(A)') 'Error: The initial temperature must be non-negative.'
         ier = 3
         return
     end if
@@ -465,8 +466,9 @@
                     write(unit,'(A,G25.18)') ' resulting f: ', me%func(fp)
                 end if
 
-                !  accept the new point if the function value increases.
                 if (fp >= f) then
+                    ! function value increased: accept the new point
+
                     if (me%iprint >= 3) write(unit,'(A)') '  point accepted'
                     x = xp
                     f = fp
@@ -482,11 +484,14 @@
                         nnew = nnew + 1
                     end if
 
+                else
                 !  if the point is lower, use the metropolis criteria to decide on
                 !  acceptance or rejection.
-                else
+                    ! NOTE: if t=0, all downhill steps are rejected (monotonic)
+
+                    if (t/=0.0_dp) then
                     p = exprep((fp - f)/t)
-                    pp = rand()
+                        pp = uniform_random_number()
                     if (pp < p) then
                         if (me%iprint >= 3) then
                             if (me%maximize) then
@@ -500,7 +505,11 @@
                         nacc = nacc + 1
                         nacp = nacp + 1
                         ndown = ndown + 1
-                    else
+                            cycle  ! accepted
+                        end if
+                    end if
+
+                    ! rejected:
                         nrej = nrej + 1
                         if (me%iprint >= 3) then
                             if (me%maximize) then
@@ -509,7 +518,7 @@
                                 write(unit,'(A)') '  higher point rejected'
                             end if
                         end if
-                    end if
+
                 end if
 
             end do ! j - ns loop
@@ -653,7 +662,7 @@
             do i = 1, me%n
                 lower = max( me%lb(i), x(i) - vm(i) )
                 upper = min( me%ub(i), x(i) + vm(i) )
-                xp(i) = lower + (upper-lower)*rand()
+                xp(i) = lower + (upper-lower)*uniform_random_number()
             end do
         end if
 
@@ -761,7 +770,7 @@
 
 !********************************************************************************
 !>
-!  Initialize the random number generator.
+!  Initialize the intrinsic random number generator.
 !
 !### Author
 !  * Jacob Williams, 8/30/2019
@@ -802,7 +811,7 @@
 !### Author
 !  * Jacob Williams, 8/30/2019
 
-    function rand() result(f)
+    function uniform_random_number() result(f)
 
     implicit none
 
@@ -810,7 +819,7 @@
 
     call random_number(f)
 
-    end function rand
+    end function uniform_random_number
 !********************************************************************************
 
 !********************************************************************************
