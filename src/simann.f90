@@ -1,10 +1,11 @@
 
 
-
-!TODO : - add a restart option. if the current point is > best found so far after so many iterations,
-!         then reset back to the best one and continue (increase temp and/or vm when this happens?)
+!TODO
 !       - input rand distributation option
-!       - monotonic option - only accept a step if solution is better
+!       - a way to specify that some variables are not to be changed... this could be part of the distributation
+!         selection (a constant option). each variable can have a different distribution.
+!
+!  see also: https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.basinhopping.html
 
 
 !********************************************************************************
@@ -25,7 +26,8 @@
 !### Reference
 !
 !  * corana et al., "minimizing multimodal functions of continuous variables
-!    with the "simulated annealing" algorithm", september 1987(vol. 13, no. 3, pp. 262-280),
+!    with the "simulated annealing" algorithm", september 1987
+!    (vol. 13, no. 3, pp. 262-280),
 !    acm transactions on mathematical software.
 !  * goffe, ferrier and rogers, "global optimization of statistical functions
 !    with simulated annealing", journal of econometrics, vol. 60, no. 1/2,
@@ -73,6 +75,13 @@
                                       !! termination.  see eps.  suggested value is 4.
         integer  :: maxevl = 10000    !! the maximum number of function evaluations.  if it is
                                       !! exceeded, ier = 1.
+
+        logical :: use_initial_guess = .true. !! if false, the initial guess is ignored and a
+                                              !! random point in the bounds is used for the first
+                                              !! function evaluation
+
+        integer :: n_resets = 2 !! number of times to run the main loop (must be >=1)
+
         real(dp), dimension(:),allocatable :: lb        !! the lower bound for the allowable solution variables.
         real(dp), dimension(:),allocatable :: ub        !! the upper bound for the allowable solution variables.
                                                         !! if the algorithm chooses x(i) < lb(i) or x(i) > ub(i),
@@ -126,7 +135,7 @@
                                     !! and decisions on downhill moves (when maximizing).
                                     !! see goffe et al. on how this can be used to test
                                     !! the results of sa.
-        integer   :: step_mode = 1  !! how to variable `vm` after `ns` cycles.
+        integer   :: step_mode = 1  !! how to vary `vm` after `ns` cycles.
                                     !!
                                     !! * 1 : original method: adjust vm so that approximately
                                     !!   half of all evaluations are accepted
@@ -135,11 +144,7 @@
         real(dp)  :: vms = 0.1_dp         !! for `step_mode=3`, the factor to adjust `vm`
         integer   :: iunit = output_unit  !! unit number for prints.
 
-        procedure(sa_func),pointer :: fcn => null()
-
-
-
-
+        procedure(sa_func),pointer :: fcn => null()  !! the user's function
 
     contains
 
@@ -159,7 +164,7 @@
     abstract interface
         subroutine sa_func(me, x, f, istat)
             !! interface to function to be maximized/minimized
-            import
+            import :: dp, simulated_annealing_type
             implicit none
             class(simulated_annealing_type),intent(inout) :: me
             real(dp),dimension(:),intent(in) :: x
@@ -202,29 +207,32 @@
 !  Any options not set here will use the default values in the type.
 
     subroutine initialize_sa(me,fcn,n,lb,ub,c,&
-                                maximize,eps,ns,nt,neps,maxevl,&
-                                iprint,iseed1,iseed2,step_mode,vms,iunit)
+                             maximize,eps,ns,nt,neps,maxevl,&
+                             iprint,iseed1,iseed2,step_mode,vms,iunit,&
+                             use_initial_guess,n_resets)
 
     implicit none
 
     class(simulated_annealing_type),intent(inout) :: me
-    procedure(sa_func)                          :: fcn
-    integer, intent(in)                         :: n
-    real(dp), dimension(n), intent(in)          :: lb
-    real(dp), dimension(n), intent(in)          :: ub
-    real(dp), dimension(n), intent(in),optional :: c
-    logical, intent(in),optional                :: maximize
-    real(dp), intent(in),optional               :: eps
-    integer, intent(in),optional                :: ns
-    integer, intent(in),optional                :: nt
-    integer, intent(in),optional                :: neps
-    integer, intent(in),optional                :: maxevl
-    integer, intent(in),optional                :: iprint
-    integer, intent(in),optional                :: iseed1
-    integer, intent(in),optional                :: iseed2
-    integer,intent(in),optional                 :: step_mode
-    real(dp), intent(in), optional              :: vms
-    integer, intent(in), optional               :: iunit
+    procedure(sa_func)                            :: fcn
+    integer, intent(in)                           :: n
+    real(dp), dimension(n), intent(in)            :: lb
+    real(dp), dimension(n), intent(in)            :: ub
+    real(dp), dimension(n), intent(in),optional   :: c
+    logical, intent(in),optional                  :: maximize
+    real(dp), intent(in),optional                 :: eps
+    integer, intent(in),optional                  :: ns
+    integer, intent(in),optional                  :: nt
+    integer, intent(in),optional                  :: neps
+    integer, intent(in),optional                  :: maxevl
+    integer, intent(in),optional                  :: iprint
+    integer, intent(in),optional                  :: iseed1
+    integer, intent(in),optional                  :: iseed2
+    integer,intent(in),optional                   :: step_mode
+    real(dp), intent(in), optional                :: vms
+    integer, intent(in), optional                 :: iunit
+    logical, intent(in), optional                 :: use_initial_guess
+    integer, intent(in), optional                 :: n_resets
 
     call me%destroy()
 
@@ -245,18 +253,20 @@
         me%c = 2.0_dp
     end if
 
-    if (present(maximize) ) me%maximize = maximize
-    if (present(eps)      ) me%eps = eps
-    if (present(ns)       ) me%ns = ns
-    if (present(nt)       ) me%nt = nt
-    if (present(neps)     ) me%neps = neps
-    if (present(maxevl)   ) me%maxevl = maxevl
-    if (present(iprint)   ) me%iprint = iprint
-    if (present(iseed1)   ) me%iseed1 = iseed1
-    if (present(iseed2)   ) me%iseed2 = iseed2
-    if (present(step_mode)) me%step_mode = step_mode
-    if (present(vms)      ) me%vms = vms
-    if (present(iunit)    ) me%iunit = iunit
+    if (present(maximize)          ) me%maximize = maximize
+    if (present(eps)               ) me%eps = eps
+    if (present(ns)                ) me%ns = ns
+    if (present(nt)                ) me%nt = nt
+    if (present(neps)              ) me%neps = neps
+    if (present(maxevl)            ) me%maxevl = maxevl
+    if (present(iprint)            ) me%iprint = iprint
+    if (present(iseed1)            ) me%iseed1 = iseed1
+    if (present(iseed2)            ) me%iseed2 = iseed2
+    if (present(step_mode)         ) me%step_mode = step_mode
+    if (present(vms)               ) me%vms = vms
+    if (present(iunit)             ) me%iunit = iunit
+    if (present(use_initial_guess) ) me%use_initial_guess = use_initial_guess
+    if (present(n_resets)          ) me%n_resets = n_resets
 
     end subroutine initialize_sa
 !********************************************************************************
@@ -368,36 +378,38 @@
                                                          !!  * 4 - user stop in problem function.
                                                          !!  * 99 - should not be seen; only used internally.
 
-    real(dp),dimension(me%n)    :: xp       !! perturbed `x` vector
-    real(dp),dimension(me%neps) :: fstar    !! array of optimals found so far
-    real(dp)                    :: f        !! function value
-    real(dp)                    :: fp       !! function value
-    real(dp)                    :: p        !! for metropolis criteria
-    real(dp)                    :: pp       !! for metropolis criteria
-    real(dp)                    :: ratio    !! ratio of `nacp` to `ns`
-    integer                     :: nup      !! number of uphill steps
-    integer                     :: ndown    !! number of accepted downhill steps
-    integer                     :: nrej     !! number of rejected downhill steps
-    integer                     :: nnew     !! new optimal for this temperature
-    integer                     :: i, j, m  !! counter
-    integer                     :: totmov   !! total moves
-    integer                     :: nacp     !! number of accepts steps in a complete `ns` cycle
-    logical                     :: quit     !! if the termination criteria was achieved
-    integer                     :: unit     !! unit for printing
+    real(dp),dimension(me%n)    :: xp            !! perturbed `x` vector
+    real(dp),dimension(me%neps) :: fstar         !! array of optimals found so far
+    real(dp)                    :: f             !! function value
+    real(dp)                    :: fp            !! function value
+    real(dp)                    :: p             !! for metropolis criteria
+    real(dp)                    :: pp            !! for metropolis criteria
+    real(dp)                    :: ratio         !! ratio of `nacp` to `ns`
+    integer                     :: nup           !! number of uphill steps
+    integer                     :: ndown         !! number of accepted downhill steps
+    integer                     :: nrej          !! number of rejected downhill steps
+    integer                     :: nnew          !! new optimal for this temperature
+    integer                     :: i, j, m, k    !! counter
+    integer                     :: totmov        !! total moves
+    integer                     :: nacp          !! number of accepts steps in a complete `ns` cycle
+    logical                     :: quit          !! if the termination criteria was achieved
+    integer                     :: unit          !! unit for printing
+    real(dp)                    :: t_original    !! original input value of `t`
+    real(dp),dimension(me%n)    :: vm_original   !! original input value of `vm`
+    logical                     :: first
 
     ! initialize:
-    unit   = me%iunit
-    nacc   = 0
-    nacp   = 0
-    nfcnev = 0
-    ier    = 99
-    xopt   = x
-    fstar  = huge(1.0_dp)
-    fopt   = huge(1.0_dp)
-    vm     = abs(vm) ! JW : just in case
+    unit        = me%iunit
+    nfcnev      = 0
+    ier         = 99
+    xopt        = x
+    fopt        = huge(1.0_dp)
+    vm          = abs(vm)
+    t_original  = t
+    vm_original = vm
 
-    !  if the initial temperature is not positive, notify the user and
-    !  return to the calling routine.
+    ! if the initial temperature is not positive, notify the user and
+    ! return to the calling routine.
     if (t < 0.0_dp) then
         if (me%iprint>0) write(unit,'(A)') 'Error: The initial temperature must be non-negative.'
         ier = 3
@@ -427,89 +439,107 @@
     f = me%func(f)
     xopt = xp ! it may have been perturbed above
     fopt = f
-    fstar(1) = f
     if (me%iprint >= 1) then
         write(unit, '(A)') '  '
-        call prtvec(unit,x,me%n,'initial x')
+        call prtvec(unit,xp,me%n,'initial x')
         write(unit, '(A,1X,G25.18)')  '  initial f: ', me%func(f)
     end if
 
-    do
-        !  start the main loop. note that it terminates if (i) the algorithm
-        !  succesfully optimizes the function or (ii) there are too many
-        !  function evaluations (more than maxevl).
-        nup = 0
-        nrej = 0
-        nnew = 0
-        ndown = 0
+    reset: do k = 1, me%n_resets
 
-        do m = 1, me%nt
-            do j = 1, me%ns
+        if (me%iprint >= 1) then
+            write(unit,'(A)')       ''
+            write(unit,'(A)')       '=========================================='
+            write(unit,'(A,1X,I5)') ' main loop ', k
+            write(unit,'(A)')       '=========================================='
+            write(unit,'(A)')       ''
+        end if
 
-                !  evaluate the function with the trial point xp and return as fp.
-                call me%perturb_and_evaluate(x,vm,xp,fp,nfcnev,ier)
-                select case (ier)
-                case(1,4)
-                    ! ...
-                    ! ... need to set outputs to something ...
-                    ! ...
-                    fopt = me%func(fopt)
-                    return
-                end select
+        ! restart the main loop
+        fstar = huge(1.0_dp)
+        t     = t_original
+        vm    = vm_original
+        nacc  = 0
+        nacp  = 0
 
-                fp = me%func(fp)
-                if (me%iprint >= 3) then
-                    write(unit,'(A)') ' '
-                    call prtvec(unit,x,me%n,'current x')
-                    write(unit,'(A,G25.18)') ' current f: ', me%func(f)
-                    call prtvec(unit,xp,me%n,'trial x')
-                    write(unit,'(A,G25.18)') ' resulting f: ', me%func(fp)
-                end if
+        ! the first function eval for a new main cycle
+        first = k > 1
 
-                if (fp >= f) then
-                    ! function value increased: accept the new point
+        main : do
+            !  start the main loop. note that it terminates if (i) the algorithm
+            !  succesfully optimizes the function or (ii) there are too many
+            !  function evaluations (more than maxevl).
+            nup = 0
+            nrej = 0
+            nnew = 0
+            ndown = 0
 
-                    if (me%iprint >= 3) write(unit,'(A)') '  point accepted'
-                    x = xp
-                    f = fp
-                    nacc = nacc + 1
-                    nacp = nacp + 1
-                    nup = nup + 1
+            nt_loop : do m = 1, me%nt
+                ns_loop : do j = 1, me%ns
 
-                    !  if greater than any other point, record as new optimum.
-                    if (fp > fopt) then
-                        if (me%iprint >= 3) write(unit,'(A)') '  new optimum'
-                        xopt = xp
-                        fopt = fp
-                        nnew = nnew + 1
+                    !  evaluate the function with the trial point xp and return as fp.
+                    call me%perturb_and_evaluate(x,vm,xp,fp,nfcnev,ier,first=first)
+                    first = .false.
+                    select case (ier)
+                    case(1,4)
+                        x    = xopt
+                        fopt = me%func(fopt)
+                        return
+                    end select
+
+                    fp = me%func(fp)
+                    if (me%iprint >= 3) then
+                        write(unit,'(A)') ' '
+                        call prtvec(unit,x,me%n,'current x')
+                        write(unit,'(A,G25.18)') ' current f: ', me%func(f)
+                        call prtvec(unit,xp,me%n,'trial x')
+                        write(unit,'(A,G25.18)') ' resulting f: ', me%func(fp)
                     end if
 
-                else
-                !  if the point is lower, use the metropolis criteria to decide on
-                !  acceptance or rejection.
-                    ! NOTE: if t=0, all downhill steps are rejected (monotonic)
+                    if (fp >= f) then
+                        ! function value increased: accept the new point
 
-                    if (t/=0.0_dp) then
-                    p = exprep((fp - f)/t)
-                        pp = uniform_random_number()
-                    if (pp < p) then
-                        if (me%iprint >= 3) then
-                            if (me%maximize) then
-                                write(unit,'(A)')  '  though lower, point accepted'
-                            else
-                                write(unit,'(A)')  '  though higher, point accepted'
-                            end if
-                        end if
+                        if (me%iprint >= 3) write(unit,'(A)') '  point accepted'
                         x = xp
                         f = fp
                         nacc = nacc + 1
                         nacp = nacp + 1
-                        ndown = ndown + 1
-                            cycle  ! accepted
-                        end if
-                    end if
+                        nup = nup + 1
 
-                    ! rejected:
+                        !  if greater than any other point, record as new optimum.
+                        if (fp > fopt) then
+                            if (me%iprint >= 3) write(unit,'(A)') '  new optimum'
+                            xopt = xp
+                            fopt = fp
+                            nnew = nnew + 1
+                        end if
+
+                    else
+                        ! if the point is lower, use the metropolis criteria to decide on
+                        ! acceptance or rejection.
+                        ! NOTE: if t=0, all downhill steps are rejected (monotonic)
+
+                        if (t/=0.0_dp) then
+                            p = exprep((fp - f)/t)
+                            pp = uniform_random_number()
+                            if (pp < p) then
+                                if (me%iprint >= 3) then
+                                    if (me%maximize) then
+                                        write(unit,'(A)')  '  though lower, point accepted'
+                                    else
+                                        write(unit,'(A)')  '  though higher, point accepted'
+                                    end if
+                                end if
+                                x = xp
+                                f = fp
+                                nacc = nacc + 1
+                                nacp = nacp + 1
+                                ndown = ndown + 1
+                                cycle  ! accepted
+                            end if
+                        end if
+
+                        ! rejected:
                         nrej = nrej + 1
                         if (me%iprint >= 3) then
                             if (me%maximize) then
@@ -519,102 +549,100 @@
                             end if
                         end if
 
-                end if
-
-            end do ! j - ns loop
-
-            select case (me%step_mode)
-            case(1)
-                !  adjust vm so that approximately half of all evaluations are accepted.
-                ratio = real(nacp,dp) /real(me%ns,dp)
-                do i = 1, me%n
-                    if (ratio > 0.6_dp) then
-                        vm(i) = vm(i)*(1.0_dp + me%c(i)*(ratio - 0.6_dp)/0.4_dp)
-                    else if (ratio < 0.4_dp) then
-                        vm(i) = vm(i)/(1.0_dp + me%c(i)*((0.4_dp - ratio)/0.4_dp))
                     end if
-                    if (vm(i) > (me%ub(i)-me%lb(i))) then
-                        vm(i) = me%ub(i) - me%lb(i)
+
+                end do ns_loop ! j - ns loop
+
+                select case (me%step_mode)
+                case(1)
+                    ! adjust vm so that approximately half of all evaluations are accepted.
+                    ratio = real(nacp,dp) /real(me%ns,dp)
+                    do i = 1, me%n
+                        if (ratio > 0.6_dp) then
+                            vm(i) = vm(i)*(1.0_dp + me%c(i)*(ratio - 0.6_dp)/0.4_dp)
+                        else if (ratio < 0.4_dp) then
+                            vm(i) = vm(i)/(1.0_dp + me%c(i)*((0.4_dp - ratio)/0.4_dp))
+                        end if
+                        if (vm(i) > (me%ub(i)-me%lb(i))) then
+                            vm(i) = me%ub(i) - me%lb(i)
+                        end if
+                    end do
+                    if (me%iprint >= 2) then
+                        write(unit,'(/A)') '---------------------------------------------------'
+                        write(unit,'(A)')  ' intermediate results after step length adjustment '
+                        write(unit,'(A/)') '---------------------------------------------------'
+                        call prtvec(unit, vm,   me%n, 'new step length (vm)')
+                        call prtvec(unit, xopt, me%n, 'current optimal x')
+                        call prtvec(unit, x,    me%n, 'current x')
+                        write(unit,'(A)') ' '
                     end if
-                end do
-                if (me%iprint >= 2) then
-                    write(unit,'(/A)') '---------------------------------------------------'
-                    write(unit,'(A)')  ' intermediate results after step length adjustment '
-                    write(unit,'(A/)') '---------------------------------------------------'
-                    call prtvec(unit, vm, me%n, 'new step length (vm)')
-                    call prtvec(unit, xopt, me%n, 'current optimal x')
-                    call prtvec(unit, x, me%n, 'current x')
-                    write(unit,'(A)') ' '
-                end if
-            case (2)
-                ! keep vm as is
-            case (3)
-                ! use the constant factor:
-                vm = abs(me%vms) * vm
-            case default
-                error stop ' invalid value of step_mode'
-            end select
+                case (2)
+                    ! keep vm as is
+                case (3)
+                    ! use the constant factor:
+                    vm = abs(me%vms) * vm
+                case default
+                    error stop ' invalid value of step_mode'
+                end select
 
-            nacp = 0
+                nacp = 0
 
-        end do ! m - nt loop
+            end do nt_loop ! m - nt loop
 
-        if (me%iprint >= 1) then
-            totmov = nup + ndown + nrej
-            write(unit,'(/A)')      '--------------------------------------------------------'
-            write(unit,'(A)')       ' intermediate results before next temperature reduction '
-            write(unit,'(A/)')      '--------------------------------------------------------'
-            write(unit,'(A,G12.5)') '  current temperature:            ', t
-            if (me%maximize) then
-                write(unit,'(A,G25.18)') '  max function value so far:  ', fopt
-                write(unit,'(A,I8)')     '  total moves:                ', totmov
-                write(unit,'(A,I8)')     '     uphill:                  ', nup
-                write(unit,'(A,I8)')     '     accepted downhill:       ', ndown
-                write(unit,'(A,I8)')     '     rejected downhill:       ', nrej
-                write(unit,'(A,I8)')     '  new maxima this temperature:', nnew
-            else
-                write(unit,'(A,G25.18)') '  min function value so far:  ', -fopt
-                write(unit,'(A,I8)')     '  total moves:                ', totmov
-                write(unit,'(A,I8)')     '     downhill:                ', nup
-                write(unit,'(A,I8)')     '     accepted uphill:         ', ndown
-                write(unit,'(A,I8)')     '     rejected uphill:         ', nrej
-                write(unit,'(A,I8)')     '  new minima this temperature:', nnew
-            end if
-            call prtvec(unit,xopt, me%n, 'current optimal x')
-            call prtvec(unit,vm,   me%n, 'step length (vm)')
-            write(unit, '(A)') ' '
-        end if
-
-        !  check termination criteria.
-        quit = .false.
-        fstar(1) = f
-        if ((fopt - fstar(1)) <= me%eps) quit = .true.
-        do i = 1, me%neps
-            if (abs(f - fstar(i)) > me%eps) quit = .false.
-        end do
-
-        !  terminate sa if appropriate.
-        if (quit) then
-            x = xopt
-            ier = 0
-            fopt = me%func(fopt)
             if (me%iprint >= 1) then
-                write(unit,'(/A)') '----------------------------------------------'
-                write(unit,'(A)')  '  sa achieved termination criteria. ier = 0.  '
-                write(unit,'(A/)') '----------------------------------------------'
+                totmov = nup + ndown + nrej
+                write(unit,'(/A)')      '--------------------------------------------------------'
+                write(unit,'(A)')       ' intermediate results before next temperature reduction '
+                write(unit,'(A/)')      '--------------------------------------------------------'
+                write(unit,'(A,G12.5)') '  current temperature:            ', t
+                if (me%maximize) then
+                    write(unit,'(A,G25.18)') '  max function value so far:  ', fopt
+                    write(unit,'(A,I8)')     '  total moves:                ', totmov
+                    write(unit,'(A,I8)')     '     uphill:                  ', nup
+                    write(unit,'(A,I8)')     '     accepted downhill:       ', ndown
+                    write(unit,'(A,I8)')     '     rejected downhill:       ', nrej
+                    write(unit,'(A,I8)')     '  new maxima this temperature:', nnew
+                else
+                    write(unit,'(A,G25.18)') '  min function value so far:  ', -fopt
+                    write(unit,'(A,I8)')     '  total moves:                ', totmov
+                    write(unit,'(A,I8)')     '     downhill:                ', nup
+                    write(unit,'(A,I8)')     '     accepted uphill:         ', ndown
+                    write(unit,'(A,I8)')     '     rejected uphill:         ', nrej
+                    write(unit,'(A,I8)')     '  new minima this temperature:', nnew
+                end if
+                call prtvec(unit,xopt, me%n, 'current optimal x')
+                call prtvec(unit,vm,   me%n, 'step length (vm)')
+                write(unit, '(A)') ' '
             end if
-            return
-        end if
 
-        !  if termination criteria is not met, prepare for another loop.
-        t = abs(rt)*t
-        do i = me%neps, 2, -1
-            fstar(i) = fstar(i-1)
-        end do
-        f = fopt
-        x = xopt
+            !  check termination criteria.
+            fstar(1) = f
+            quit = ((fopt-f)<=me%eps) .and. (all(abs(f-fstar)<=me%eps))
 
-    end do
+            !  terminate sa if appropriate.
+            if (quit) then
+                x = xopt
+                ier = 0
+                fopt = me%func(fopt)
+                if (me%iprint >= 1) then
+                    write(unit,'(/A)') '----------------------------------------------'
+                    write(unit,'(A)')  '  sa achieved termination criteria. ier = 0.  '
+                    write(unit,'(A/)') '----------------------------------------------'
+                end if
+                exit
+            end if
+
+            !  if termination criteria is not met, prepare for another loop.
+            t = abs(rt)*t
+            do i = me%neps, 2, -1
+                fstar(i) = fstar(i-1)
+            end do
+            f = fopt
+            x = xopt
+
+        end do main
+
+    end do reset
 
     end subroutine sa
 !********************************************************************************
@@ -655,14 +683,27 @@
     do
 
         if (first_try) then
-            xp = x
-            first_try = .false.
+            if (me%use_initial_guess) then
+                ! use the initial guess
+                ! [note if this evauation fails, the subsequent ones
+                !  are perturbed from this one]
+                xp = x
+                first_try = .false.
+            else
+                ! a random point in the bounds:
+                ! [if it fails, a new random one is tried next time]
+                do i = 1, me%n
+                    xp(i) = uniform(me%lb(i),me%ub(i))
+                    !xp(i) = me%lb(i) + (me%ub(i)-me%lb(i))*uniform_random_number()
+                end do
+            end if
         else
             ! perturb all of them:
             do i = 1, me%n
                 lower = max( me%lb(i), x(i) - vm(i) )
                 upper = min( me%ub(i), x(i) + vm(i) )
-                xp(i) = lower + (upper-lower)*uniform_random_number()
+                xp(i) = uniform(lower,upper)
+                !xp(i) = lower + (upper-lower)*uniform_random_number()
             end do
         end if
 
@@ -806,7 +847,7 @@
 
 !********************************************************************************
 !>
-!  Get a new uniform random number.
+!  Get a new uniform random number from [0,1].
 !
 !### Author
 !  * Jacob Williams, 8/30/2019
@@ -815,11 +856,28 @@
 
     implicit none
 
-    real :: f
+    real(dp) :: f
 
     call random_number(f)
 
     end function uniform_random_number
+!********************************************************************************
+
+!********************************************************************************
+!>
+!  Uniform random number on the interval `[xl,xu]`.
+
+    function uniform(xl,xu)
+
+    implicit none
+
+    real(dp),intent(in) :: xl !! lower bound
+    real(dp),intent(in) :: xu !! upper bound
+    real(dp) :: uniform
+
+    uniform = xl + (xu-xl)*uniform_random_number()
+
+    end function uniform
 !********************************************************************************
 
 !********************************************************************************

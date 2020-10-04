@@ -30,6 +30,8 @@ do i = 1, n
   c(i) = 2.0_dp
 end do
 
+nobds = 0 ! JW : no longer used
+
 !  note start at local, but not global, optima of the judge function.
 x(1) =  2.354471_dp
 x(2) = -0.319186_dp
