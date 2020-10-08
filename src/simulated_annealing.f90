@@ -1,13 +1,3 @@
-
-
-!TODO
-!       - input rand distributation option
-!       - a way to specify that some variables are not to be changed... this could be part of the distributation
-!         selection (a constant option). each variable can have a different distribution.
-!
-!  see also: https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.basinhopping.html
-
-
 !********************************************************************************
 !>
 !   simulated annealing is a global optimization method that distinguishes
@@ -39,6 +29,12 @@
 !    See: https://www.netlib.org/opt/simann.f
 !  * modifications by alan miller : fortran 90 version - 2 october 2013
 !  * Jacob Williams, 8/26/2019 : modernized Fortran
+!
+!### TODO
+!  * input rand distributation option
+!  * a way to specify that some variables are not to be changed... this could be part of the distributation
+!    selection (a constant option). each variable can have a different distribution.
+!  * get ideas from: https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.basinhopping.html
 
     module simulated_annealing_module
 
