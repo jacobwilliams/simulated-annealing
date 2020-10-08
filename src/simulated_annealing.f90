@@ -176,7 +176,7 @@
     end interface
     !*******************************************************
 
-    public :: prtvec
+    public :: print_vector
     public :: dp
 
     contains
@@ -437,7 +437,7 @@
     fopt = f
     if (me%iprint >= 1) then
         write(unit, '(A)') '  '
-        call prtvec(unit,xp,me%n,'initial x')
+        call print_vector(unit,xp,me%n,'initial x')
         write(unit, '(A,1X,G25.18)')  '  initial f: ', me%func(f)
     end if
 
@@ -486,9 +486,9 @@
                     fp = me%func(fp)
                     if (me%iprint >= 3) then
                         write(unit,'(A)') ' '
-                        call prtvec(unit,x,me%n,'current x')
+                        call print_vector(unit,x,me%n,'current x')
                         write(unit,'(A,G25.18)') ' current f: ', me%func(f)
-                        call prtvec(unit,xp,me%n,'trial x')
+                        call print_vector(unit,xp,me%n,'trial x')
                         write(unit,'(A,G25.18)') ' resulting f: ', me%func(fp)
                     end if
 
@@ -567,9 +567,9 @@
                         write(unit,'(/A)') '---------------------------------------------------'
                         write(unit,'(A)')  ' intermediate results after step length adjustment '
                         write(unit,'(A/)') '---------------------------------------------------'
-                        call prtvec(unit, vm,   me%n, 'new step length (vm)')
-                        call prtvec(unit, xopt, me%n, 'current optimal x')
-                        call prtvec(unit, x,    me%n, 'current x')
+                        call print_vector(unit, vm,   me%n, 'new step length (vm)')
+                        call print_vector(unit, xopt, me%n, 'current optimal x')
+                        call print_vector(unit, x,    me%n, 'current x')
                         write(unit,'(A)') ' '
                     end if
                 case (2)
@@ -606,8 +606,8 @@
                     write(unit,'(A,I8)')     '     rejected uphill:         ', nrej
                     write(unit,'(A,I8)')     '  new minima this temperature:', nnew
                 end if
-                call prtvec(unit,xopt, me%n, 'current optimal x')
-                call prtvec(unit,vm,   me%n, 'step length (vm)')
+                call print_vector(unit,xopt, me%n, 'current optimal x')
+                call print_vector(unit,vm,   me%n, 'step length (vm)')
                 write(unit, '(A)') ' '
             end if
 
@@ -881,10 +881,10 @@
 !  this subroutine prints the double precision vector named vector.
 !  elements 1 thru ncols will be printed. name is a character variable
 !  that describes vector. note that if name is given in the call to
-!  prtvec, it must be enclosed in quotes. if there are more than 10
+!  print_vector, it must be enclosed in quotes. if there are more than 10
 !  elements in vector, 10 elements will be printed on each line.
 
-    subroutine prtvec(iunit, vector, ncols, name)
+    subroutine print_vector(iunit, vector, ncols, name)
 
     implicit none
 
@@ -908,7 +908,7 @@
         write(iunit,'(10(G12.5,1X))') vector(1:ncols)
     end if
 
-    end subroutine prtvec
+    end subroutine print_vector
 !********************************************************************************
 
 !********************************************************************************

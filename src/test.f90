@@ -1,7 +1,7 @@
 program simann
 
 use iso_fortran_env, only: output_unit
-use simulated_annealing_module, only: simulated_annealing_type, dp, prtvec
+use simulated_annealing_module, only: simulated_annealing_type, dp, print_vector
 
 implicit none
 
@@ -61,11 +61,11 @@ write(output_unit,&
         '   iseed1:               ', iseed1, &
         '   iseed2:               ', iseed2
 
-call prtvec(output_unit,x, n, 'starting values')
-call prtvec(output_unit,vm, n, 'initial step length')
-call prtvec(output_unit,lb, n, 'lower bound')
-call prtvec(output_unit,ub, n, 'upper bound')
-call prtvec(output_unit,c, n, 'c vector')
+call print_vector(output_unit,x, n, 'starting values')
+call print_vector(output_unit,vm, n, 'initial step length')
+call print_vector(output_unit,lb, n, 'lower bound')
+call print_vector(output_unit,ub, n, 'upper bound')
+call print_vector(output_unit,c, n, 'c vector')
 write(output_unit, '(A)') '  ****   end of driver routine output   ****'
 write(output_unit, '(A)') '  ****   before call to sa.             ****'
 
@@ -76,8 +76,8 @@ call sa%initialize(fcn,n,lb,ub,c,&
 call sa%optimize(x, rt, t, vm, xopt, fopt, nacc, nfcnev, ier)
 
 write(output_unit, '(A)') '  ****   results after sa   ****   '
-call prtvec(output_unit,xopt, n, 'solution')
-call prtvec(output_unit,vm, n, 'final step length')
+call print_vector(output_unit,xopt, n, 'solution')
+call print_vector(output_unit,vm, n, 'final step length')
 write(output_unit,'(/A,G20.13,/A,I10,/A,I10,/A,I10,/A,G20.13,/A,I3/)') &
       ' optimal function value: ', fopt, &
       ' number of function evaluations:     ', nfcnev,&
