@@ -40,7 +40,7 @@
 !  * modifications by alan miller : fortran 90 version - 2 october 2013
 !  * Jacob Williams, 8/26/2019 : modernized Fortran
 
-    module simulated_anneal
+    module simulated_annealing_module
 
     use iso_fortran_env, only: dp => real64, output_unit
 
@@ -916,5 +916,5 @@
 !********************************************************************************
 
 !********************************************************************************
-    end module simulated_anneal
+    end module simulated_annealing_module
 !********************************************************************************

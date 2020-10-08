@@ -1,7 +1,7 @@
 program simann
 
 use iso_fortran_env, only: output_unit
-use simulated_anneal, only: simulated_annealing_type, dp, prtvec
+use simulated_annealing_module, only: simulated_annealing_type, dp, prtvec
 
 implicit none
 
