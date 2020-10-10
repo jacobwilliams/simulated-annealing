@@ -91,7 +91,7 @@
                                                         !! accepted trial set of variables that optimizes the function.
         real(dp), dimension(:),allocatable :: c         !! vector that controls the step length adjustment.  the suggested
                                                         !! value for all elements is 2.0.
-        integer :: iprint = 1           !! controls printing inside sa:
+        integer :: iprint = 1           !! controls printing inside [[sa]]:
                                         !!
                                         !!  * 0 - nothing printed.
                                         !!  * 1 - function value for the starting value and
@@ -130,7 +130,7 @@
                                     !! to an entirely different sequence of trial points
                                     !! and decisions on downhill moves (when maximizing).
                                     !! see goffe et al. on how this can be used to test
-                                    !! the results of sa.
+                                    !! the results of [[sa]].
         integer   :: step_mode = 1  !! how to vary `vm` after `ns` cycles.
                                     !!
                                     !! * 1 : original method: adjust vm so that approximately
