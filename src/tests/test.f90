@@ -89,9 +89,9 @@ write(output_unit,'(/A,G20.13,/A,I10,/A,I10,/A,I10,/A,G20.13,/A,I3/)') &
 contains
 
     subroutine fcn(me, theta, h, istat)
-    !  this subroutine is from the example in judge et al., the theory and
-    !  practice of econometrics, 2nd ed., pp. 956-7. there are two optima:
-    !  f(.864,1.23) = 16.0817 (the global minumum) and f(2.35,-.319) = 20.9805.
+    !!  this subroutine is from the example in judge et al., the theory and
+    !!  practice of econometrics, 2nd ed., pp. 956-7. there are two optima:
+    !!  f(.864,1.23) = 16.0817 (the global minumum) and f(2.35,-.319) = 20.9805.
 
     implicit none
 
@@ -100,74 +100,73 @@ contains
     real (dp), intent(out) :: h
     integer,intent(out) :: istat
 
-    integer   :: i
-    real (dp) :: y(20), x2(20), x3(20)
+    integer,parameter :: n = 20 !! size of arrays
 
-    y(1) = 4.284_dp
-    y(2) = 4.149_dp
-    y(3) = 3.877_dp
-    y(4) = 0.533_dp
-    y(5) = 2.211_dp
-    y(6) = 2.389_dp
-    y(7) = 2.145_dp
-    y(8) = 3.231_dp
-    y(9) = 1.998_dp
-    y(10) = 1.379_dp
-    y(11) = 2.106_dp
-    y(12) = 1.428_dp
-    y(13) = 1.011_dp
-    y(14) = 2.179_dp
-    y(15) = 2.858_dp
-    y(16) = 1.388_dp
-    y(17) = 1.651_dp
-    y(18) = 1.593_dp
-    y(19) = 1.046_dp
-    y(20) = 2.152_dp
+    integer :: i !! counter
+    real(dp),dimension(n),parameter :: y = [4.284_dp, &
+                                            4.149_dp, &
+                                            3.877_dp, &
+                                            0.533_dp, &
+                                            2.211_dp, &
+                                            2.389_dp, &
+                                            2.145_dp, &
+                                            3.231_dp, &
+                                            1.998_dp, &
+                                            1.379_dp, &
+                                            2.106_dp, &
+                                            1.428_dp, &
+                                            1.011_dp, &
+                                            2.179_dp, &
+                                            2.858_dp, &
+                                            1.388_dp, &
+                                            1.651_dp, &
+                                            1.593_dp, &
+                                            1.046_dp, &
+                                            2.152_dp ]
+    real(dp),dimension(n),parameter :: x2 = [.286_dp, &
+                                             .973_dp, &
+                                             .384_dp, &
+                                             .276_dp, &
+                                             .973_dp, &
+                                             .543_dp, &
+                                             .957_dp, &
+                                             .948_dp, &
+                                             .543_dp, &
+                                             .797_dp, &
+                                             .936_dp, &
+                                             .889_dp, &
+                                             .006_dp, &
+                                             .828_dp, &
+                                             .399_dp, &
+                                             .617_dp, &
+                                             .939_dp, &
+                                             .784_dp, &
+                                             .072_dp, &
+                                             .889_dp ]
 
-    x2(1) =  .286_dp
-    x2(2) =  .973_dp
-    x2(3) =  .384_dp
-    x2(4) =  .276_dp
-    x2(5) =  .973_dp
-    x2(6) =  .543_dp
-    x2(7) =  .957_dp
-    x2(8) =  .948_dp
-    x2(9) =  .543_dp
-    x2(10) =  .797_dp
-    x2(11) =  .936_dp
-    x2(12) =  .889_dp
-    x2(13) =  .006_dp
-    x2(14) =  .828_dp
-    x2(15) =  .399_dp
-    x2(16) =  .617_dp
-    x2(17) =  .939_dp
-    x2(18) =  .784_dp
-    x2(19) =  .072_dp
-    x2(20) =  .889_dp
-
-    x3(1) = .645_dp
-    x3(2) = .585_dp
-    x3(3) = .310_dp
-    x3(4) = .058_dp
-    x3(5) = .455_dp
-    x3(6) = .779_dp
-    x3(7) = .259_dp
-    x3(8) = .202_dp
-    x3(9) = .028_dp
-    x3(10) = .099_dp
-    x3(11) = .142_dp
-    x3(12) = .296_dp
-    x3(13) = .175_dp
-    x3(14) = .180_dp
-    x3(15) = .842_dp
-    x3(16) = .039_dp
-    x3(17) = .103_dp
-    x3(18) = .620_dp
-    x3(19) = .158_dp
-    x3(20) = .704_dp
+    real(dp),dimension(n),parameter :: x3 = [.645_dp, &
+                                             .585_dp, &
+                                             .310_dp, &
+                                             .058_dp, &
+                                             .455_dp, &
+                                             .779_dp, &
+                                             .259_dp, &
+                                             .202_dp, &
+                                             .028_dp, &
+                                             .099_dp, &
+                                             .142_dp, &
+                                             .296_dp, &
+                                             .175_dp, &
+                                             .180_dp, &
+                                             .842_dp, &
+                                             .039_dp, &
+                                             .103_dp, &
+                                             .620_dp, &
+                                             .158_dp, &
+                                             .704_dp ]
 
     h = 0.0_dp
-    do i = 1, 20
+    do i = 1, n
         h = (theta(1) + theta(n)*x2(i) + (theta(n)**2)*x3(i) - y(i))**2 + h
     end do
 
