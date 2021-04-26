@@ -48,7 +48,7 @@ jobs:
 
     - name: Run tests
       run: |
-        ./bin/simann
+        ./bin/test
 
     - name: Build documentation
       run: ford ./simulated-annealing.md
