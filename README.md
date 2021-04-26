@@ -1,4 +1,7 @@
 A modern Fortran simulated annealing optimization method. ***A work in progress.***
+# Status
+
+![Build Status](https://github.com/jacobwilliams/simulated-annealing/actions/workflows/CI.yml/badge.svg)
 
 ### Building
 
@@ -16,6 +19,10 @@ A [FoBiS](https://github.com/szaghi/FoBiS) configuration file (`simulated-anneal
 ### See also
 
   *  https://www.netlib.org/opt/simann.f
+
+### Documentation
+
+The latest API documentation can be found [here](http://jacobwilliams.github.io/simulated-annealing/). This was generated from the source code using [FORD](https://github.com/cmacmackin/ford).
 
 ### References
 
