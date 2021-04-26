@@ -656,7 +656,7 @@
     implicit none
 
     class(simulated_annealing_type),intent(inout) :: me
-    real(dp),dimension(:),intent(in)  :: x       !! input optimization variable vector to perburb
+    real(dp),dimension(:),intent(in)  :: x       !! input optimization variable vector to perturb
     real(dp),dimension(:),intent(in)  :: vm      !! step length vector
     real(dp),dimension(:),intent(out) :: xp      !! the perturbed `x` value
     real(dp),intent(out)              :: fp      !! the value of the user function at `xp`
