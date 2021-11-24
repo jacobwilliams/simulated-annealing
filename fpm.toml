@@ -1,0 +1,24 @@
+name = "simulated-annealing"
+author = "Jacob Williams"
+copyright  = "Copyright (c) 2019-2021, Jacob Williams"
+license = "BSD-3"
+description = "Simulated Annealing with Modern Fortran"
+homepage = "https://github.com/jacobwilliams/simulated-annealing"
+keywords = ["nle solver"]
+
+[build]
+auto-executables = false
+auto-examples = false
+auto-tests = false
+link = ["lapack", "blas"]
+
+[library]
+source-dir = "src"
+
+[install]
+library = true
+
+[[test]]
+name = "test"
+source-dir = "tests"
+main = "test.f90"

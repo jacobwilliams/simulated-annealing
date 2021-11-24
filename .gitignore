@@ -39,5 +39,7 @@
 /doc
 /docs
 /lib
-
 /.vscode
+/build
+
+.DS_Store

@@ -96,7 +96,7 @@ contains
     implicit none
 
     class(simulated_annealing_type),intent(inout) :: me
-    real (dp), intent(in)  :: theta(:)
+    real (dp), dimension(:), intent(in)  :: theta
     real (dp), intent(out) :: h
     integer,intent(out) :: istat
 
@@ -167,7 +167,7 @@ contains
 
     h = 0.0_dp
     do i = 1, n
-        h = (theta(1) + theta(n)*x2(i) + (theta(n)**2)*x3(i) - y(i))**2 + h
+        h = (theta(1) + theta(2)*x2(i) + (theta(2)**2)*x3(i) - y(i))**2 + h
     end do
 
     istat = 0
