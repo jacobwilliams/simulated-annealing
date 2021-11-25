@@ -1,3 +1,6 @@
+![simulated-annealing](media/logo.png)
+============
+
 A modern Fortran simulated annealing optimization method. ***A work in progress.***
 # Status
 
