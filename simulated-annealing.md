@@ -17,6 +17,4 @@ graph: true
 exclude: test.f90
 exclude_dir: ./src/tests
 
-### Brief description
-
 {!README.md!}

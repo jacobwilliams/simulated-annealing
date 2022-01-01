@@ -8,14 +8,14 @@ A modern Fortran simulated annealing optimization method. ***A work in progress.
 
 ### Building
 
-A [Fortran Package Manager](https://github.com/fortran-lang/fpm) manifest file is included, so that the library and tests cases can be compiled with FPM. For example:
+A [Fortran Package Manager](https://github.com/fortran-lang/fpm) manifest file is included, so that the library and test cases can be compiled with FPM. For example:
 
 ```
 fpm build --profile release
 fpm test --profile release
 ```
 
-To generate the documentation using [ford](https://github.com/Fortran-FOSS-Programmers/ford), run: ```FoBis.py rule --execute makedoc -f simulated-annealing.fobis```
+To generate the documentation using [ford](https://github.com/Fortran-FOSS-Programmers/ford), run: ```ford simulated-annealing.md```
 
 ### See also
 
