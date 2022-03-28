@@ -4,7 +4,7 @@
 A modern Fortran simulated annealing optimization method. ***A work in progress.***
 ### Status
 
-![CI Status](https://github.com/jacobwilliams/simulated-annealing/actions/workflows/CI.yml/badge.svg)
+[![CI Status](https://github.com/jacobwilliams/simulated-annealing/actions/workflows/CI.yml/badge.svg)](https://github.com/jacobwilliams/simulated-annealing/actions)
 [![GitHub release](https://img.shields.io/github/release/jacobwilliams/simulated-annealing.svg?style=plastic)](https://github.com/jacobwilliams/simulated-annealing/releases/latest)
 [![codecov](https://codecov.io/gh/jacobwilliams/simulated-annealing/branch/master/graph/badge.svg?token=43HK33CSMY)](https://codecov.io/gh/jacobwilliams/simulated-annealing)
 
