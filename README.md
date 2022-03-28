@@ -2,9 +2,11 @@
 ============
 
 A modern Fortran simulated annealing optimization method. ***A work in progress.***
-# Status
+### Status
 
-![Build Status](https://github.com/jacobwilliams/simulated-annealing/actions/workflows/CI.yml/badge.svg)
+![CI Status](https://github.com/jacobwilliams/simulated-annealing/actions/workflows/CI.yml/badge.svg)
+[![GitHub release](https://img.shields.io/github/release/jacobwilliams/simulated-annealing.svg?style=plastic)](https://github.com/jacobwilliams/simulated-annealing/releases/latest)
+[![codecov](https://codecov.io/gh/jacobwilliams/simulated-annealing/branch/master/graph/badge.svg?token=43HK33CSMY)](https://codecov.io/gh/jacobwilliams/simulated-annealing)
 
 ### Building
 
@@ -15,6 +17,12 @@ fpm build --profile release
 fpm test --profile release
 ```
 
+To use `simulated-annealing` within your fpm project, add the following to your `fpm.toml` file:
+```toml
+[dependencies]
+simulated-annealing = { git="https://github.com/jacobwilliams/simulated-annealing.git" }
+```
+
 To generate the documentation using [ford](https://github.com/Fortran-FOSS-Programmers/ford), run: ```ford simulated-annealing.md```
 
 ### See also
@@ -23,7 +31,7 @@ To generate the documentation using [ford](https://github.com/Fortran-FOSS-Progr
 
 ### Documentation
 
-The latest API documentation can be found [here](http://jacobwilliams.github.io/simulated-annealing/). This was generated from the source code using [FORD](https://github.com/Fortran-FOSS-Programmers/ford).
+The latest API documentation can be found [here](https://jacobwilliams.github.io/simulated-annealing/). This was generated from the source code using [FORD](https://github.com/Fortran-FOSS-Programmers/ford).
 
 ### References
 
