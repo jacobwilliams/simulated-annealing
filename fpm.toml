@@ -9,7 +9,7 @@ keywords = ["nle solver"]
 [build]
 auto-executables = false
 auto-examples = false
-auto-tests = false
+auto-tests = true
 link = ["lapack", "blas"]
 
 [library]
@@ -17,8 +17,3 @@ source-dir = "src"
 
 [install]
 library = true
-
-[[test]]
-name = "test"
-source-dir = "tests"
-main = "test.f90"
