@@ -1,5 +1,5 @@
 project: simulated-annealing
-project_dir: ./src
+src_dir: ./src
 output_dir: ./doc
 media_dir: ./media
 project_github: https://github.com/jacobwilliams/simulated-annealing
@@ -14,7 +14,5 @@ display: public
          private
 source: true
 graph: true
-exclude: test.f90
-exclude_dir: ./src/tests
 
 {!README.md!}
