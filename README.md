@@ -4,6 +4,7 @@
 A modern Fortran simulated annealing optimization method. ***A work in progress.***
 ### Status
 
+[![Language](https://img.shields.io/badge/-Fortran-734f96?logo=fortran&logoColor=white)](https://github.com/topics/fortran)
 [![CI Status](https://github.com/jacobwilliams/simulated-annealing/actions/workflows/CI.yml/badge.svg)](https://github.com/jacobwilliams/simulated-annealing/actions)
 [![GitHub release](https://img.shields.io/github/release/jacobwilliams/simulated-annealing.svg?style=plastic)](https://github.com/jacobwilliams/simulated-annealing/releases/latest)
 [![codecov](https://codecov.io/gh/jacobwilliams/simulated-annealing/branch/master/graph/badge.svg?token=43HK33CSMY)](https://codecov.io/gh/jacobwilliams/simulated-annealing)
@@ -23,7 +24,7 @@ To use `simulated-annealing` within your fpm project, add the following to your 
 simulated-annealing = { git="https://github.com/jacobwilliams/simulated-annealing.git" }
 ```
 
-To generate the documentation using [ford](https://github.com/Fortran-FOSS-Programmers/ford), run: ```ford simulated-annealing.md```
+To generate the documentation using [ford](https://github.com/Fortran-FOSS-Programmers/ford), run: ```ford ford.md```
 
 ### See also
 

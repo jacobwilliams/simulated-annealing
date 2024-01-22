@@ -1,10 +1,10 @@
 name = "simulated-annealing"
 author = "Jacob Williams"
-copyright  = "Copyright (c) 2019-2022, Jacob Williams"
+copyright  = "Copyright (c) 2019-2024, Jacob Williams"
 license = "BSD-3"
 description = "Simulated Annealing with Modern Fortran"
 homepage = "https://github.com/jacobwilliams/simulated-annealing"
-keywords = ["nle solver"]
+keywords = ["nle solver", "optimization"]
 
 [build]
 auto-executables = false
