@@ -38,11 +38,22 @@
 
     module simulated_annealing_module
 
-    use iso_fortran_env, only: dp => real64, output_unit
+    use iso_fortran_env
 
     implicit none
 
     private
+
+#ifdef REAL32
+    integer,parameter :: wp = real32   !! real kind used by this module [4 bytes]
+#elif REAL64
+    integer,parameter :: wp = real64   !! real kind used by this module [8 bytes]
+#elif REAL128
+    integer,parameter :: wp = real128  !! real kind used by this module [16 bytes]
+#else
+    integer,parameter :: wp = real64   !! real kind used by this module [8 bytes]
+#endif
+    integer,parameter,public :: simann_wp = wp   !! for exporting from the module
 
     !*******************************************************
     type,public :: simulated_annealing_type
@@ -54,7 +65,7 @@
                                       !! a true value denotes maximization while a false value denotes
                                       !! minimization.  intermediate output (see iprint) takes this into
                                       !! account.
-        real(dp) :: eps = 1.0e-9_dp   !! error tolerance for termination. if the final function
+        real(wp) :: eps = 1.0e-9_wp   !! error tolerance for termination. if the final function
                                       !! values from the last neps temperatures differ from the
                                       !! corresponding value at the current temperature by less than
                                       !! eps and the final function value at the current temperature
@@ -78,8 +89,8 @@
 
         integer :: n_resets = 2 !! number of times to run the main loop (must be >=1)
 
-        real(dp), dimension(:),allocatable :: lb        !! the lower bound for the allowable solution variables.
-        real(dp), dimension(:),allocatable :: ub        !! the upper bound for the allowable solution variables.
+        real(wp), dimension(:),allocatable :: lb        !! the lower bound for the allowable solution variables.
+        real(wp), dimension(:),allocatable :: ub        !! the upper bound for the allowable solution variables.
                                                         !! if the algorithm chooses x(i) < lb(i) or x(i) > ub(i),
                                                         !! i = 1, n, a point is from inside is randomly selected. this
                                                         !! this focuses the algorithm on the region inside ub and lb.
@@ -89,7 +100,7 @@
                                                         !! vector x should be inside this region.  also note that lb and
                                                         !! ub are fixed in position, while vm is centered on the last
                                                         !! accepted trial set of variables that optimizes the function.
-        real(dp), dimension(:),allocatable :: c         !! vector that controls the step length adjustment.  the suggested
+        real(wp), dimension(:),allocatable :: c         !! vector that controls the step length adjustment.  the suggested
                                                         !! value for all elements is 2.0.
         integer :: iprint = 1           !! controls printing inside [[sa]]:
                                         !!
@@ -137,7 +148,7 @@
                                     !!   half of all evaluations are accepted
                                     !! * 2 : keep vm constant
                                     !! * 3 : adjust by a constant `vms` factor
-        real(dp)  :: vms = 0.1_dp         !! for `step_mode=3`, the factor to adjust `vm`
+        real(wp)  :: vms = 0.1_wp         !! for `step_mode=3`, the factor to adjust `vm`
         integer   :: iunit = output_unit  !! unit number for prints.
 
         procedure(sa_func),pointer :: fcn => null()  !! the user's function
@@ -160,11 +171,11 @@
     abstract interface
         subroutine sa_func(me, x, f, istat)
             !! interface to function to be maximized/minimized
-            import :: dp, simulated_annealing_type
+            import :: wp, simulated_annealing_type
             implicit none
             class(simulated_annealing_type),intent(inout) :: me
-            real(dp),dimension(:),intent(in) :: x
-            real(dp), intent(out)            :: f
+            real(wp),dimension(:),intent(in) :: x
+            real(wp), intent(out)            :: f
             integer, intent(out)             :: istat !! status flag:
                                                       !!
                                                       !! * 0 : valid function evaluation
@@ -177,7 +188,6 @@
     !*******************************************************
 
     public :: print_vector
-    public :: dp
 
     contains
 !********************************************************************************
@@ -212,11 +222,11 @@
     class(simulated_annealing_type),intent(inout) :: me
     procedure(sa_func)                            :: fcn
     integer, intent(in)                           :: n
-    real(dp), dimension(n), intent(in)            :: lb
-    real(dp), dimension(n), intent(in)            :: ub
-    real(dp), dimension(n), intent(in),optional   :: c
+    real(wp), dimension(n), intent(in)            :: lb
+    real(wp), dimension(n), intent(in)            :: ub
+    real(wp), dimension(n), intent(in),optional   :: c
     logical, intent(in),optional                  :: maximize
-    real(dp), intent(in),optional                 :: eps
+    real(wp), intent(in),optional                 :: eps
     integer, intent(in),optional                  :: ns
     integer, intent(in),optional                  :: nt
     integer, intent(in),optional                  :: neps
@@ -225,7 +235,7 @@
     integer, intent(in),optional                  :: iseed1
     integer, intent(in),optional                  :: iseed2
     integer,intent(in),optional                   :: step_mode
-    real(dp), intent(in), optional                :: vms
+    real(wp), intent(in), optional                :: vms
     integer, intent(in), optional                 :: iunit
     logical, intent(in), optional                 :: use_initial_guess
     integer, intent(in), optional                 :: n_resets
@@ -246,7 +256,7 @@
     if (present(c)) then
         me%c = c
     else
-        me%c = 2.0_dp
+        me%c = 2.0_wp
     end if
 
     if (present(maximize)          ) me%maximize = maximize
@@ -345,21 +355,21 @@
     implicit none
 
     class(simulated_annealing_type),intent(inout) :: me
-    real(dp), dimension(me%n), intent(inout)  :: x       !! on input: the starting values for the variables of the
+    real(wp), dimension(me%n), intent(inout)  :: x       !! on input: the starting values for the variables of the
                                                          !! function to be optimized. [Will be replaced by final point]
-    real(dp), intent(in)                      :: rt      !! the temperature reduction factor.  the value suggested by
+    real(wp), intent(in)                      :: rt      !! the temperature reduction factor.  the value suggested by
                                                          !! corana et al. is .85. see goffe et al. for more advice.
-    real(dp), intent(inout)                   :: t       !! on input, the initial temperature. see goffe et al. for advice.
+    real(wp), intent(inout)                   :: t       !! on input, the initial temperature. see goffe et al. for advice.
                                                          !! on output, the final temperature. Note that if `t=0`, then
                                                          !! all downhill steps will be rejected
-    real(dp), dimension(me%n), intent(inout)  :: vm      !! the step length vector. on input it should encompass the region of
+    real(wp), dimension(me%n), intent(inout)  :: vm      !! the step length vector. on input it should encompass the region of
                                                          !! interest given the starting value x.  for point x(i), the next
                                                          !! trial point is selected is from x(i) - vm(i)  to  x(i) + vm(i).
                                                          !! since vm is adjusted so that about half of all points are accepted,
                                                          !! the input value is not very important (i.e. is the value is off,
                                                          !! sa adjusts vm to the correct value).
-    real(dp), dimension(me%n), intent(out)  :: xopt      !! the variables that optimize the function.
-    real(dp), intent(out)                   :: fopt      !! the optimal value of the function.
+    real(wp), dimension(me%n), intent(out)  :: xopt      !! the variables that optimize the function.
+    real(wp), intent(out)                   :: fopt      !! the optimal value of the function.
     integer, intent(out)                    :: nacc      !! the number of accepted function evaluations.
     integer, intent(out)                    :: nfcnev    !! the total number of function evaluations. in a minor
                                                          !! point, note that the first evaluation is not used in the
@@ -374,13 +384,13 @@
                                                          !!  * 4 - user stop in problem function.
                                                          !!  * 99 - should not be seen; only used internally.
 
-    real(dp),dimension(me%n)    :: xp            !! perturbed `x` vector
-    real(dp),dimension(me%neps) :: fstar         !! array of optimals found so far
-    real(dp)                    :: f             !! function value
-    real(dp)                    :: fp            !! function value
-    real(dp)                    :: p             !! for metropolis criteria
-    real(dp)                    :: pp            !! for metropolis criteria
-    real(dp)                    :: ratio         !! ratio of `nacp` to `ns`
+    real(wp),dimension(me%n)    :: xp            !! perturbed `x` vector
+    real(wp),dimension(me%neps) :: fstar         !! array of optimals found so far
+    real(wp)                    :: f             !! function value
+    real(wp)                    :: fp            !! function value
+    real(wp)                    :: p             !! for metropolis criteria
+    real(wp)                    :: pp            !! for metropolis criteria
+    real(wp)                    :: ratio         !! ratio of `nacp` to `ns`
     integer                     :: nup           !! number of uphill steps
     integer                     :: ndown         !! number of accepted downhill steps
     integer                     :: nrej          !! number of rejected downhill steps
@@ -390,8 +400,8 @@
     integer                     :: nacp          !! number of accepts steps in a complete `ns` cycle
     logical                     :: quit          !! if the termination criteria was achieved
     integer                     :: unit          !! unit for printing
-    real(dp)                    :: t_original    !! original input value of `t`
-    real(dp),dimension(me%n)    :: vm_original   !! original input value of `vm`
+    real(wp)                    :: t_original    !! original input value of `t`
+    real(wp),dimension(me%n)    :: vm_original   !! original input value of `vm`
     logical                     :: first
 
     ! initialize:
@@ -399,14 +409,14 @@
     nfcnev      = 0
     ier         = 99
     xopt        = x
-    fopt        = huge(1.0_dp)
+    fopt        = huge(1.0_wp)
     vm          = abs(vm)
     t_original  = t
     vm_original = vm
 
     ! if the initial temperature is not positive, notify the user and
     ! return to the calling routine.
-    if (t < 0.0_dp) then
+    if (t < 0.0_wp) then
         if (me%iprint>0) write(unit,'(A)') 'Error: The initial temperature must be non-negative.'
         ier = 3
         return
@@ -452,7 +462,7 @@
         end if
 
         ! restart the main loop
-        fstar = huge(1.0_dp)
+        fstar = huge(1.0_wp)
         t     = t_original
         vm    = vm_original
         nacc  = 0
@@ -515,7 +525,7 @@
                         ! acceptance or rejection.
                         ! NOTE: if t=0, all downhill steps are rejected (monotonic)
 
-                        if (t/=0.0_dp) then
+                        if (t/=0.0_wp) then
                             p = exprep((fp - f)/t)
                             pp = uniform_random_number()
                             if (pp < p) then
@@ -552,12 +562,12 @@
                 select case (me%step_mode)
                 case(1)
                     ! adjust vm so that approximately half of all evaluations are accepted.
-                    ratio = real(nacp,dp) /real(me%ns,dp)
+                    ratio = real(nacp,wp) /real(me%ns,wp)
                     do i = 1, me%n
-                        if (ratio > 0.6_dp) then
-                            vm(i) = vm(i)*(1.0_dp + me%c(i)*(ratio - 0.6_dp)/0.4_dp)
-                        else if (ratio < 0.4_dp) then
-                            vm(i) = vm(i)/(1.0_dp + me%c(i)*((0.4_dp - ratio)/0.4_dp))
+                        if (ratio > 0.6_wp) then
+                            vm(i) = vm(i)*(1.0_wp + me%c(i)*(ratio - 0.6_wp)/0.4_wp)
+                        else if (ratio < 0.4_wp) then
+                            vm(i) = vm(i)/(1.0_wp + me%c(i)*((0.4_wp - ratio)/0.4_wp))
                         end if
                         if (vm(i) > (me%ub(i)-me%lb(i))) then
                             vm(i) = me%ub(i) - me%lb(i)
@@ -656,10 +666,10 @@
     implicit none
 
     class(simulated_annealing_type),intent(inout) :: me
-    real(dp),dimension(:),intent(in)  :: x       !! input optimization variable vector to perturb
-    real(dp),dimension(:),intent(in)  :: vm      !! step length vector
-    real(dp),dimension(:),intent(out) :: xp      !! the perturbed `x` value
-    real(dp),intent(out)              :: fp      !! the value of the user function at `xp`
+    real(wp),dimension(:),intent(in)  :: x       !! input optimization variable vector to perturb
+    real(wp),dimension(:),intent(in)  :: vm      !! step length vector
+    real(wp),dimension(:),intent(out) :: xp      !! the perturbed `x` value
+    real(wp),intent(out)              :: fp      !! the value of the user function at `xp`
     integer,intent(inout)             :: nfcnev  !! total number of function evaluations
     integer,intent(inout)             :: ier     !! status output code
     logical,intent(in),optional       :: first   !! to use the input `x` the first time
@@ -667,8 +677,8 @@
     integer :: i         !! counter
     integer :: istat     !! user function status code
     logical :: first_try !! local copy of `first`
-    real(dp) :: lower    !! lower bound to use for random interval
-    real(dp) :: upper    !! upper bound to use for random interval
+    real(wp) :: lower    !! lower bound to use for random interval
+    real(wp) :: upper    !! upper bound to use for random interval
 
     if (present(first)) then
         first_try = first
@@ -753,8 +763,8 @@
     implicit none
 
     class(simulated_annealing_type),intent(in) :: me
-    real(dp),intent(in) :: f
-    real(dp) :: func
+    real(wp),intent(in) :: f
+    real(wp) :: func
 
     if (me%maximize) then
         func = f
@@ -785,8 +795,8 @@
     type(ieee_flag_type),parameter,dimension(2) :: out_of_range = &
                                                     [ieee_overflow,ieee_underflow]
 
-    real(dp), intent(in) :: x
-    real(dp) :: f
+    real(wp), intent(in) :: x
+    real(wp) :: f
 
     call ieee_set_halting_mode(out_of_range,.false.)
 
@@ -796,9 +806,9 @@
     if (any(flags)) then
         call ieee_set_flag(out_of_range,.false.)
         if (flags(1)) then
-            f = huge(1.0_dp)
+            f = huge(1.0_wp)
         else
-            f = 0.0_dp
+            f = 0.0_wp
         end if
     end if
 
@@ -852,7 +862,7 @@
 
     implicit none
 
-    real(dp) :: f
+    real(wp) :: f
 
     call random_number(f)
 
@@ -867,9 +877,9 @@
 
     implicit none
 
-    real(dp),intent(in) :: xl !! lower bound
-    real(dp),intent(in) :: xu !! upper bound
-    real(dp) :: uniform
+    real(wp),intent(in) :: xl !! lower bound
+    real(wp),intent(in) :: xu !! upper bound
+    real(wp) :: uniform
 
     uniform = xl + (xu-xl)*uniform_random_number()
 
@@ -890,7 +900,7 @@
 
     integer, intent(in)                     :: iunit
     integer, intent(in)                     :: ncols
-    real(dp), dimension(ncols), intent(in)  :: vector
+    real(wp), dimension(ncols), intent(in)  :: vector
     character(len=*), intent(in)            :: name
 
     integer :: i, lines, ll
@@ -898,7 +908,7 @@
     write(iunit,'(/,25X,A)') trim(name)
 
     if (ncols > 10) then
-        lines = int(ncols/10.0_dp)
+        lines = int(ncols/10.0_wp)
         do i = 1, lines
             ll = 10*(i - 1)
             write(iunit,'(10(G12.5,1X))') vector(1+ll:10+ll)

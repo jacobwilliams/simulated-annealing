@@ -1,7 +1,7 @@
 program simann
 
 use iso_fortran_env, only: output_unit
-use simulated_annealing_module, only: simulated_annealing_type, dp, print_vector
+use simulated_annealing_module, only: simulated_annealing_type, dp => simann_wp, print_vector
 
 implicit none
 
