@@ -77,19 +77,19 @@
             <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
               <a data-bs-toggle="tooltip"
                  data-bs-placement="bottom" data-html="true"
-                 title="100.0% of total for modules and submodules.">466 statements</a>
+                 title="100.0% of total for modules and submodules.">467 statements</a>
             </li>
 
             <li class="list-inline-item" id="source-file">
               <i class="fa fa-code"></i>
-              <a href="../src/simulated_annealing.f90"> Source File</a>
+              <a href="../src/simulated_annealing.F90"> Source File</a>
             </li>
         </ul>
       </div>
       <div class="col">
         <nav aria-label="breadcrumb">
           <ol class="breadcrumb justify-content-end mb-0">
-                <li class="breadcrumb-item"><a href='../sourcefile/simulated_annealing.f90.html'>simulated_annealing.f90</a></li>
+                <li class="breadcrumb-item"><a href='../sourcefile/simulated_annealing.f90.html'>simulated_annealing.F90</a></li>
             <li class="breadcrumb-item active" aria-current="page">simulated_annealing_module</li>
           </ol>
         </nav>
@@ -109,7 +109,19 @@
         <div id="sidebar">
       <h3>Contents</h3>
   
-  
+      <div class="card mb-4">
+      <a data-bs-toggle="collapse" href="#vars-0"
+         aria-expanded="false" aria-controls="vars-0">
+         <h4 class="card-header bg-primary text-white">Variables</h4>
+      </a>
+      <div id="vars-0" class="collapse">
+        <div class="list-group list-group-flush">
+            <a class="list-group-item" href="../module/simulated_annealing_module.html#variable-wp">wp</a>
+            <a class="list-group-item" href="../module/simulated_annealing_module.html#variable-simann_wp">simann_wp</a>
+        </div>
+      </div>
+    </div>
+
   
   
   
@@ -343,6 +355,57 @@ modules which it uses.
       <br>
 
 
+        <section>
+          <h2>Variables</h2>
+            <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Visibility</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+<th></th><th scope="col">Initial</th>        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-wp"></span>
+              integer,
+            </td>
+              <td>private,</td>
+            <td>
+parameter               
+            </td>
+            <td>::</td>
+            <td><strong>wp</strong></td>
+<td> =</td>
+                <td>real64</td>
+            <td>
+                <p>real kind used by this module [8 bytes]</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-simann_wp"></span>
+              integer,
+            </td>
+              <td>public,</td>
+            <td>
+parameter               
+            </td>
+            <td>::</td>
+            <td><strong>simann_wp</strong></td>
+<td> =</td>
+                <td>wp</td>
+            <td>
+                <p>for exporting from the module</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+        </section>
+        <br>
 
 
 
@@ -389,7 +452,7 @@ modules which it uses.
         <tr>
             <td>
               <span class="anchor" id="variable-x"></span>
-              real(kind=dp),
+              real(kind=wp),
             </td>
 <td>intent(in),</td>
               <td></td>            <td>
@@ -404,7 +467,7 @@ modules which it uses.
         <tr>
             <td>
               <span class="anchor" id="variable-f"></span>
-              real(kind=dp),
+              real(kind=wp),
             </td>
 <td>intent(out)</td>
               <td></td>            <td>
@@ -513,7 +576,7 @@ account.</p>
         <tr>
             <td>
               <span class="anchor" id="variable-eps"></span>
-              real(kind=dp),
+              real(kind=wp),
             </td>
               <td>private</td>
             <td>
@@ -522,7 +585,7 @@ account.</p>
             <td>::</td>
             <td><strong>eps</strong></td>
 <td> =</td>
-                <td>1.0e-9_dp</td>
+                <td>1.0e-9_wp</td>
             <td>
 <p>error tolerance for termination. if the final function
 values from the last neps temperatures differ from the
@@ -646,7 +709,7 @@ function evaluation</p>
         <tr>
             <td>
               <span class="anchor" id="variable-lb"></span>
-              real(kind=dp),
+              real(kind=wp),
             </td>
               <td>private,</td>
             <td>
@@ -663,7 +726,7 @@ function evaluation</p>
         <tr>
             <td>
               <span class="anchor" id="variable-ub"></span>
-              real(kind=dp),
+              real(kind=wp),
             </td>
               <td>private,</td>
             <td>
@@ -689,7 +752,7 @@ accepted trial set of variables that optimizes the function.</p>
         <tr>
             <td>
               <span class="anchor" id="variable-c"></span>
-              real(kind=dp),
+              real(kind=wp),
             </td>
               <td>private,</td>
             <td>
@@ -780,7 +843,7 @@ the results of <a href="../proc/sa.html">sa</a>.</p>
         <tr>
             <td>
               <span class="anchor" id="variable-vms"></span>
-              real(kind=dp),
+              real(kind=wp),
             </td>
               <td>private</td>
             <td>
@@ -789,7 +852,7 @@ the results of <a href="../proc/sa.html">sa</a>.</p>
             <td>::</td>
             <td><strong>vms</strong></td>
 <td> =</td>
-                <td>0.1_dp</td>
+                <td>0.1_wp</td>
             <td>
 <p>for <code>step_mode=3</code>, the factor to adjust <code>vm</code></p>
             </td>
@@ -910,7 +973,7 @@ to eliminate any possible confusion for the user.</p>
         <tr>
             <td>
               <span class="anchor" id="variable-f~3"></span>
-              real(kind=dp),
+              real(kind=wp),
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
@@ -927,7 +990,7 @@ to eliminate any possible confusion for the user.</p>
 
     <h4>
     Return Value
-    <small>real(kind=dp)</small>
+    <small>real(kind=wp)</small>
     </h4>
     
 
@@ -955,7 +1018,7 @@ to eliminate any possible confusion for the user.</p>
         <tr>
             <td>
               <span class="anchor" id="variable-x~4"></span>
-              real(kind=dp),
+              real(kind=wp),
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
@@ -972,7 +1035,7 @@ to eliminate any possible confusion for the user.</p>
 
     <h4>
     Return Value
-    <small>real(kind=dp)</small>
+    <small>real(kind=wp)</small>
     </h4>
     
 
@@ -990,7 +1053,7 @@ to eliminate any possible confusion for the user.</p>
     <em>None</em>
     <h4>
     Return Value
-    <small>real(kind=dp)</small>
+    <small>real(kind=wp)</small>
     </h4>
     
 
@@ -1018,7 +1081,7 @@ to eliminate any possible confusion for the user.</p>
         <tr>
             <td>
               <span class="anchor" id="variable-xl"></span>
-              real(kind=dp),
+              real(kind=wp),
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
@@ -1033,7 +1096,7 @@ to eliminate any possible confusion for the user.</p>
         <tr>
             <td>
               <span class="anchor" id="variable-xu"></span>
-              real(kind=dp),
+              real(kind=wp),
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
@@ -1050,7 +1113,7 @@ to eliminate any possible confusion for the user.</p>
 
     <h4>
     Return Value
-    <small>real(kind=dp)</small>
+    <small>real(kind=wp)</small>
     </h4>
     
 
@@ -1168,7 +1231,7 @@ to eliminate any possible confusion for the user.</p>
         <tr>
             <td>
               <span class="anchor" id="variable-lb~2"></span>
-              real(kind=dp),
+              real(kind=wp),
             </td>
 <td>intent(in),</td>
               <td></td>            <td>
@@ -1183,7 +1246,7 @@ to eliminate any possible confusion for the user.</p>
         <tr>
             <td>
               <span class="anchor" id="variable-ub~2"></span>
-              real(kind=dp),
+              real(kind=wp),
             </td>
 <td>intent(in),</td>
               <td></td>            <td>
@@ -1198,7 +1261,7 @@ to eliminate any possible confusion for the user.</p>
         <tr>
             <td>
               <span class="anchor" id="variable-c~2"></span>
-              real(kind=dp),
+              real(kind=wp),
             </td>
 <td>intent(in),</td>
               <td>optional,</td>            <td>
@@ -1228,7 +1291,7 @@ to eliminate any possible confusion for the user.</p>
         <tr>
             <td>
               <span class="anchor" id="variable-eps~2"></span>
-              real(kind=dp),
+              real(kind=wp),
             </td>
 <td>intent(in),</td>
               <td>optional</td>            <td>
@@ -1363,7 +1426,7 @@ to eliminate any possible confusion for the user.</p>
         <tr>
             <td>
               <span class="anchor" id="variable-vms~2"></span>
-              real(kind=dp),
+              real(kind=wp),
             </td>
 <td>intent(in),</td>
               <td>optional</td>            <td>
@@ -1463,7 +1526,7 @@ to eliminate any possible confusion for the user.</p>
         <tr>
             <td>
               <span class="anchor" id="variable-x~2"></span>
-              real(kind=dp),
+              real(kind=wp),
             </td>
 <td>intent(inout),</td>
               <td></td>            <td>
@@ -1479,7 +1542,7 @@ function to be optimized. [Will be replaced by final point]</p>
         <tr>
             <td>
               <span class="anchor" id="variable-rt"></span>
-              real(kind=dp),
+              real(kind=wp),
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
@@ -1495,7 +1558,7 @@ corana et al. is .85. see goffe et al. for more advice.</p>
         <tr>
             <td>
               <span class="anchor" id="variable-t"></span>
-              real(kind=dp),
+              real(kind=wp),
             </td>
 <td>intent(inout)</td>
               <td></td>            <td>
@@ -1512,7 +1575,7 @@ all downhill steps will be rejected</p>
         <tr>
             <td>
               <span class="anchor" id="variable-vm"></span>
-              real(kind=dp),
+              real(kind=wp),
             </td>
 <td>intent(inout),</td>
               <td></td>            <td>
@@ -1532,7 +1595,7 @@ sa adjusts vm to the correct value).</p>
         <tr>
             <td>
               <span class="anchor" id="variable-xopt"></span>
-              real(kind=dp),
+              real(kind=wp),
             </td>
 <td>intent(out),</td>
               <td></td>            <td>
@@ -1547,7 +1610,7 @@ sa adjusts vm to the correct value).</p>
         <tr>
             <td>
               <span class="anchor" id="variable-fopt"></span>
-              real(kind=dp),
+              real(kind=wp),
             </td>
 <td>intent(out)</td>
               <td></td>            <td>
@@ -1650,7 +1713,7 @@ algorithm.</p>
         <tr>
             <td>
               <span class="anchor" id="variable-x~3"></span>
-              real(kind=dp),
+              real(kind=wp),
             </td>
 <td>intent(in),</td>
               <td></td>            <td>
@@ -1665,7 +1728,7 @@ algorithm.</p>
         <tr>
             <td>
               <span class="anchor" id="variable-vm~2"></span>
-              real(kind=dp),
+              real(kind=wp),
             </td>
 <td>intent(in),</td>
               <td></td>            <td>
@@ -1680,7 +1743,7 @@ algorithm.</p>
         <tr>
             <td>
               <span class="anchor" id="variable-xp~2"></span>
-              real(kind=dp),
+              real(kind=wp),
             </td>
 <td>intent(out),</td>
               <td></td>            <td>
@@ -1695,7 +1758,7 @@ algorithm.</p>
         <tr>
             <td>
               <span class="anchor" id="variable-fp~2"></span>
-              real(kind=dp),
+              real(kind=wp),
             </td>
 <td>intent(out)</td>
               <td></td>            <td>
@@ -1854,7 +1917,7 @@ elements in vector, 10 elements will be printed on each line.</p>
         <tr>
             <td>
               <span class="anchor" id="variable-vector"></span>
-              real(kind=dp),
+              real(kind=wp),
             </td>
 <td>intent(in),</td>
               <td></td>            <td>

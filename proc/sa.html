@@ -82,14 +82,14 @@
 
             <li class="list-inline-item" id="source-file">
               <i class="fa fa-code"></i>
-              <a href="../src/simulated_annealing.f90"> Source File</a>
+              <a href="../src/simulated_annealing.F90"> Source File</a>
             </li>
         </ul>
       </div>
       <div class="col">
         <nav aria-label="breadcrumb">
           <ol class="breadcrumb justify-content-end mb-0">
-                <li class="breadcrumb-item"><a href='../sourcefile/simulated_annealing.f90.html'>simulated_annealing.f90</a></li>
+                <li class="breadcrumb-item"><a href='../sourcefile/simulated_annealing.f90.html'>simulated_annealing.F90</a></li>
                 <li class="breadcrumb-item"><a href='../module/simulated_annealing_module.html'>simulated_annealing_module</a></li>
             <li class="breadcrumb-item active" aria-current="page">sa</li>
           </ol>
@@ -249,7 +249,7 @@
         <tr>
             <td>
               <span class="anchor" id="variable-x~2"></span>
-              real(kind=dp),
+              real(kind=wp),
             </td>
 <td>intent(inout),</td>
               <td></td>            <td>
@@ -265,7 +265,7 @@ function to be optimized. [Will be replaced by final point]</p>
         <tr>
             <td>
               <span class="anchor" id="variable-rt"></span>
-              real(kind=dp),
+              real(kind=wp),
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
@@ -281,7 +281,7 @@ corana et al. is .85. see goffe et al. for more advice.</p>
         <tr>
             <td>
               <span class="anchor" id="variable-t"></span>
-              real(kind=dp),
+              real(kind=wp),
             </td>
 <td>intent(inout)</td>
               <td></td>            <td>
@@ -298,7 +298,7 @@ all downhill steps will be rejected</p>
         <tr>
             <td>
               <span class="anchor" id="variable-vm"></span>
-              real(kind=dp),
+              real(kind=wp),
             </td>
 <td>intent(inout),</td>
               <td></td>            <td>
@@ -318,7 +318,7 @@ sa adjusts vm to the correct value).</p>
         <tr>
             <td>
               <span class="anchor" id="variable-xopt"></span>
-              real(kind=dp),
+              real(kind=wp),
             </td>
 <td>intent(out),</td>
               <td></td>            <td>
@@ -333,7 +333,7 @@ sa adjusts vm to the correct value).</p>
         <tr>
             <td>
               <span class="anchor" id="variable-fopt"></span>
-              real(kind=dp),
+              real(kind=wp),
             </td>
 <td>intent(out)</td>
               <td></td>            <td>
@@ -642,21 +642,21 @@ implementation in a submodule of an interface in a parent module.
 <span class="w">    </span><span class="k">implicit none</span>
 
 <span class="k">    class</span><span class="p">(</span><span class="n">simulated_annealing_type</span><span class="p">),</span><span class="k">intent</span><span class="p">(</span><span class="n">inout</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">me</span>
-<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">dp</span><span class="p">),</span><span class="w"> </span><span class="k">dimension</span><span class="p">(</span><span class="n">me</span><span class="p">%</span><span class="n">n</span><span class="p">),</span><span class="w"> </span><span class="k">intent</span><span class="p">(</span><span class="n">inout</span><span class="p">)</span><span class="w">  </span><span class="kd">::</span><span class="w"> </span><span class="n">x</span><span class="w">       </span><span class="c">!! on input: the starting values for the variables of the</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">wp</span><span class="p">),</span><span class="w"> </span><span class="k">dimension</span><span class="p">(</span><span class="n">me</span><span class="p">%</span><span class="n">n</span><span class="p">),</span><span class="w"> </span><span class="k">intent</span><span class="p">(</span><span class="n">inout</span><span class="p">)</span><span class="w">  </span><span class="kd">::</span><span class="w"> </span><span class="n">x</span><span class="w">       </span><span class="c">!! on input: the starting values for the variables of the</span>
 <span class="w">                                                         </span><span class="c">!! function to be optimized. [Will be replaced by final point]</span>
-<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">dp</span><span class="p">),</span><span class="w"> </span><span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span><span class="w">                      </span><span class="kd">::</span><span class="w"> </span><span class="n">rt</span><span class="w">      </span><span class="c">!! the temperature reduction factor.  the value suggested by</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">wp</span><span class="p">),</span><span class="w"> </span><span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span><span class="w">                      </span><span class="kd">::</span><span class="w"> </span><span class="n">rt</span><span class="w">      </span><span class="c">!! the temperature reduction factor.  the value suggested by</span>
 <span class="w">                                                         </span><span class="c">!! corana et al. is .85. see goffe et al. for more advice.</span>
-<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">dp</span><span class="p">),</span><span class="w"> </span><span class="k">intent</span><span class="p">(</span><span class="n">inout</span><span class="p">)</span><span class="w">                   </span><span class="kd">::</span><span class="w"> </span><span class="n">t</span><span class="w">       </span><span class="c">!! on input, the initial temperature. see goffe et al. for advice.</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">wp</span><span class="p">),</span><span class="w"> </span><span class="k">intent</span><span class="p">(</span><span class="n">inout</span><span class="p">)</span><span class="w">                   </span><span class="kd">::</span><span class="w"> </span><span class="n">t</span><span class="w">       </span><span class="c">!! on input, the initial temperature. see goffe et al. for advice.</span>
 <span class="w">                                                         </span><span class="c">!! on output, the final temperature. Note that if `t=0`, then</span>
 <span class="w">                                                         </span><span class="c">!! all downhill steps will be rejected</span>
-<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">dp</span><span class="p">),</span><span class="w"> </span><span class="k">dimension</span><span class="p">(</span><span class="n">me</span><span class="p">%</span><span class="n">n</span><span class="p">),</span><span class="w"> </span><span class="k">intent</span><span class="p">(</span><span class="n">inout</span><span class="p">)</span><span class="w">  </span><span class="kd">::</span><span class="w"> </span><span class="n">vm</span><span class="w">      </span><span class="c">!! the step length vector. on input it should encompass the region of</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">wp</span><span class="p">),</span><span class="w"> </span><span class="k">dimension</span><span class="p">(</span><span class="n">me</span><span class="p">%</span><span class="n">n</span><span class="p">),</span><span class="w"> </span><span class="k">intent</span><span class="p">(</span><span class="n">inout</span><span class="p">)</span><span class="w">  </span><span class="kd">::</span><span class="w"> </span><span class="n">vm</span><span class="w">      </span><span class="c">!! the step length vector. on input it should encompass the region of</span>
 <span class="w">                                                         </span><span class="c">!! interest given the starting value x.  for point x(i), the next</span>
 <span class="w">                                                         </span><span class="c">!! trial point is selected is from x(i) - vm(i)  to  x(i) + vm(i).</span>
 <span class="w">                                                         </span><span class="c">!! since vm is adjusted so that about half of all points are accepted,</span>
 <span class="w">                                                         </span><span class="c">!! the input value is not very important (i.e. is the value is off,</span>
 <span class="w">                                                         </span><span class="c">!! sa adjusts vm to the correct value).</span>
-<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">dp</span><span class="p">),</span><span class="w"> </span><span class="k">dimension</span><span class="p">(</span><span class="n">me</span><span class="p">%</span><span class="n">n</span><span class="p">),</span><span class="w"> </span><span class="k">intent</span><span class="p">(</span><span class="n">out</span><span class="p">)</span><span class="w">  </span><span class="kd">::</span><span class="w"> </span><span class="n">xopt</span><span class="w">      </span><span class="c">!! the variables that optimize the function.</span>
-<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">dp</span><span class="p">),</span><span class="w"> </span><span class="k">intent</span><span class="p">(</span><span class="n">out</span><span class="p">)</span><span class="w">                   </span><span class="kd">::</span><span class="w"> </span><span class="n">fopt</span><span class="w">      </span><span class="c">!! the optimal value of the function.</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">wp</span><span class="p">),</span><span class="w"> </span><span class="k">dimension</span><span class="p">(</span><span class="n">me</span><span class="p">%</span><span class="n">n</span><span class="p">),</span><span class="w"> </span><span class="k">intent</span><span class="p">(</span><span class="n">out</span><span class="p">)</span><span class="w">  </span><span class="kd">::</span><span class="w"> </span><span class="n">xopt</span><span class="w">      </span><span class="c">!! the variables that optimize the function.</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">wp</span><span class="p">),</span><span class="w"> </span><span class="k">intent</span><span class="p">(</span><span class="n">out</span><span class="p">)</span><span class="w">                   </span><span class="kd">::</span><span class="w"> </span><span class="n">fopt</span><span class="w">      </span><span class="c">!! the optimal value of the function.</span>
 <span class="w">    </span><span class="kt">integer</span><span class="p">,</span><span class="w"> </span><span class="k">intent</span><span class="p">(</span><span class="n">out</span><span class="p">)</span><span class="w">                    </span><span class="kd">::</span><span class="w"> </span><span class="n">nacc</span><span class="w">      </span><span class="c">!! the number of accepted function evaluations.</span>
 <span class="w">    </span><span class="kt">integer</span><span class="p">,</span><span class="w"> </span><span class="k">intent</span><span class="p">(</span><span class="n">out</span><span class="p">)</span><span class="w">                    </span><span class="kd">::</span><span class="w"> </span><span class="n">nfcnev</span><span class="w">    </span><span class="c">!! the total number of function evaluations. in a minor</span>
 <span class="w">                                                         </span><span class="c">!! point, note that the first evaluation is not used in the</span>
@@ -671,13 +671,13 @@ implementation in a submodule of an interface in a parent module.
 <span class="w">                                                         </span><span class="c">!!  * 4 - user stop in problem function.</span>
 <span class="w">                                                         </span><span class="c">!!  * 99 - should not be seen; only used internally.</span>
 
-<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">dp</span><span class="p">),</span><span class="k">dimension</span><span class="p">(</span><span class="n">me</span><span class="p">%</span><span class="n">n</span><span class="p">)</span><span class="w">    </span><span class="kd">::</span><span class="w"> </span><span class="n">xp</span><span class="w">            </span><span class="c">!! perturbed `x` vector</span>
-<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">dp</span><span class="p">),</span><span class="k">dimension</span><span class="p">(</span><span class="n">me</span><span class="p">%</span><span class="n">neps</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">fstar</span><span class="w">         </span><span class="c">!! array of optimals found so far</span>
-<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">dp</span><span class="p">)</span><span class="w">                    </span><span class="kd">::</span><span class="w"> </span><span class="n">f</span><span class="w">             </span><span class="c">!! function value</span>
-<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">dp</span><span class="p">)</span><span class="w">                    </span><span class="kd">::</span><span class="w"> </span><span class="n">fp</span><span class="w">            </span><span class="c">!! function value</span>
-<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">dp</span><span class="p">)</span><span class="w">                    </span><span class="kd">::</span><span class="w"> </span><span class="n">p</span><span class="w">             </span><span class="c">!! for metropolis criteria</span>
-<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">dp</span><span class="p">)</span><span class="w">                    </span><span class="kd">::</span><span class="w"> </span><span class="n">pp</span><span class="w">            </span><span class="c">!! for metropolis criteria</span>
-<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">dp</span><span class="p">)</span><span class="w">                    </span><span class="kd">::</span><span class="w"> </span><span class="n">ratio</span><span class="w">         </span><span class="c">!! ratio of `nacp` to `ns`</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">wp</span><span class="p">),</span><span class="k">dimension</span><span class="p">(</span><span class="n">me</span><span class="p">%</span><span class="n">n</span><span class="p">)</span><span class="w">    </span><span class="kd">::</span><span class="w"> </span><span class="n">xp</span><span class="w">            </span><span class="c">!! perturbed `x` vector</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">wp</span><span class="p">),</span><span class="k">dimension</span><span class="p">(</span><span class="n">me</span><span class="p">%</span><span class="n">neps</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">fstar</span><span class="w">         </span><span class="c">!! array of optimals found so far</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">wp</span><span class="p">)</span><span class="w">                    </span><span class="kd">::</span><span class="w"> </span><span class="n">f</span><span class="w">             </span><span class="c">!! function value</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">wp</span><span class="p">)</span><span class="w">                    </span><span class="kd">::</span><span class="w"> </span><span class="n">fp</span><span class="w">            </span><span class="c">!! function value</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">wp</span><span class="p">)</span><span class="w">                    </span><span class="kd">::</span><span class="w"> </span><span class="n">p</span><span class="w">             </span><span class="c">!! for metropolis criteria</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">wp</span><span class="p">)</span><span class="w">                    </span><span class="kd">::</span><span class="w"> </span><span class="n">pp</span><span class="w">            </span><span class="c">!! for metropolis criteria</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">wp</span><span class="p">)</span><span class="w">                    </span><span class="kd">::</span><span class="w"> </span><span class="n">ratio</span><span class="w">         </span><span class="c">!! ratio of `nacp` to `ns`</span>
 <span class="w">    </span><span class="kt">integer</span><span class="w">                     </span><span class="kd">::</span><span class="w"> </span><span class="n">nup</span><span class="w">           </span><span class="c">!! number of uphill steps</span>
 <span class="w">    </span><span class="kt">integer</span><span class="w">                     </span><span class="kd">::</span><span class="w"> </span><span class="n">ndown</span><span class="w">         </span><span class="c">!! number of accepted downhill steps</span>
 <span class="w">    </span><span class="kt">integer</span><span class="w">                     </span><span class="kd">::</span><span class="w"> </span><span class="n">nrej</span><span class="w">          </span><span class="c">!! number of rejected downhill steps</span>
@@ -687,8 +687,8 @@ implementation in a submodule of an interface in a parent module.
 <span class="w">    </span><span class="kt">integer</span><span class="w">                     </span><span class="kd">::</span><span class="w"> </span><span class="n">nacp</span><span class="w">          </span><span class="c">!! number of accepts steps in a complete `ns` cycle</span>
 <span class="w">    </span><span class="kt">logical</span><span class="w">                     </span><span class="kd">::</span><span class="w"> </span><span class="n">quit</span><span class="w">          </span><span class="c">!! if the termination criteria was achieved</span>
 <span class="w">    </span><span class="kt">integer</span><span class="w">                     </span><span class="kd">::</span><span class="w"> </span><span class="n">unit</span><span class="w">          </span><span class="c">!! unit for printing</span>
-<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">dp</span><span class="p">)</span><span class="w">                    </span><span class="kd">::</span><span class="w"> </span><span class="n">t_original</span><span class="w">    </span><span class="c">!! original input value of `t`</span>
-<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">dp</span><span class="p">),</span><span class="k">dimension</span><span class="p">(</span><span class="n">me</span><span class="p">%</span><span class="n">n</span><span class="p">)</span><span class="w">    </span><span class="kd">::</span><span class="w"> </span><span class="n">vm_original</span><span class="w">   </span><span class="c">!! original input value of `vm`</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">wp</span><span class="p">)</span><span class="w">                    </span><span class="kd">::</span><span class="w"> </span><span class="n">t_original</span><span class="w">    </span><span class="c">!! original input value of `t`</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">wp</span><span class="p">),</span><span class="k">dimension</span><span class="p">(</span><span class="n">me</span><span class="p">%</span><span class="n">n</span><span class="p">)</span><span class="w">    </span><span class="kd">::</span><span class="w"> </span><span class="n">vm_original</span><span class="w">   </span><span class="c">!! original input value of `vm`</span>
 <span class="w">    </span><span class="kt">logical</span><span class="w">                     </span><span class="kd">::</span><span class="w"> </span><span class="n">first</span>
 
 <span class="w">    </span><span class="c">! initialize:</span>
@@ -696,14 +696,14 @@ implementation in a submodule of an interface in a parent module.
 <span class="w">    </span><span class="n">nfcnev</span><span class="w">      </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span>
 <span class="w">    </span><span class="n">ier</span><span class="w">         </span><span class="o">=</span><span class="w"> </span><span class="mi">99</span>
 <span class="w">    </span><span class="n">xopt</span><span class="w">        </span><span class="o">=</span><span class="w"> </span><span class="n">x</span>
-<span class="w">    </span><span class="n">fopt</span><span class="w">        </span><span class="o">=</span><span class="w"> </span><span class="nb">huge</span><span class="p">(</span><span class="mf">1.0_dp</span><span class="p">)</span>
+<span class="w">    </span><span class="n">fopt</span><span class="w">        </span><span class="o">=</span><span class="w"> </span><span class="nb">huge</span><span class="p">(</span><span class="mf">1.0_wp</span><span class="p">)</span>
 <span class="w">    </span><span class="n">vm</span><span class="w">          </span><span class="o">=</span><span class="w"> </span><span class="nb">abs</span><span class="p">(</span><span class="n">vm</span><span class="p">)</span>
 <span class="w">    </span><span class="n">t_original</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="n">t</span>
 <span class="w">    </span><span class="n">vm_original</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">vm</span>
 
 <span class="w">    </span><span class="c">! if the initial temperature is not positive, notify the user and</span>
 <span class="w">    </span><span class="c">! return to the calling routine.</span>
-<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">t</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="mf">0.0_dp</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">t</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="mf">0.0_wp</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
 <span class="k">        if</span><span class="w"> </span><span class="p">(</span><span class="n">me</span><span class="p">%</span><span class="n">iprint</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="k">write</span><span class="p">(</span><span class="n">unit</span><span class="p">,</span><span class="s1">&#39;(A)&#39;</span><span class="p">)</span><span class="w"> </span><span class="s1">&#39;Error: The initial temperature must be non-negative.&#39;</span>
 <span class="w">        </span><span class="n">ier</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">3</span>
 <span class="w">        </span><span class="k">return</span>
@@ -749,7 +749,7 @@ implementation in a submodule of an interface in a parent module.
 <span class="w">        </span><span class="k">end if</span>
 
 <span class="w">        </span><span class="c">! restart the main loop</span>
-<span class="w">        </span><span class="n">fstar</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">huge</span><span class="p">(</span><span class="mf">1.0_dp</span><span class="p">)</span>
+<span class="w">        </span><span class="n">fstar</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">huge</span><span class="p">(</span><span class="mf">1.0_wp</span><span class="p">)</span>
 <span class="w">        </span><span class="n">t</span><span class="w">     </span><span class="o">=</span><span class="w"> </span><span class="n">t_original</span>
 <span class="w">        </span><span class="n">vm</span><span class="w">    </span><span class="o">=</span><span class="w"> </span><span class="n">vm_original</span>
 <span class="w">        </span><span class="n">nacc</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span>
@@ -812,7 +812,7 @@ implementation in a submodule of an interface in a parent module.
 <span class="w">                        </span><span class="c">! acceptance or rejection.</span>
 <span class="w">                        </span><span class="c">! NOTE: if t=0, all downhill steps are rejected (monotonic)</span>
 
-<span class="w">                        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">t</span><span class="o">/=</span><span class="mf">0.0_dp</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
+<span class="w">                        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">t</span><span class="o">/=</span><span class="mf">0.0_wp</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
 <span class="k">                            </span><span class="n">p</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">exprep</span><span class="p">((</span><span class="n">fp</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">f</span><span class="p">)</span><span class="o">/</span><span class="n">t</span><span class="p">)</span>
 <span class="w">                            </span><span class="n">pp</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">uniform_random_number</span><span class="p">()</span>
 <span class="w">                            </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">pp</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">p</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
@@ -849,12 +849,12 @@ implementation in a submodule of an interface in a parent module.
 <span class="w">                </span><span class="k">select case</span><span class="w"> </span><span class="p">(</span><span class="n">me</span><span class="p">%</span><span class="n">step_mode</span><span class="p">)</span>
 <span class="w">                </span><span class="k">case</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
 <span class="w">                    </span><span class="c">! adjust vm so that approximately half of all evaluations are accepted.</span>
-<span class="w">                    </span><span class="n">ratio</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kt">real</span><span class="p">(</span><span class="n">nacp</span><span class="p">,</span><span class="n">dp</span><span class="p">)</span><span class="w"> </span><span class="o">/</span><span class="kt">real</span><span class="p">(</span><span class="n">me</span><span class="p">%</span><span class="n">ns</span><span class="p">,</span><span class="n">dp</span><span class="p">)</span>
+<span class="w">                    </span><span class="n">ratio</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kt">real</span><span class="p">(</span><span class="n">nacp</span><span class="p">,</span><span class="n">wp</span><span class="p">)</span><span class="w"> </span><span class="o">/</span><span class="kt">real</span><span class="p">(</span><span class="n">me</span><span class="p">%</span><span class="n">ns</span><span class="p">,</span><span class="n">wp</span><span class="p">)</span>
 <span class="w">                    </span><span class="k">do </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="n">me</span><span class="p">%</span><span class="n">n</span>
-<span class="w">                        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">ratio</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mf">0.6_dp</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
-<span class="k">                            </span><span class="n">vm</span><span class="p">(</span><span class="n">i</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">vm</span><span class="p">(</span><span class="n">i</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="mf">1.0_dp</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">me</span><span class="p">%</span><span class="n">c</span><span class="p">(</span><span class="n">i</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="n">ratio</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mf">0.6_dp</span><span class="p">)</span><span class="o">/</span><span class="mf">0.4_dp</span><span class="p">)</span>
-<span class="w">                        </span><span class="k">else if</span><span class="w"> </span><span class="p">(</span><span class="n">ratio</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="mf">0.4_dp</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
-<span class="k">                            </span><span class="n">vm</span><span class="p">(</span><span class="n">i</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">vm</span><span class="p">(</span><span class="n">i</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="mf">1.0_dp</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">me</span><span class="p">%</span><span class="n">c</span><span class="p">(</span><span class="n">i</span><span class="p">)</span><span class="o">*</span><span class="p">((</span><span class="mf">0.4_dp</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">ratio</span><span class="p">)</span><span class="o">/</span><span class="mf">0.4_dp</span><span class="p">))</span>
+<span class="w">                        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">ratio</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mf">0.6_wp</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
+<span class="k">                            </span><span class="n">vm</span><span class="p">(</span><span class="n">i</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">vm</span><span class="p">(</span><span class="n">i</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="mf">1.0_wp</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">me</span><span class="p">%</span><span class="n">c</span><span class="p">(</span><span class="n">i</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="n">ratio</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mf">0.6_wp</span><span class="p">)</span><span class="o">/</span><span class="mf">0.4_wp</span><span class="p">)</span>
+<span class="w">                        </span><span class="k">else if</span><span class="w"> </span><span class="p">(</span><span class="n">ratio</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="mf">0.4_wp</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
+<span class="k">                            </span><span class="n">vm</span><span class="p">(</span><span class="n">i</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">vm</span><span class="p">(</span><span class="n">i</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="mf">1.0_wp</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">me</span><span class="p">%</span><span class="n">c</span><span class="p">(</span><span class="n">i</span><span class="p">)</span><span class="o">*</span><span class="p">((</span><span class="mf">0.4_wp</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">ratio</span><span class="p">)</span><span class="o">/</span><span class="mf">0.4_wp</span><span class="p">))</span>
 <span class="w">                        </span><span class="k">end if</span>
 <span class="k">                        if</span><span class="w"> </span><span class="p">(</span><span class="n">vm</span><span class="p">(</span><span class="n">i</span><span class="p">)</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="p">(</span><span class="n">me</span><span class="p">%</span><span class="n">ub</span><span class="p">(</span><span class="n">i</span><span class="p">)</span><span class="o">-</span><span class="n">me</span><span class="p">%</span><span class="n">lb</span><span class="p">(</span><span class="n">i</span><span class="p">)))</span><span class="w"> </span><span class="k">then</span>
 <span class="k">                            </span><span class="n">vm</span><span class="p">(</span><span class="n">i</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">me</span><span class="p">%</span><span class="n">ub</span><span class="p">(</span><span class="n">i</span><span class="p">)</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">me</span><span class="p">%</span><span class="n">lb</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>

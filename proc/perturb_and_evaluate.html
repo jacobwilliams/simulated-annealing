@@ -82,14 +82,14 @@
 
             <li class="list-inline-item" id="source-file">
               <i class="fa fa-code"></i>
-              <a href="../src/simulated_annealing.f90"> Source File</a>
+              <a href="../src/simulated_annealing.F90"> Source File</a>
             </li>
         </ul>
       </div>
       <div class="col">
         <nav aria-label="breadcrumb">
           <ol class="breadcrumb justify-content-end mb-0">
-                <li class="breadcrumb-item"><a href='../sourcefile/simulated_annealing.f90.html'>simulated_annealing.f90</a></li>
+                <li class="breadcrumb-item"><a href='../sourcefile/simulated_annealing.f90.html'>simulated_annealing.F90</a></li>
                 <li class="breadcrumb-item"><a href='../module/simulated_annealing_module.html'>simulated_annealing_module</a></li>
             <li class="breadcrumb-item active" aria-current="page">perturb_and_evaluate</li>
           </ol>
@@ -183,7 +183,7 @@ maximum number of function evaluations is reached.</p>
         <tr>
             <td>
               <span class="anchor" id="variable-x~3"></span>
-              real(kind=dp),
+              real(kind=wp),
             </td>
 <td>intent(in),</td>
               <td></td>            <td>
@@ -198,7 +198,7 @@ maximum number of function evaluations is reached.</p>
         <tr>
             <td>
               <span class="anchor" id="variable-vm~2"></span>
-              real(kind=dp),
+              real(kind=wp),
             </td>
 <td>intent(in),</td>
               <td></td>            <td>
@@ -213,7 +213,7 @@ maximum number of function evaluations is reached.</p>
         <tr>
             <td>
               <span class="anchor" id="variable-xp~2"></span>
-              real(kind=dp),
+              real(kind=wp),
             </td>
 <td>intent(out),</td>
               <td></td>            <td>
@@ -228,7 +228,7 @@ maximum number of function evaluations is reached.</p>
         <tr>
             <td>
               <span class="anchor" id="variable-fp~2"></span>
-              real(kind=dp),
+              real(kind=wp),
             </td>
 <td>intent(out)</td>
               <td></td>            <td>
@@ -567,10 +567,10 @@ implementation in a submodule of an interface in a parent module.
 <span class="w">    </span><span class="k">implicit none</span>
 
 <span class="k">    class</span><span class="p">(</span><span class="n">simulated_annealing_type</span><span class="p">),</span><span class="k">intent</span><span class="p">(</span><span class="n">inout</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">me</span>
-<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">dp</span><span class="p">),</span><span class="k">dimension</span><span class="p">(:),</span><span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span><span class="w">  </span><span class="kd">::</span><span class="w"> </span><span class="n">x</span><span class="w">       </span><span class="c">!! input optimization variable vector to perturb</span>
-<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">dp</span><span class="p">),</span><span class="k">dimension</span><span class="p">(:),</span><span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span><span class="w">  </span><span class="kd">::</span><span class="w"> </span><span class="n">vm</span><span class="w">      </span><span class="c">!! step length vector</span>
-<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">dp</span><span class="p">),</span><span class="k">dimension</span><span class="p">(:),</span><span class="k">intent</span><span class="p">(</span><span class="n">out</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">xp</span><span class="w">      </span><span class="c">!! the perturbed `x` value</span>
-<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">dp</span><span class="p">),</span><span class="k">intent</span><span class="p">(</span><span class="n">out</span><span class="p">)</span><span class="w">              </span><span class="kd">::</span><span class="w"> </span><span class="n">fp</span><span class="w">      </span><span class="c">!! the value of the user function at `xp`</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">wp</span><span class="p">),</span><span class="k">dimension</span><span class="p">(:),</span><span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span><span class="w">  </span><span class="kd">::</span><span class="w"> </span><span class="n">x</span><span class="w">       </span><span class="c">!! input optimization variable vector to perturb</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">wp</span><span class="p">),</span><span class="k">dimension</span><span class="p">(:),</span><span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span><span class="w">  </span><span class="kd">::</span><span class="w"> </span><span class="n">vm</span><span class="w">      </span><span class="c">!! step length vector</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">wp</span><span class="p">),</span><span class="k">dimension</span><span class="p">(:),</span><span class="k">intent</span><span class="p">(</span><span class="n">out</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">xp</span><span class="w">      </span><span class="c">!! the perturbed `x` value</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">wp</span><span class="p">),</span><span class="k">intent</span><span class="p">(</span><span class="n">out</span><span class="p">)</span><span class="w">              </span><span class="kd">::</span><span class="w"> </span><span class="n">fp</span><span class="w">      </span><span class="c">!! the value of the user function at `xp`</span>
 <span class="w">    </span><span class="kt">integer</span><span class="p">,</span><span class="k">intent</span><span class="p">(</span><span class="n">inout</span><span class="p">)</span><span class="w">             </span><span class="kd">::</span><span class="w"> </span><span class="n">nfcnev</span><span class="w">  </span><span class="c">!! total number of function evaluations</span>
 <span class="w">    </span><span class="kt">integer</span><span class="p">,</span><span class="k">intent</span><span class="p">(</span><span class="n">inout</span><span class="p">)</span><span class="w">             </span><span class="kd">::</span><span class="w"> </span><span class="n">ier</span><span class="w">     </span><span class="c">!! status output code</span>
 <span class="w">    </span><span class="kt">logical</span><span class="p">,</span><span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">),</span><span class="k">optional</span><span class="w">       </span><span class="kd">::</span><span class="w"> </span><span class="n">first</span><span class="w">   </span><span class="c">!! to use the input `x` the first time</span>
@@ -578,8 +578,8 @@ implementation in a submodule of an interface in a parent module.
 <span class="w">    </span><span class="kt">integer</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">i</span><span class="w">         </span><span class="c">!! counter</span>
 <span class="w">    </span><span class="kt">integer</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">istat</span><span class="w">     </span><span class="c">!! user function status code</span>
 <span class="w">    </span><span class="kt">logical</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">first_try</span><span class="w"> </span><span class="c">!! local copy of `first`</span>
-<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">dp</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">lower</span><span class="w">    </span><span class="c">!! lower bound to use for random interval</span>
-<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">dp</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">upper</span><span class="w">    </span><span class="c">!! upper bound to use for random interval</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">wp</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">lower</span><span class="w">    </span><span class="c">!! lower bound to use for random interval</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">wp</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">upper</span><span class="w">    </span><span class="c">!! upper bound to use for random interval</span>
 
 <span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nb">present</span><span class="p">(</span><span class="n">first</span><span class="p">))</span><span class="w"> </span><span class="k">then</span>
 <span class="k">        </span><span class="n">first_try</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">first</span>

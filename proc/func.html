@@ -82,14 +82,14 @@
 
             <li class="list-inline-item" id="source-file">
               <i class="fa fa-code"></i>
-              <a href="../src/simulated_annealing.f90"> Source File</a>
+              <a href="../src/simulated_annealing.F90"> Source File</a>
             </li>
         </ul>
       </div>
       <div class="col">
         <nav aria-label="breadcrumb">
           <ol class="breadcrumb justify-content-end mb-0">
-                <li class="breadcrumb-item"><a href='../sourcefile/simulated_annealing.f90.html'>simulated_annealing.f90</a></li>
+                <li class="breadcrumb-item"><a href='../sourcefile/simulated_annealing.f90.html'>simulated_annealing.F90</a></li>
                 <li class="breadcrumb-item"><a href='../module/simulated_annealing_module.html'>simulated_annealing_module</a></li>
             <li class="breadcrumb-item active" aria-current="page">func</li>
           </ol>
@@ -182,7 +182,7 @@ to eliminate any possible confusion for the user.</p>
         <tr>
             <td>
               <span class="anchor" id="variable-f~3"></span>
-              real(kind=dp),
+              real(kind=wp),
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
@@ -200,7 +200,7 @@ to eliminate any possible confusion for the user.</p>
       <h3>Return Value
         <small>
           <span class="anchor" id="variable-func~2"></span>
-          real(kind=dp)
+          real(kind=wp)
         </small>
       </h3>
       
@@ -346,8 +346,8 @@ implementation in a submodule of an interface in a parent module.
 <span class="w">    </span><span class="k">implicit none</span>
 
 <span class="k">    class</span><span class="p">(</span><span class="n">simulated_annealing_type</span><span class="p">),</span><span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">me</span>
-<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">dp</span><span class="p">),</span><span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">f</span>
-<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">dp</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">func</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">wp</span><span class="p">),</span><span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">f</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">wp</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">func</span>
 
 <span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">me</span><span class="p">%</span><span class="n">maximize</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
 <span class="k">        </span><span class="n">func</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">f</span>

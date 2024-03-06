@@ -82,14 +82,14 @@
 
             <li class="list-inline-item" id="source-file">
               <i class="fa fa-code"></i>
-              <a href="../src/simulated_annealing.f90"> Source File</a>
+              <a href="../src/simulated_annealing.F90"> Source File</a>
             </li>
         </ul>
       </div>
       <div class="col">
         <nav aria-label="breadcrumb">
           <ol class="breadcrumb justify-content-end mb-0">
-                <li class="breadcrumb-item"><a href='../sourcefile/simulated_annealing.f90.html'>simulated_annealing.f90</a></li>
+                <li class="breadcrumb-item"><a href='../sourcefile/simulated_annealing.f90.html'>simulated_annealing.F90</a></li>
                 <li class="breadcrumb-item"><a href='../module/simulated_annealing_module.html'>simulated_annealing_module</a></li>
             <li class="breadcrumb-item active" aria-current="page">uniform</li>
           </ol>
@@ -163,7 +163,7 @@
         <tr>
             <td>
               <span class="anchor" id="variable-xl"></span>
-              real(kind=dp),
+              real(kind=wp),
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
@@ -178,7 +178,7 @@
         <tr>
             <td>
               <span class="anchor" id="variable-xu"></span>
-              real(kind=dp),
+              real(kind=wp),
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
@@ -196,7 +196,7 @@
       <h3>Return Value
         <small>
           <span class="anchor" id="variable-uniform"></span>
-          real(kind=dp)
+          real(kind=wp)
         </small>
       </h3>
       
@@ -474,9 +474,9 @@ implementation in a submodule of an interface in a parent module.
 
 <span class="w">    </span><span class="k">implicit none</span>
 
-<span class="k">    </span><span class="kt">real</span><span class="p">(</span><span class="n">dp</span><span class="p">),</span><span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">xl</span><span class="w"> </span><span class="c">!! lower bound</span>
-<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">dp</span><span class="p">),</span><span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">xu</span><span class="w"> </span><span class="c">!! upper bound</span>
-<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">dp</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">uniform</span>
+<span class="k">    </span><span class="kt">real</span><span class="p">(</span><span class="n">wp</span><span class="p">),</span><span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">xl</span><span class="w"> </span><span class="c">!! lower bound</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">wp</span><span class="p">),</span><span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">xu</span><span class="w"> </span><span class="c">!! upper bound</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">wp</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">uniform</span>
 
 <span class="w">    </span><span class="n">uniform</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">xl</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="p">(</span><span class="n">xu</span><span class="o">-</span><span class="n">xl</span><span class="p">)</span><span class="o">*</span><span class="n">uniform_random_number</span><span class="p">()</span>
 
