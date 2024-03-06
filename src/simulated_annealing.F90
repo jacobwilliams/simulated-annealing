@@ -644,6 +644,7 @@
             end if
 
             ! check termination criteria.
+            quit = .false.
             ! first, check `f` if the known value is available
             if (me%optimal_f_specified) then
                 quit = abs(me%func(fopt) - me%optimal_f) <= abs(me%optimal_f_tol)
