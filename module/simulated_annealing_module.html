@@ -77,7 +77,7 @@
             <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
               <a data-bs-toggle="tooltip"
                  data-bs-placement="bottom" data-html="true"
-                 title="100.0% of total for modules and submodules.">467 statements</a>
+                 title="100.0% of total for modules and submodules.">492 statements</a>
             </li>
 
             <li class="list-inline-item" id="source-file">
@@ -876,6 +876,59 @@ the results of <a href="../proc/sa.html">sa</a>.</p>
         </tr>
         <tr>
             <td>
+              <span class="anchor" id="variable-optimal_f_specified"></span>
+              logical,
+            </td>
+              <td>private</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>optimal_f_specified</strong></td>
+<td> =</td>
+                <td>.false.</td>
+            <td>
+<p>if the optional <code>f</code> value is known,
+it can be specified by <code>optimal_f</code>.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-optimal_f"></span>
+              real(kind=wp),
+            </td>
+              <td>private</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>optimal_f</strong></td>
+<td> =</td>
+                <td>0.0_wp</td>
+            <td>
+<p>if <code>optimal_f_specified=True</code> the solver will stop
+if this value is achieved.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-optimal_f_tol"></span>
+              real(kind=wp),
+            </td>
+              <td>private</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>optimal_f_tol</strong></td>
+<td> =</td>
+                <td>0.0_wp</td>
+            <td>
+<p>absolute tolerance for the <code>optimal_f</code> check</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
               <span class="anchor" id="variable-fcn"></span>
               procedure(<a href='../interface/sa_func.html'>sa_func</a>),
             </td>
@@ -1166,7 +1219,7 @@ to eliminate any possible confusion for the user.</p>
   </div>
 
               <div class="card">
-    <div class="card-header codesum"><span class="anchor" id="proc-initialize_sa"></span> <h3>private  subroutine <a href='../proc/initialize_sa.html'>initialize_sa</a>(me, fcn, n, lb, ub, c, maximize, eps, ns, nt, neps, maxevl, iprint, iseed1, iseed2, step_mode, vms, iunit, use_initial_guess, n_resets)  
+    <div class="card-header codesum"><span class="anchor" id="proc-initialize_sa"></span> <h3>private  subroutine <a href='../proc/initialize_sa.html'>initialize_sa</a>(me, fcn, n, lb, ub, c, maximize, eps, ns, nt, neps, maxevl, iprint, iseed1, iseed2, step_mode, vms, iunit, use_initial_guess, n_resets, optimal_f_specified, optimal_f, optimal_f_tol)  
 </h3></div>
     <div class="card-body">
           
@@ -1481,6 +1534,54 @@ to eliminate any possible confusion for the user.</p>
             <td><strong>n_resets</strong></td>
             <td>
 
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-optimal_f_specified~2"></span>
+              logical,
+            </td>
+<td>intent(in),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>optimal_f_specified</strong></td>
+            <td>
+<p>if the optional <code>f</code> value is known,
+it can be specified by <code>optimal_f</code>.
+[Default is False]</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-optimal_f~2"></span>
+              real(kind=wp),
+            </td>
+<td>intent(in),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>optimal_f</strong></td>
+            <td>
+<p>if <code>optimal_f_specified=True</code> the solver will stop
+if this value is achieved.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-optimal_f_tol~2"></span>
+              real(kind=wp),
+            </td>
+<td>intent(in),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>optimal_f_tol</strong></td>
+            <td>
+<p>absolute tolerance for the <code>optimal_f</code> check</p>
             </td>
         </tr>
     </tbody>

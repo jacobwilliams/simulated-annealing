@@ -77,7 +77,7 @@
             <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
               <a data-bs-toggle="tooltip"
                  data-bs-placement="bottom" data-html="true"
-                 title="12.2% of total for procedures.">51 statements</a>
+                 title="12.9% of total for procedures.">57 statements</a>
             </li>
 
             <li class="list-inline-item" id="source-file">
@@ -142,7 +142,7 @@
     </div>
     
     <div class="col-md-9" id='text'>
-    <h2>private  subroutine initialize_sa(me, fcn, n, lb, ub, c, maximize, eps, ns, nt, neps, maxevl, iprint, iseed1, iseed2, step_mode, vms, iunit, use_initial_guess, n_resets)  
+    <h2>private  subroutine initialize_sa(me, fcn, n, lb, ub, c, maximize, eps, ns, nt, neps, maxevl, iprint, iseed1, iseed2, step_mode, vms, iunit, use_initial_guess, n_resets, optimal_f_specified, optimal_f, optimal_f_tol)  
 </h2>
     
 
@@ -464,6 +464,54 @@ Any options not set here will use the default values in the type.</p>
                 
             </td>
         </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-optimal_f_specified~2"></span>
+              logical,
+            </td>
+<td>intent(in),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>optimal_f_specified</strong></td>
+            <td>
+                <p>if the optional <code>f</code> value is known,
+it can be specified by <code>optimal_f</code>.
+[Default is False]</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-optimal_f~2"></span>
+              real(kind=wp),
+            </td>
+<td>intent(in),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>optimal_f</strong></td>
+            <td>
+                <p>if <code>optimal_f_specified=True</code> the solver will stop
+if this value is achieved.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-optimal_f_tol~2"></span>
+              real(kind=wp),
+            </td>
+<td>intent(in),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>optimal_f_tol</strong></td>
+            <td>
+                <p>absolute tolerance for the <code>optimal_f</code> check</p>
+            </td>
+        </tr>
     </tbody>
   </table>
 
@@ -607,7 +655,8 @@ implementation in a submodule of an interface in a parent module.
     <div class="hl codehilite"><pre><span></span><span class="w">    </span><span class="k">subroutine </span><span class="n">initialize_sa</span><span class="p">(</span><span class="n">me</span><span class="p">,</span><span class="n">fcn</span><span class="p">,</span><span class="n">n</span><span class="p">,</span><span class="n">lb</span><span class="p">,</span><span class="n">ub</span><span class="p">,</span><span class="n">c</span><span class="p">,&amp;</span>
 <span class="w">                             </span><span class="n">maximize</span><span class="p">,</span><span class="n">eps</span><span class="p">,</span><span class="n">ns</span><span class="p">,</span><span class="n">nt</span><span class="p">,</span><span class="n">neps</span><span class="p">,</span><span class="n">maxevl</span><span class="p">,&amp;</span>
 <span class="w">                             </span><span class="n">iprint</span><span class="p">,</span><span class="n">iseed1</span><span class="p">,</span><span class="n">iseed2</span><span class="p">,</span><span class="n">step_mode</span><span class="p">,</span><span class="n">vms</span><span class="p">,</span><span class="n">iunit</span><span class="p">,&amp;</span>
-<span class="w">                             </span><span class="n">use_initial_guess</span><span class="p">,</span><span class="n">n_resets</span><span class="p">)</span>
+<span class="w">                             </span><span class="n">use_initial_guess</span><span class="p">,</span><span class="n">n_resets</span><span class="p">,&amp;</span>
+<span class="w">                             </span><span class="n">optimal_f_specified</span><span class="p">,</span><span class="n">optimal_f</span><span class="p">,</span><span class="n">optimal_f_tol</span><span class="p">)</span>
 
 <span class="w">    </span><span class="k">implicit none</span>
 
@@ -631,6 +680,12 @@ implementation in a submodule of an interface in a parent module.
 <span class="w">    </span><span class="kt">integer</span><span class="p">,</span><span class="w"> </span><span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">),</span><span class="w"> </span><span class="k">optional</span><span class="w">                 </span><span class="kd">::</span><span class="w"> </span><span class="n">iunit</span>
 <span class="w">    </span><span class="kt">logical</span><span class="p">,</span><span class="w"> </span><span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">),</span><span class="w"> </span><span class="k">optional</span><span class="w">                 </span><span class="kd">::</span><span class="w"> </span><span class="n">use_initial_guess</span>
 <span class="w">    </span><span class="kt">integer</span><span class="p">,</span><span class="w"> </span><span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">),</span><span class="w"> </span><span class="k">optional</span><span class="w">                 </span><span class="kd">::</span><span class="w"> </span><span class="n">n_resets</span>
+<span class="w">    </span><span class="kt">logical</span><span class="p">,</span><span class="w"> </span><span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">),</span><span class="w"> </span><span class="k">optional</span><span class="w">  </span><span class="kd">::</span><span class="w"> </span><span class="n">optimal_f_specified</span><span class="w"> </span><span class="c">!! if the optional `f` value is known,</span>
+<span class="w">                                                          </span><span class="c">!! it can be specified by `optimal_f`.</span>
+<span class="w">                                                          </span><span class="c">!! [Default is False]</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">wp</span><span class="p">),</span><span class="w"> </span><span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">),</span><span class="w"> </span><span class="k">optional</span><span class="w">  </span><span class="kd">::</span><span class="w"> </span><span class="n">optimal_f</span><span class="w">          </span><span class="c">!! if `optimal_f_specified=True` the solver will stop</span>
+<span class="w">                                                          </span><span class="c">!! if this value is achieved.</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">wp</span><span class="p">),</span><span class="w"> </span><span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">),</span><span class="w"> </span><span class="k">optional</span><span class="w">  </span><span class="kd">::</span><span class="w"> </span><span class="n">optimal_f_tol</span><span class="w">      </span><span class="c">!! absolute tolerance for the `optimal_f` check</span>
 
 <span class="w">    </span><span class="k">call </span><span class="n">me</span><span class="p">%</span><span class="n">destroy</span><span class="p">()</span>
 
@@ -651,20 +706,23 @@ implementation in a submodule of an interface in a parent module.
 <span class="k">        </span><span class="n">me</span><span class="p">%</span><span class="n">c</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">2.0_wp</span>
 <span class="w">    </span><span class="k">end if</span>
 
-<span class="k">    if</span><span class="w"> </span><span class="p">(</span><span class="nb">present</span><span class="p">(</span><span class="n">maximize</span><span class="p">)</span><span class="w">          </span><span class="p">)</span><span class="w"> </span><span class="n">me</span><span class="p">%</span><span class="n">maximize</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">maximize</span>
-<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nb">present</span><span class="p">(</span><span class="n">eps</span><span class="p">)</span><span class="w">               </span><span class="p">)</span><span class="w"> </span><span class="n">me</span><span class="p">%</span><span class="n">eps</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">eps</span>
-<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nb">present</span><span class="p">(</span><span class="n">ns</span><span class="p">)</span><span class="w">                </span><span class="p">)</span><span class="w"> </span><span class="n">me</span><span class="p">%</span><span class="n">ns</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ns</span>
-<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nb">present</span><span class="p">(</span><span class="n">nt</span><span class="p">)</span><span class="w">                </span><span class="p">)</span><span class="w"> </span><span class="n">me</span><span class="p">%</span><span class="n">nt</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">nt</span>
-<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nb">present</span><span class="p">(</span><span class="n">neps</span><span class="p">)</span><span class="w">              </span><span class="p">)</span><span class="w"> </span><span class="n">me</span><span class="p">%</span><span class="n">neps</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">neps</span>
-<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nb">present</span><span class="p">(</span><span class="n">maxevl</span><span class="p">)</span><span class="w">            </span><span class="p">)</span><span class="w"> </span><span class="n">me</span><span class="p">%</span><span class="n">maxevl</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">maxevl</span>
-<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nb">present</span><span class="p">(</span><span class="n">iprint</span><span class="p">)</span><span class="w">            </span><span class="p">)</span><span class="w"> </span><span class="n">me</span><span class="p">%</span><span class="n">iprint</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">iprint</span>
-<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nb">present</span><span class="p">(</span><span class="n">iseed1</span><span class="p">)</span><span class="w">            </span><span class="p">)</span><span class="w"> </span><span class="n">me</span><span class="p">%</span><span class="n">iseed1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">iseed1</span>
-<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nb">present</span><span class="p">(</span><span class="n">iseed2</span><span class="p">)</span><span class="w">            </span><span class="p">)</span><span class="w"> </span><span class="n">me</span><span class="p">%</span><span class="n">iseed2</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">iseed2</span>
-<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nb">present</span><span class="p">(</span><span class="n">step_mode</span><span class="p">)</span><span class="w">         </span><span class="p">)</span><span class="w"> </span><span class="n">me</span><span class="p">%</span><span class="n">step_mode</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">step_mode</span>
-<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nb">present</span><span class="p">(</span><span class="n">vms</span><span class="p">)</span><span class="w">               </span><span class="p">)</span><span class="w"> </span><span class="n">me</span><span class="p">%</span><span class="n">vms</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">vms</span>
-<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nb">present</span><span class="p">(</span><span class="n">iunit</span><span class="p">)</span><span class="w">             </span><span class="p">)</span><span class="w"> </span><span class="n">me</span><span class="p">%</span><span class="n">iunit</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">iunit</span>
-<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nb">present</span><span class="p">(</span><span class="n">use_initial_guess</span><span class="p">)</span><span class="w"> </span><span class="p">)</span><span class="w"> </span><span class="n">me</span><span class="p">%</span><span class="n">use_initial_guess</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">use_initial_guess</span>
-<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nb">present</span><span class="p">(</span><span class="n">n_resets</span><span class="p">)</span><span class="w">          </span><span class="p">)</span><span class="w"> </span><span class="n">me</span><span class="p">%</span><span class="n">n_resets</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">n_resets</span>
+<span class="k">    if</span><span class="w"> </span><span class="p">(</span><span class="nb">present</span><span class="p">(</span><span class="n">maximize</span><span class="p">)</span><span class="w">            </span><span class="p">)</span><span class="w"> </span><span class="n">me</span><span class="p">%</span><span class="n">maximize</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">maximize</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nb">present</span><span class="p">(</span><span class="n">eps</span><span class="p">)</span><span class="w">                 </span><span class="p">)</span><span class="w"> </span><span class="n">me</span><span class="p">%</span><span class="n">eps</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">abs</span><span class="p">(</span><span class="n">eps</span><span class="p">)</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nb">present</span><span class="p">(</span><span class="n">ns</span><span class="p">)</span><span class="w">                  </span><span class="p">)</span><span class="w"> </span><span class="n">me</span><span class="p">%</span><span class="n">ns</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ns</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nb">present</span><span class="p">(</span><span class="n">nt</span><span class="p">)</span><span class="w">                  </span><span class="p">)</span><span class="w"> </span><span class="n">me</span><span class="p">%</span><span class="n">nt</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">nt</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nb">present</span><span class="p">(</span><span class="n">neps</span><span class="p">)</span><span class="w">                </span><span class="p">)</span><span class="w"> </span><span class="n">me</span><span class="p">%</span><span class="n">neps</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">neps</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nb">present</span><span class="p">(</span><span class="n">maxevl</span><span class="p">)</span><span class="w">              </span><span class="p">)</span><span class="w"> </span><span class="n">me</span><span class="p">%</span><span class="n">maxevl</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">maxevl</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nb">present</span><span class="p">(</span><span class="n">iprint</span><span class="p">)</span><span class="w">              </span><span class="p">)</span><span class="w"> </span><span class="n">me</span><span class="p">%</span><span class="n">iprint</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">iprint</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nb">present</span><span class="p">(</span><span class="n">iseed1</span><span class="p">)</span><span class="w">              </span><span class="p">)</span><span class="w"> </span><span class="n">me</span><span class="p">%</span><span class="n">iseed1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">iseed1</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nb">present</span><span class="p">(</span><span class="n">iseed2</span><span class="p">)</span><span class="w">              </span><span class="p">)</span><span class="w"> </span><span class="n">me</span><span class="p">%</span><span class="n">iseed2</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">iseed2</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nb">present</span><span class="p">(</span><span class="n">step_mode</span><span class="p">)</span><span class="w">           </span><span class="p">)</span><span class="w"> </span><span class="n">me</span><span class="p">%</span><span class="n">step_mode</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">step_mode</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nb">present</span><span class="p">(</span><span class="n">vms</span><span class="p">)</span><span class="w">                 </span><span class="p">)</span><span class="w"> </span><span class="n">me</span><span class="p">%</span><span class="n">vms</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">vms</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nb">present</span><span class="p">(</span><span class="n">iunit</span><span class="p">)</span><span class="w">               </span><span class="p">)</span><span class="w"> </span><span class="n">me</span><span class="p">%</span><span class="n">iunit</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">iunit</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nb">present</span><span class="p">(</span><span class="n">use_initial_guess</span><span class="p">)</span><span class="w">   </span><span class="p">)</span><span class="w"> </span><span class="n">me</span><span class="p">%</span><span class="n">use_initial_guess</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">use_initial_guess</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nb">present</span><span class="p">(</span><span class="n">n_resets</span><span class="p">)</span><span class="w">            </span><span class="p">)</span><span class="w"> </span><span class="n">me</span><span class="p">%</span><span class="n">n_resets</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">n_resets</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nb">present</span><span class="p">(</span><span class="n">optimal_f_specified</span><span class="p">)</span><span class="w"> </span><span class="p">)</span><span class="w"> </span><span class="n">me</span><span class="p">%</span><span class="n">optimal_f_specified</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">optimal_f_specified</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nb">present</span><span class="p">(</span><span class="n">optimal_f</span><span class="p">)</span><span class="w">           </span><span class="p">)</span><span class="w"> </span><span class="n">me</span><span class="p">%</span><span class="n">optimal_f</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">optimal_f</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nb">present</span><span class="p">(</span><span class="n">optimal_f_tol</span><span class="p">)</span><span class="w">       </span><span class="p">)</span><span class="w"> </span><span class="n">me</span><span class="p">%</span><span class="n">optimal_f_tol</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">abs</span><span class="p">(</span><span class="n">optimal_f_tol</span><span class="p">)</span>
 
 <span class="w">    </span><span class="k">end subroutine </span><span class="n">initialize_sa</span>
 </pre></div>

@@ -77,7 +77,7 @@
             <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
               <a data-bs-toggle="tooltip"
                  data-bs-placement="bottom" data-html="true"
-                 title="52.5% of total for procedures.">220 statements</a>
+                 title="53.5% of total for procedures.">236 statements</a>
             </li>
 
             <li class="list-inline-item" id="source-file">
@@ -671,8 +671,8 @@ implementation in a submodule of an interface in a parent module.
 <span class="w">                                                         </span><span class="c">!!  * 4 - user stop in problem function.</span>
 <span class="w">                                                         </span><span class="c">!!  * 99 - should not be seen; only used internally.</span>
 
-<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">wp</span><span class="p">),</span><span class="k">dimension</span><span class="p">(</span><span class="n">me</span><span class="p">%</span><span class="n">n</span><span class="p">)</span><span class="w">    </span><span class="kd">::</span><span class="w"> </span><span class="n">xp</span><span class="w">            </span><span class="c">!! perturbed `x` vector</span>
-<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">wp</span><span class="p">),</span><span class="k">dimension</span><span class="p">(</span><span class="n">me</span><span class="p">%</span><span class="n">neps</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">fstar</span><span class="w">         </span><span class="c">!! array of optimals found so far</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">wp</span><span class="p">),</span><span class="k">dimension</span><span class="p">(:),</span><span class="k">allocatable</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">xp</span><span class="w">      </span><span class="c">!! perturbed `x` vector (size `n`)</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">wp</span><span class="p">),</span><span class="k">dimension</span><span class="p">(:),</span><span class="k">allocatable</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">fstar</span><span class="w">   </span><span class="c">!! array of optimals found so far (size `neps`)</span>
 <span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">wp</span><span class="p">)</span><span class="w">                    </span><span class="kd">::</span><span class="w"> </span><span class="n">f</span><span class="w">             </span><span class="c">!! function value</span>
 <span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">wp</span><span class="p">)</span><span class="w">                    </span><span class="kd">::</span><span class="w"> </span><span class="n">fp</span><span class="w">            </span><span class="c">!! function value</span>
 <span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">wp</span><span class="p">)</span><span class="w">                    </span><span class="kd">::</span><span class="w"> </span><span class="n">p</span><span class="w">             </span><span class="c">!! for metropolis criteria</span>
@@ -688,10 +688,14 @@ implementation in a submodule of an interface in a parent module.
 <span class="w">    </span><span class="kt">logical</span><span class="w">                     </span><span class="kd">::</span><span class="w"> </span><span class="n">quit</span><span class="w">          </span><span class="c">!! if the termination criteria was achieved</span>
 <span class="w">    </span><span class="kt">integer</span><span class="w">                     </span><span class="kd">::</span><span class="w"> </span><span class="n">unit</span><span class="w">          </span><span class="c">!! unit for printing</span>
 <span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">wp</span><span class="p">)</span><span class="w">                    </span><span class="kd">::</span><span class="w"> </span><span class="n">t_original</span><span class="w">    </span><span class="c">!! original input value of `t`</span>
-<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">wp</span><span class="p">),</span><span class="k">dimension</span><span class="p">(</span><span class="n">me</span><span class="p">%</span><span class="n">n</span><span class="p">)</span><span class="w">    </span><span class="kd">::</span><span class="w"> </span><span class="n">vm_original</span><span class="w">   </span><span class="c">!! original input value of `vm`</span>
-<span class="w">    </span><span class="kt">logical</span><span class="w">                     </span><span class="kd">::</span><span class="w"> </span><span class="n">first</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">wp</span><span class="p">),</span><span class="k">dimension</span><span class="p">(:),</span><span class="k">allocatable</span><span class="w">    </span><span class="kd">::</span><span class="w"> </span><span class="n">vm_original</span><span class="w">   </span><span class="c">!! original input value of `vm` (size `n`)</span>
+<span class="w">    </span><span class="kt">logical</span><span class="w">                     </span><span class="kd">::</span><span class="w"> </span><span class="n">first</span><span class="w"> </span><span class="c">!! indicates first function eval</span>
+<span class="w">    </span><span class="kt">logical</span><span class="w">                     </span><span class="kd">::</span><span class="w"> </span><span class="nb">abort</span><span class="w"> </span><span class="c">!! indicates the known solution has been found</span>
 
 <span class="w">    </span><span class="c">! initialize:</span>
+<span class="w">    </span><span class="k">allocate</span><span class="p">(</span><span class="n">xp</span><span class="p">(</span><span class="n">me</span><span class="p">%</span><span class="n">n</span><span class="p">))</span>
+<span class="w">    </span><span class="k">allocate</span><span class="p">(</span><span class="n">fstar</span><span class="p">(</span><span class="n">me</span><span class="p">%</span><span class="n">neps</span><span class="p">))</span>
+<span class="w">    </span><span class="k">allocate</span><span class="p">(</span><span class="n">vm_original</span><span class="p">(</span><span class="n">me</span><span class="p">%</span><span class="n">n</span><span class="p">))</span>
 <span class="w">    </span><span class="n">unit</span><span class="w">        </span><span class="o">=</span><span class="w"> </span><span class="n">me</span><span class="p">%</span><span class="n">iunit</span>
 <span class="w">    </span><span class="n">nfcnev</span><span class="w">      </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span>
 <span class="w">    </span><span class="n">ier</span><span class="w">         </span><span class="o">=</span><span class="w"> </span><span class="mi">99</span>
@@ -700,6 +704,7 @@ implementation in a submodule of an interface in a parent module.
 <span class="w">    </span><span class="n">vm</span><span class="w">          </span><span class="o">=</span><span class="w"> </span><span class="nb">abs</span><span class="p">(</span><span class="n">vm</span><span class="p">)</span>
 <span class="w">    </span><span class="n">t_original</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="n">t</span>
 <span class="w">    </span><span class="n">vm_original</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">vm</span>
+<span class="w">    </span><span class="nb">abort</span><span class="w">       </span><span class="o">=</span><span class="w"> </span><span class="p">.</span><span class="n">false</span><span class="p">.</span>
 
 <span class="w">    </span><span class="c">! if the initial temperature is not positive, notify the user and</span>
 <span class="w">    </span><span class="c">! return to the calling routine.</span>
@@ -908,11 +913,20 @@ implementation in a submodule of an interface in a parent module.
 <span class="w">                </span><span class="k">write</span><span class="p">(</span><span class="n">unit</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;(A)&#39;</span><span class="p">)</span><span class="w"> </span><span class="s1">&#39; &#39;</span>
 <span class="w">            </span><span class="k">end if</span>
 
-<span class="w">            </span><span class="c">!  check termination criteria.</span>
-<span class="w">            </span><span class="n">fstar</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">f</span>
-<span class="w">            </span><span class="n">quit</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">((</span><span class="n">fopt</span><span class="o">-</span><span class="n">f</span><span class="p">)</span><span class="o">&lt;=</span><span class="n">me</span><span class="p">%</span><span class="n">eps</span><span class="p">)</span><span class="w"> </span><span class="p">.</span><span class="nb">and</span><span class="p">.</span><span class="w"> </span><span class="p">(</span><span class="k">all</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">f</span><span class="o">-</span><span class="n">fstar</span><span class="p">)</span><span class="o">&lt;=</span><span class="n">me</span><span class="p">%</span><span class="n">eps</span><span class="p">))</span>
+<span class="w">            </span><span class="c">! check termination criteria.</span>
+<span class="w">            </span><span class="n">quit</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">.</span><span class="n">false</span><span class="p">.</span>
+<span class="w">            </span><span class="c">! first, check `f` if the known value is available</span>
+<span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">me</span><span class="p">%</span><span class="n">optimal_f_specified</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
+<span class="k">                </span><span class="n">quit</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">abs</span><span class="p">(</span><span class="n">me</span><span class="p">%</span><span class="n">func</span><span class="p">(</span><span class="n">fopt</span><span class="p">)</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">me</span><span class="p">%</span><span class="n">optimal_f</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;=</span><span class="w"> </span><span class="nb">abs</span><span class="p">(</span><span class="n">me</span><span class="p">%</span><span class="n">optimal_f_tol</span><span class="p">)</span>
+<span class="w">                </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">quit</span><span class="p">)</span><span class="w"> </span><span class="nb">abort</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">.</span><span class="n">true</span><span class="p">.</span>
+<span class="w">            </span><span class="k">end if</span>
+<span class="w">            </span><span class="c">! check the convergence tolerances:</span>
+<span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="p">(.</span><span class="nb">not</span><span class="p">.</span><span class="w"> </span><span class="n">quit</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
+<span class="k">                </span><span class="n">fstar</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">f</span>
+<span class="w">                </span><span class="n">quit</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">((</span><span class="n">fopt</span><span class="o">-</span><span class="n">f</span><span class="p">)</span><span class="o">&lt;=</span><span class="n">me</span><span class="p">%</span><span class="n">eps</span><span class="p">)</span><span class="w"> </span><span class="p">.</span><span class="nb">and</span><span class="p">.</span><span class="w"> </span><span class="p">(</span><span class="k">all</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">f</span><span class="o">-</span><span class="n">fstar</span><span class="p">)</span><span class="o">&lt;=</span><span class="n">me</span><span class="p">%</span><span class="n">eps</span><span class="p">))</span>
+<span class="w">            </span><span class="k">end if</span>
 
-<span class="w">            </span><span class="c">!  terminate sa if appropriate.</span>
+<span class="w">            </span><span class="c">! terminate sa if appropriate.</span>
 <span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">quit</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
 <span class="k">                </span><span class="n">x</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">xopt</span>
 <span class="w">                </span><span class="n">ier</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span>
@@ -922,7 +936,12 @@ implementation in a submodule of an interface in a parent module.
 <span class="w">                    </span><span class="k">write</span><span class="p">(</span><span class="n">unit</span><span class="p">,</span><span class="s1">&#39;(A)&#39;</span><span class="p">)</span><span class="w">  </span><span class="s1">&#39;  sa achieved termination criteria. ier = 0.  &#39;</span>
 <span class="w">                    </span><span class="k">write</span><span class="p">(</span><span class="n">unit</span><span class="p">,</span><span class="s1">&#39;(A/)&#39;</span><span class="p">)</span><span class="w"> </span><span class="s1">&#39;----------------------------------------------&#39;</span>
 <span class="w">                </span><span class="k">end if</span>
-<span class="k">                exit</span>
+<span class="k">                if</span><span class="w"> </span><span class="p">(</span><span class="nb">abort</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
+<span class="k">                    exit </span><span class="n">reset</span><span class="w"> </span><span class="c">! the solution has been found, so can ignore</span>
+<span class="w">                               </span><span class="c">! the reset loop if that is being used</span>
+<span class="w">                </span><span class="k">else</span>
+<span class="k">                    exit</span>
+<span class="k">                end if</span>
 <span class="k">            end if</span>
 
 <span class="w">            </span><span class="c">!  if termination criteria is not met, prepare for another loop.</span>
