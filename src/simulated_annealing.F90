@@ -151,6 +151,13 @@
         real(wp)  :: vms = 0.1_wp         !! for `step_mode=3`, the factor to adjust `vm`
         integer   :: iunit = output_unit  !! unit number for prints.
 
+        ! option to specify the known answer, so the solver will stop if it finds it:
+        logical :: optimal_f_specified = .false. !! if the optional `f` value is known,
+                                                 !! it can be specified by `optimal_f`.
+        real(wp) :: optimal_f = 0.0_wp !! if `optimal_f_specified=True` the solver will stop
+                                       !! if this value is achieved.
+        real(wp) :: optimal_f_tol = 0.0_wp !! absolute tolerance for the `optimal_f` check
+
         procedure(sa_func),pointer :: fcn => null()  !! the user's function
 
     contains
@@ -215,7 +222,8 @@
     subroutine initialize_sa(me,fcn,n,lb,ub,c,&
                              maximize,eps,ns,nt,neps,maxevl,&
                              iprint,iseed1,iseed2,step_mode,vms,iunit,&
-                             use_initial_guess,n_resets)
+                             use_initial_guess,n_resets,&
+                             optimal_f_specified,optimal_f,optimal_f_tol)
 
     implicit none
 
@@ -239,6 +247,12 @@
     integer, intent(in), optional                 :: iunit
     logical, intent(in), optional                 :: use_initial_guess
     integer, intent(in), optional                 :: n_resets
+    logical, intent(in), optional  :: optimal_f_specified !! if the optional `f` value is known,
+                                                          !! it can be specified by `optimal_f`.
+                                                          !! [Default is False]
+    real(wp), intent(in), optional  :: optimal_f          !! if `optimal_f_specified=True` the solver will stop
+                                                          !! if this value is achieved.
+    real(wp), intent(in), optional  :: optimal_f_tol      !! absolute tolerance for the `optimal_f` check
 
     call me%destroy()
 
@@ -259,20 +273,23 @@
         me%c = 2.0_wp
     end if
 
-    if (present(maximize)          ) me%maximize = maximize
-    if (present(eps)               ) me%eps = eps
-    if (present(ns)                ) me%ns = ns
-    if (present(nt)                ) me%nt = nt
-    if (present(neps)              ) me%neps = neps
-    if (present(maxevl)            ) me%maxevl = maxevl
-    if (present(iprint)            ) me%iprint = iprint
-    if (present(iseed1)            ) me%iseed1 = iseed1
-    if (present(iseed2)            ) me%iseed2 = iseed2
-    if (present(step_mode)         ) me%step_mode = step_mode
-    if (present(vms)               ) me%vms = vms
-    if (present(iunit)             ) me%iunit = iunit
-    if (present(use_initial_guess) ) me%use_initial_guess = use_initial_guess
-    if (present(n_resets)          ) me%n_resets = n_resets
+    if (present(maximize)            ) me%maximize = maximize
+    if (present(eps)                 ) me%eps = abs(eps)
+    if (present(ns)                  ) me%ns = ns
+    if (present(nt)                  ) me%nt = nt
+    if (present(neps)                ) me%neps = neps
+    if (present(maxevl)              ) me%maxevl = maxevl
+    if (present(iprint)              ) me%iprint = iprint
+    if (present(iseed1)              ) me%iseed1 = iseed1
+    if (present(iseed2)              ) me%iseed2 = iseed2
+    if (present(step_mode)           ) me%step_mode = step_mode
+    if (present(vms)                 ) me%vms = vms
+    if (present(iunit)               ) me%iunit = iunit
+    if (present(use_initial_guess)   ) me%use_initial_guess = use_initial_guess
+    if (present(n_resets)            ) me%n_resets = n_resets
+    if (present(optimal_f_specified) ) me%optimal_f_specified = optimal_f_specified
+    if (present(optimal_f)           ) me%optimal_f = optimal_f
+    if (present(optimal_f_tol)       ) me%optimal_f_tol = abs(optimal_f_tol)
 
     end subroutine initialize_sa
 !********************************************************************************
@@ -384,8 +401,8 @@
                                                          !!  * 4 - user stop in problem function.
                                                          !!  * 99 - should not be seen; only used internally.
 
-    real(wp),dimension(me%n)    :: xp            !! perturbed `x` vector
-    real(wp),dimension(me%neps) :: fstar         !! array of optimals found so far
+    real(wp),dimension(:),allocatable :: xp      !! perturbed `x` vector (size `n`)
+    real(wp),dimension(:),allocatable :: fstar   !! array of optimals found so far (size `neps`)
     real(wp)                    :: f             !! function value
     real(wp)                    :: fp            !! function value
     real(wp)                    :: p             !! for metropolis criteria
@@ -401,10 +418,14 @@
     logical                     :: quit          !! if the termination criteria was achieved
     integer                     :: unit          !! unit for printing
     real(wp)                    :: t_original    !! original input value of `t`
-    real(wp),dimension(me%n)    :: vm_original   !! original input value of `vm`
-    logical                     :: first
+    real(wp),dimension(:),allocatable    :: vm_original   !! original input value of `vm` (size `n`)
+    logical                     :: first !! indicates first function eval
+    logical                     :: abort !! indicates the known solution has been found
 
     ! initialize:
+    allocate(xp(me%n))
+    allocate(fstar(me%neps))
+    allocate(vm_original(me%n))
     unit        = me%iunit
     nfcnev      = 0
     ier         = 99
@@ -413,6 +434,7 @@
     vm          = abs(vm)
     t_original  = t
     vm_original = vm
+    abort       = .false.
 
     ! if the initial temperature is not positive, notify the user and
     ! return to the calling routine.
@@ -621,11 +643,20 @@
                 write(unit, '(A)') ' '
             end if
 
-            !  check termination criteria.
-            fstar(1) = f
-            quit = ((fopt-f)<=me%eps) .and. (all(abs(f-fstar)<=me%eps))
+            ! check termination criteria.
+            quit = .false.
+            ! first, check `f` if the known value is available
+            if (me%optimal_f_specified) then
+                quit = abs(me%func(fopt) - me%optimal_f) <= abs(me%optimal_f_tol)
+                if (quit) abort = .true.
+            end if
+            ! check the convergence tolerances:
+            if (.not. quit) then
+                fstar(1) = f
+                quit = ((fopt-f)<=me%eps) .and. (all(abs(f-fstar)<=me%eps))
+            end if
 
-            !  terminate sa if appropriate.
+            ! terminate sa if appropriate.
             if (quit) then
                 x = xopt
                 ier = 0
@@ -635,7 +666,12 @@
                     write(unit,'(A)')  '  sa achieved termination criteria. ier = 0.  '
                     write(unit,'(A/)') '----------------------------------------------'
                 end if
-                exit
+                if (abort) then
+                    exit reset ! the solution has been found, so can ignore
+                               ! the reset loop if that is being used
+                else
+                    exit
+                end if
             end if
 
             !  if termination criteria is not met, prepare for another loop.
