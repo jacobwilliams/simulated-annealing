@@ -10,7 +10,6 @@ keywords = ["nle solver", "optimization"]
 auto-executables = false
 auto-examples = false
 auto-tests = true
-link = ["lapack", "blas"]
 
 [library]
 source-dir = "src"
