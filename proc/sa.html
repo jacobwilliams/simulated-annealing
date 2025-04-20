@@ -1,0 +1,1006 @@
+<!-- -*- mode: jinja2 -*- -->
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+      <meta name="description" content="A modern Fortran simulated annealing optimization method">
+    <meta name="author" content="Jacob Williams" >
+    <link rel="icon" href="../favicon.png">
+
+    <title>sa &ndash; simulated-annealing</title>
+
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+            integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    <!-- Font Awesome -->
+    <link href="../css/fontawesome.min.css" rel="stylesheet">
+    <link href="../css/brands.min.css" rel="stylesheet">
+    <link href="../css/regular.min.css" rel="stylesheet">
+    <link href="../css/solid.min.css" rel="stylesheet">
+    <link href="../css/v4-font-face.min.css" rel="stylesheet">
+    <link href="../css/v4-shims.min.css" rel="stylesheet">
+    <!-- MathJax -->
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Config({
+        TeX: { equationNumbers: { autoNumber: "AMS" } }
+      });
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@2.7.9/MathJax.js?config=TeX-AMS-MML_HTMLorMML" async
+            integrity="sha256-DViIOMYdwlM/axqoGDPeUyf0urLoHMN4QACBKyB58Uw=" crossorigin="anonymous"></script>
+    <!-- Other scripts and stylesheets -->
+    <link href="../css/local.css" rel="stylesheet">
+    <link href="../css/pygments.css" rel="stylesheet">
+    <script src="../js/svg-pan-zoom.min.js"></script>
+  </head>
+
+  <body>
+
+    <!-- Fixed navbar -->
+    <div class="container-fluid mb-sm-4 mb-xl-2">
+      <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+        <div class="container">
+          <a class="navbar-brand" href="../index.html">simulated-annealing </a>
+          <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbar"
+                  aria-expanded="false" aria-controls="navbar" aria-label="Toggle navigation">
+                  <span class="navbar-toggler-icon">
+          </button>
+
+          <div id="navbar" class="navbar-collapse collapse">
+            <ul class="navbar-nav">
+                  <li class="nav-item">
+                    <a class="nav-link" href="../sourcefile/simulated_annealing.f90.html">Source File</a>
+                  </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/modules.html">Modules</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/procedures.html">Procedures</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/absint.html">Abstract Interfaces</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/types.html">Derived Types</a>
+                </li>
+            </ul>
+              <div class="d-flex align-items-end flex-grow-1">
+                <form action="../search.html" role="search" class="ms-auto">
+                  <input type="text" class="form-control" aria-label="Search" placeholder="Search" name="q" id="tipue_search_input" autocomplete="off" required>
+                </form>
+              </div>
+          </div><!--/.nav-collapse -->
+        </div>
+      </nav>
+    </div>
+
+    <div class="container">
+  <div class="row">
+    <h1>sa
+      <small>Subroutine</small>
+      
+    </h1>
+      <div class="container p-2 mb-4 bg-light border rounded-3">
+    <div class="row align-items-center justify-content-between" id="info-bar">
+      <div class="col">
+        <ul class="list-inline" style="margin-bottom:0px;display:inline">
+
+            <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
+              <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
+                 title="53.5% of total for procedures.">236 statements</a>
+            </li>
+
+            <li class="list-inline-item" id="source-file">
+              <i class="fa fa-code"></i>
+              <a href="../src/simulated_annealing.F90"> Source File</a>
+            </li>
+        </ul>
+      </div>
+      <div class="col">
+        <nav aria-label="breadcrumb">
+          <ol class="breadcrumb justify-content-end mb-0">
+                <li class="breadcrumb-item"><a href='../sourcefile/simulated_annealing.f90.html'>simulated_annealing.F90</a></li>
+                <li class="breadcrumb-item"><a href='../module/simulated_annealing_module.html'>simulated_annealing_module</a></li>
+            <li class="breadcrumb-item active" aria-current="page">sa</li>
+          </ol>
+        </nav>
+      </div>
+    </div>
+  </div>
+  <script>
+    // Enable Bootstrap tooltips
+    (function () {
+      const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
+      const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
+    })();
+  </script>
+
+  </div>
+  
+  <div class="row">
+    <div class="col-md-3 hidden-xs hidden-sm visible-md visible-lg">
+      <div id="sidebar">
+      <h3>Contents</h3>
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+    <div class="card card-primary">
+      <div class="card-header text-left"><h3 class="card-title">Source Code</h3></div>
+      <div class="list-group">
+        <a class="list-group-item" href="../proc/sa.html#src">sa</a>
+      </div>
+    </div>
+
+
+  </div>
+
+    </div>
+    
+    <div class="col-md-9" id='text'>
+    <h2>private  subroutine sa(me, x, rt, t, vm, xopt, fopt, nacc, nfcnev, ier)  
+</h2>
+    
+
+    <p>Continuous simulated annealing global optimization algorithm</p>
+<h3>Brief Overview</h3>
+<p>sa tries to find the global optimum of an n dimensional function.
+  it moves both up and downhill and as the optimization process
+  proceeds, it focuses on the most promising area.</p>
+<p>to start, it randomly chooses a trial point within the step length
+  vm (a vector of length n) of the user selected starting point. the
+  function is evaluated at this trial point and its value is compared
+  to its value at the initial point.</p>
+<p>in a maximization problem, all uphill moves are accepted and the
+  algorithm continues from that trial point. downhill moves may be
+  accepted; the decision is made by the metropolis criteria. it uses t
+  (temperature) and the size of the downhill move in a probabilistic
+  manner. the smaller t and the size of the downhill move are, the more
+  likely that move will be accepted. if the trial is accepted, the
+  algorithm moves on from that point. if it is rejected, another point
+  is chosen instead for a trial evaluation.</p>
+<p>each element of vm periodically adjusted so that half of all
+  function evaluations in that direction are accepted.</p>
+<p>a fall in t is imposed upon the system with the rt variable by
+  t(i+1) = rt*t(i) where i is the ith iteration. thus, as t declines,
+  downhill moves are less likely to be accepted and the percentage of
+  rejections rise. given the scheme for the selection for vm, vm falls.
+  thus, as t declines, vm falls and sa focuses upon the most promising
+  area for optimization.</p>
+<p>the parameter t is crucial in using sa successfully. it influences
+  vm, the step length over which the algorithm searches for optima. for
+  a small initial t, the step length may be too small; thus not enough
+  of the function might be evaluated to find the global optima. the user
+  should carefully examine vm in the intermediate output (set iprint =
+  1) to make sure that vm is appropriate. the relationship between the
+  initial temperature and the resulting step length is function
+  dependent.</p>
+<p>to determine the starting temperature that is consistent with
+  optimizing a function, it is worthwhile to run a trial run first. set
+  rt = 1.5 and t = 1.0. with rt &gt; 1.0, the temperature increases and vm
+  rises as well. then select the t that produces a large enough vm.</p>
+<h3>Notes</h3>
+<ul>
+<li>as far as possible, the parameters here have the same name as in
+    the description of the algorithm on pp. 266-8 of corana et al.</li>
+<li>the suggested input values generally come from corana et al. to
+    drastically reduce runtime, see goffe et al., pp. 90-1 for
+    suggestions on choosing the appropriate rt and nt.</li>
+</ul>
+<h3>History</h3>
+<ul>
+<li>differences compared to version 2.0:<ol>
+<li>if a trial is out of bounds, a point is randomly selected
+    from lb(i) to ub(i). unlike in version 2.0, this trial is
+    evaluated and is counted in acceptances and rejections.
+    all corresponding documentation was changed as well.</li>
+</ol>
+</li>
+<li>differences compared to version 3.0:<ol>
+<li>if vm(i) &gt; (ub(i) - lb(i)), vm is set to ub(i) - lb(i).
+    the idea is that if t is high relative to lb &amp; ub, most
+    points will be accepted, causing vm to rise. but, in this
+    situation, vm has little meaning; particularly if vm is
+    larger than the acceptable region. setting vm to this size
+    still allows all parts of the allowable region to be selected.</li>
+</ol>
+</li>
+<li>differences compared to version 3.1:<ol>
+<li>test made to see if the initial temperature is positive.</li>
+<li>write statements prettied up.</li>
+<li>references to paper updated.</li>
+</ol>
+</li>
+</ul>
+
+    <h3>Type Bound</h3>
+    <p><a href='../type/simulated_annealing_type.html'>simulated_annealing_type</a></p>
+
+    <h3>Arguments</h3>
+        <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-me~4"></span>
+              class(<a href='../type/simulated_annealing_type.html'>simulated_annealing_type</a>),
+            </td>
+<td>intent(inout)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>me</strong></td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-x~2"></span>
+              real(kind=wp),
+            </td>
+<td>intent(inout),</td>
+              <td></td>            <td>
+              dimension(me%n)
+            </td>
+            <td>::</td>
+            <td><strong>x</strong></td>
+            <td>
+                <p>on input: the starting values for the variables of the
+function to be optimized. [Will be replaced by final point]</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-rt"></span>
+              real(kind=wp),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>rt</strong></td>
+            <td>
+                <p>the temperature reduction factor.  the value suggested by
+corana et al. is .85. see goffe et al. for more advice.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-t"></span>
+              real(kind=wp),
+            </td>
+<td>intent(inout)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>t</strong></td>
+            <td>
+                <p>on input, the initial temperature. see goffe et al. for advice.
+on output, the final temperature. Note that if <code>t=0</code>, then
+all downhill steps will be rejected</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-vm"></span>
+              real(kind=wp),
+            </td>
+<td>intent(inout),</td>
+              <td></td>            <td>
+              dimension(me%n)
+            </td>
+            <td>::</td>
+            <td><strong>vm</strong></td>
+            <td>
+                <p>the step length vector. on input it should encompass the region of
+interest given the starting value x.  for point x(i), the next
+trial point is selected is from x(i) - vm(i)  to  x(i) + vm(i).
+since vm is adjusted so that about half of all points are accepted,
+the input value is not very important (i.e. is the value is off,
+sa adjusts vm to the correct value).</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-xopt"></span>
+              real(kind=wp),
+            </td>
+<td>intent(out),</td>
+              <td></td>            <td>
+              dimension(me%n)
+            </td>
+            <td>::</td>
+            <td><strong>xopt</strong></td>
+            <td>
+                <p>the variables that optimize the function.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-fopt"></span>
+              real(kind=wp),
+            </td>
+<td>intent(out)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>fopt</strong></td>
+            <td>
+                <p>the optimal value of the function.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-nacc"></span>
+              integer,
+            </td>
+<td>intent(out)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>nacc</strong></td>
+            <td>
+                <p>the number of accepted function evaluations.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-nfcnev"></span>
+              integer,
+            </td>
+<td>intent(out)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>nfcnev</strong></td>
+            <td>
+                <p>the total number of function evaluations. in a minor
+point, note that the first evaluation is not used in the
+core of the algorithm; it simply initializes the
+algorithm.</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-ier"></span>
+              integer,
+            </td>
+<td>intent(out)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>ier</strong></td>
+            <td>
+                <p>the error return number:</p>
+<ul>
+<li>0 - normal return; termination criteria achieved.</li>
+<li>1 - number of function evaluations (nfcnev) is
+   greater than the maximum number (maxevl).</li>
+<li>3 - the initial temperature is not positive.</li>
+<li>4 - user stop in problem function.</li>
+<li>99 - should not be seen; only used internally.</li>
+</ul>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <br>
+    <div class="card">
+      <div class="card-header">
+  <h3 class="card-title">Calls</h3>
+      </div>
+      <div class="card-body">
+  <div class="depgraph"><?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.43.0 (0)
+ -->
+<!-- Title: proc~~sa~~CallsGraph Pages: 1 -->
+<svg id="procsaCallsGraph" width="641pt" height="196pt"
+ viewBox="0.00 0.00 641.00 196.49" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="proc~~sa~~CallsGraph" class="graph" transform="scale(0.83 0.83) rotate(0) translate(4 232.95)">
+<title>proc~~sa~~CallsGraph</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-232.95 769,-232.95 769,4 -4,4"/>
+<!-- proc~sa -->
+<g id="proc~~sa~~CallsGraph_node1" class="node">
+<title>proc~sa</title>
+<polygon fill="none" stroke="black" points="174,-123.95 0,-123.95 0,-99.95 174,-99.95 174,-123.95"/>
+<text text-anchor="middle" x="87" y="-109.55" font-family="Helvetica,sans-Serif" font-size="10.50">simulated_annealing_type%sa</text>
+</g>
+<!-- proc~exprep -->
+<g id="proc~~sa~~CallsGraph_node2" class="node">
+<title>proc~exprep</title>
+<g id="a_proc~~sa~~CallsGraph_node2"><a xlink:href="../proc/exprep.html" xlink:title="exprep">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="376.5,-228.95 322.5,-228.95 322.5,-204.95 376.5,-204.95 376.5,-228.95"/>
+<text text-anchor="middle" x="349.5" y="-214.55" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">exprep</text>
+</a>
+</g>
+</g>
+<!-- proc~sa&#45;&gt;proc~exprep -->
+<g id="proc~~sa~~CallsGraph_edge1" class="edge">
+<title>proc~sa&#45;&gt;proc~exprep</title>
+<path fill="none" stroke="#000000" d="M101.08,-124.02C122.23,-142.77 166,-178.54 210,-195.95 242.99,-209 283.35,-214 311.97,-215.88"/>
+<polygon fill="#000000" stroke="#000000" points="312.14,-219.4 322.32,-216.46 312.54,-212.41 312.14,-219.4"/>
+</g>
+<!-- proc~func -->
+<g id="proc~~sa~~CallsGraph_node3" class="node">
+<title>proc~func</title>
+<g id="a_proc~~sa~~CallsGraph_node3"><a xlink:href="../proc/func.html" xlink:title="simulated_annealing_type%func">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="442,-186.95 257,-186.95 257,-162.95 442,-162.95 442,-186.95"/>
+<text text-anchor="middle" x="349.5" y="-172.55" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">simulated_annealing_type%func</text>
+</a>
+</g>
+</g>
+<!-- proc~sa&#45;&gt;proc~func -->
+<g id="proc~~sa~~CallsGraph_edge2" class="edge">
+<title>proc~sa&#45;&gt;proc~func</title>
+<path fill="none" stroke="#000000" d="M118.13,-124.04C142.54,-133.41 178.02,-146.09 210,-153.95 221.83,-156.86 234.34,-159.43 246.8,-161.69"/>
+<polygon fill="#000000" stroke="#000000" points="246.32,-165.16 256.78,-163.44 247.53,-158.27 246.32,-165.16"/>
+</g>
+<!-- proc~perturb_and_evaluate -->
+<g id="proc~~sa~~CallsGraph_node4" class="node">
+<title>proc~perturb_and_evaluate</title>
+<g id="a_proc~~sa~~CallsGraph_node4"><a xlink:href="../proc/perturb_and_evaluate.html" xlink:title="simulated_annealing_type%perturb_and_evaluate">
+<polygon fill="#d9534f" stroke="#d9534f" points="489,-144.95 210,-144.95 210,-120.95 489,-120.95 489,-144.95"/>
+<text text-anchor="middle" x="349.5" y="-130.55" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">simulated_annealing_type%perturb_and_evaluate</text>
+</a>
+</g>
+</g>
+<!-- proc~sa&#45;&gt;proc~perturb_and_evaluate -->
+<g id="proc~~sa~~CallsGraph_edge3" class="edge">
+<title>proc~sa&#45;&gt;proc~perturb_and_evaluate</title>
+<path fill="none" stroke="#000000" d="M174.02,-118.89C182.33,-119.56 190.91,-120.25 199.6,-120.95"/>
+<polygon fill="#000000" stroke="#000000" points="199.6,-124.46 209.85,-121.77 200.16,-117.48 199.6,-124.46"/>
+</g>
+<!-- proc~print_vector -->
+<g id="proc~~sa~~CallsGraph_node5" class="node">
+<title>proc~print_vector</title>
+<g id="a_proc~~sa~~CallsGraph_node5"><a xlink:href="../proc/print_vector.html" xlink:title="print_vector">
+<polygon fill="#d9534f" stroke="#d9534f" points="387.5,-102.95 311.5,-102.95 311.5,-78.95 387.5,-78.95 387.5,-102.95"/>
+<text text-anchor="middle" x="349.5" y="-88.55" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">print_vector</text>
+</a>
+</g>
+</g>
+<!-- proc~sa&#45;&gt;proc~print_vector -->
+<g id="proc~~sa~~CallsGraph_edge4" class="edge">
+<title>proc~sa&#45;&gt;proc~print_vector</title>
+<path fill="none" stroke="#000000" d="M174.02,-105.02C216.37,-101.6 265.81,-97.62 301.22,-94.76"/>
+<polygon fill="#000000" stroke="#000000" points="301.59,-98.24 311.28,-93.95 301.03,-91.27 301.59,-98.24"/>
+</g>
+<!-- proc~rand_init -->
+<g id="proc~~sa~~CallsGraph_node6" class="node">
+<title>proc~rand_init</title>
+<g id="a_proc~~sa~~CallsGraph_node6"><a xlink:href="../proc/rand_init.html" xlink:title="rand_init">
+<polygon fill="#d9534f" stroke="#d9534f" points="379,-60.95 320,-60.95 320,-36.95 379,-36.95 379,-60.95"/>
+<text text-anchor="middle" x="349.5" y="-46.55" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">rand_init</text>
+</a>
+</g>
+</g>
+<!-- proc~sa&#45;&gt;proc~rand_init -->
+<g id="proc~~sa~~CallsGraph_edge5" class="edge">
+<title>proc~sa&#45;&gt;proc~rand_init</title>
+<path fill="none" stroke="#000000" d="M118.13,-99.87C142.54,-90.49 178.02,-77.81 210,-69.95 243.19,-61.79 281.68,-56.26 309.65,-52.93"/>
+<polygon fill="#000000" stroke="#000000" points="310.29,-56.38 319.82,-51.77 309.49,-49.43 310.29,-56.38"/>
+</g>
+<!-- proc~uniform_random_number -->
+<g id="proc~~sa~~CallsGraph_node7" class="node">
+<title>proc~uniform_random_number</title>
+<g id="a_proc~~sa~~CallsGraph_node7"><a xlink:href="../proc/uniform_random_number.html" xlink:title="uniform_random_number">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="765,-40.95 616,-40.95 616,-16.95 765,-16.95 765,-40.95"/>
+<text text-anchor="middle" x="690.5" y="-26.55" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">uniform_random_number</text>
+</a>
+</g>
+</g>
+<!-- proc~sa&#45;&gt;proc~uniform_random_number -->
+<g id="proc~~sa~~CallsGraph_edge6" class="edge">
+<title>proc~sa&#45;&gt;proc~uniform_random_number</title>
+<path fill="none" stroke="#000000" d="M100.13,-99.73C120.62,-80.06 164.33,-42.15 210,-27.95 348,14.96 519.35,-0.79 615.35,-15.37"/>
+<polygon fill="#000000" stroke="#000000" points="614.83,-18.83 625.25,-16.91 615.91,-11.92 614.83,-18.83"/>
+</g>
+<!-- proc~uniform -->
+<g id="proc~~sa~~CallsGraph_node8" class="node">
+<title>proc~uniform</title>
+<g id="a_proc~~sa~~CallsGraph_node8"><a xlink:href="../proc/uniform.html" xlink:title="uniform">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="580,-102.95 525,-102.95 525,-78.95 580,-78.95 580,-102.95"/>
+<text text-anchor="middle" x="552.5" y="-88.55" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">uniform</text>
+</a>
+</g>
+</g>
+<!-- proc~perturb_and_evaluate&#45;&gt;proc~uniform -->
+<g id="proc~~sa~~CallsGraph_edge7" class="edge">
+<title>proc~perturb_and_evaluate&#45;&gt;proc~uniform</title>
+<path fill="none" stroke="#000000" d="M444.8,-120.9C459.67,-118.36 474.82,-115.38 489,-111.95 497.56,-109.88 506.61,-107.16 515.1,-104.37"/>
+<polygon fill="#000000" stroke="#000000" points="516.39,-107.62 524.73,-101.09 514.13,-101 516.39,-107.62"/>
+</g>
+<!-- proc~uniform&#45;&gt;proc~uniform_random_number -->
+<g id="proc~~sa~~CallsGraph_edge8" class="edge">
+<title>proc~uniform&#45;&gt;proc~uniform_random_number</title>
+<path fill="none" stroke="#000000" d="M580.05,-78.85C601.11,-69.25 630.75,-55.74 653.87,-45.19"/>
+<polygon fill="#000000" stroke="#000000" points="655.37,-48.36 663.02,-41.02 652.47,-41.99 655.37,-48.36"/>
+</g>
+</g>
+</svg>
+</div>                <script>
+                  var panprocsaCallsGraph = svgPanZoom('#procsaCallsGraph',
+                    {zoomEnabled: true, controlIconsEnabled: true, fit: true, center: true,}
+                  );
+                </script>          <div>
+            <a type="button" class="graph-help" data-bs-toggle="modal" href="#CallsGraph-help-text">Help</a>
+          </div>
+          <div class="modal fade" id="CallsGraph-help-text" tabindex="-1" role="dialog">
+            <div class="modal-dialog modal-lg" role="document">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h4 class="modal-title" id="-graph-help-label">Graph Key</h4>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+<p>Nodes of different colours represent the following: </p>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.43.0 (0)
+ -->
+<!-- Title: Graph Key Pages: 1 -->
+<svg width="641pt" height="28pt"
+ viewBox="0.00 0.00 641.00 27.51" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(0.86 0.86) rotate(0) translate(4 28)">
+<title>Graph Key</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-28 741.5,-28 741.5,4 -4,4"/>
+<!-- Subroutine -->
+<g id="node1" class="node">
+<title>Subroutine</title>
+<polygon fill="#d9534f" stroke="#d9534f" points="70,-24 0,-24 0,0 70,0 70,-24"/>
+<text text-anchor="middle" x="35" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Subroutine</text>
+</g>
+<!-- Function -->
+<g id="node2" class="node">
+<title>Function</title>
+<polygon fill="#d94e8f" stroke="#d94e8f" points="146,-24 88,-24 88,0 146,0 146,-24"/>
+<text text-anchor="middle" x="117" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Function</text>
+</g>
+<!-- Interface -->
+<g id="node3" class="node">
+<title>Interface</title>
+<polygon fill="#a7506f" stroke="#a7506f" points="225.5,-24 164.5,-24 164.5,0 225.5,0 225.5,-24"/>
+<text text-anchor="middle" x="195" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Interface</text>
+</g>
+<!-- Type Bound Procedure -->
+<g id="node4" class="node">
+<title>Type Bound Procedure</title>
+<polygon fill="#a7506f" stroke="#a7506f" points="374,-24 244,-24 244,0 374,0 374,-24"/>
+<text text-anchor="middle" x="309" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Type Bound Procedure</text>
+</g>
+<!-- Unknown Procedure Type -->
+<g id="node5" class="node">
+<title>Unknown Procedure Type</title>
+<polygon fill="#777777" stroke="#777777" points="537.5,-24 392.5,-24 392.5,0 537.5,0 537.5,-24"/>
+<text text-anchor="middle" x="465" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Unknown Procedure Type</text>
+</g>
+<!-- Program -->
+<g id="node6" class="node">
+<title>Program</title>
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="614,-24 556,-24 556,0 614,0 614,-24"/>
+<text text-anchor="middle" x="585" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Program</text>
+</g>
+<!-- This Page&#39;s Entity -->
+<g id="node7" class="node">
+<title>This Page&#39;s Entity</title>
+<polygon fill="none" stroke="black" points="737.5,-24 632.5,-24 632.5,0 737.5,0 737.5,-24"/>
+<text text-anchor="middle" x="685" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50">This Page&#39;s Entity</text>
+</g>
+</g>
+</svg>
+
+<p>Solid arrows point from a procedure to one which it calls. Dashed 
+arrows point from an interface to procedures which implement that interface.
+This could include the module procedures in a generic interface or the
+implementation in a submodule of an interface in a parent module.
+</p>
+ </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <br>
+
+
+    
+    
+
+    
+    
+
+
+
+    
+    <section>
+    <h2><span class="anchor" id="src"></span>Source Code</h2>
+    <div class="hl codehilite"><pre><span></span><span class="w">    </span><span class="k">subroutine </span><span class="n">sa</span><span class="p">(</span><span class="n">me</span><span class="p">,</span><span class="w"> </span><span class="n">x</span><span class="p">,</span><span class="w"> </span><span class="n">rt</span><span class="p">,</span><span class="w"> </span><span class="n">t</span><span class="p">,</span><span class="w"> </span><span class="n">vm</span><span class="p">,</span><span class="w"> </span><span class="n">xopt</span><span class="p">,</span><span class="w"> </span><span class="n">fopt</span><span class="p">,</span><span class="w"> </span><span class="n">nacc</span><span class="p">,</span><span class="w"> </span><span class="n">nfcnev</span><span class="p">,</span><span class="w"> </span><span class="n">ier</span><span class="p">)</span>
+
+<span class="w">    </span><span class="k">implicit none</span>
+
+<span class="k">    class</span><span class="p">(</span><span class="n">simulated_annealing_type</span><span class="p">),</span><span class="k">intent</span><span class="p">(</span><span class="n">inout</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">me</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">wp</span><span class="p">),</span><span class="w"> </span><span class="k">dimension</span><span class="p">(</span><span class="n">me</span><span class="p">%</span><span class="n">n</span><span class="p">),</span><span class="w"> </span><span class="k">intent</span><span class="p">(</span><span class="n">inout</span><span class="p">)</span><span class="w">  </span><span class="kd">::</span><span class="w"> </span><span class="n">x</span><span class="w">       </span><span class="c">!! on input: the starting values for the variables of the</span>
+<span class="w">                                                         </span><span class="c">!! function to be optimized. [Will be replaced by final point]</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">wp</span><span class="p">),</span><span class="w"> </span><span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span><span class="w">                      </span><span class="kd">::</span><span class="w"> </span><span class="n">rt</span><span class="w">      </span><span class="c">!! the temperature reduction factor.  the value suggested by</span>
+<span class="w">                                                         </span><span class="c">!! corana et al. is .85. see goffe et al. for more advice.</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">wp</span><span class="p">),</span><span class="w"> </span><span class="k">intent</span><span class="p">(</span><span class="n">inout</span><span class="p">)</span><span class="w">                   </span><span class="kd">::</span><span class="w"> </span><span class="n">t</span><span class="w">       </span><span class="c">!! on input, the initial temperature. see goffe et al. for advice.</span>
+<span class="w">                                                         </span><span class="c">!! on output, the final temperature. Note that if `t=0`, then</span>
+<span class="w">                                                         </span><span class="c">!! all downhill steps will be rejected</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">wp</span><span class="p">),</span><span class="w"> </span><span class="k">dimension</span><span class="p">(</span><span class="n">me</span><span class="p">%</span><span class="n">n</span><span class="p">),</span><span class="w"> </span><span class="k">intent</span><span class="p">(</span><span class="n">inout</span><span class="p">)</span><span class="w">  </span><span class="kd">::</span><span class="w"> </span><span class="n">vm</span><span class="w">      </span><span class="c">!! the step length vector. on input it should encompass the region of</span>
+<span class="w">                                                         </span><span class="c">!! interest given the starting value x.  for point x(i), the next</span>
+<span class="w">                                                         </span><span class="c">!! trial point is selected is from x(i) - vm(i)  to  x(i) + vm(i).</span>
+<span class="w">                                                         </span><span class="c">!! since vm is adjusted so that about half of all points are accepted,</span>
+<span class="w">                                                         </span><span class="c">!! the input value is not very important (i.e. is the value is off,</span>
+<span class="w">                                                         </span><span class="c">!! sa adjusts vm to the correct value).</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">wp</span><span class="p">),</span><span class="w"> </span><span class="k">dimension</span><span class="p">(</span><span class="n">me</span><span class="p">%</span><span class="n">n</span><span class="p">),</span><span class="w"> </span><span class="k">intent</span><span class="p">(</span><span class="n">out</span><span class="p">)</span><span class="w">  </span><span class="kd">::</span><span class="w"> </span><span class="n">xopt</span><span class="w">      </span><span class="c">!! the variables that optimize the function.</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">wp</span><span class="p">),</span><span class="w"> </span><span class="k">intent</span><span class="p">(</span><span class="n">out</span><span class="p">)</span><span class="w">                   </span><span class="kd">::</span><span class="w"> </span><span class="n">fopt</span><span class="w">      </span><span class="c">!! the optimal value of the function.</span>
+<span class="w">    </span><span class="kt">integer</span><span class="p">,</span><span class="w"> </span><span class="k">intent</span><span class="p">(</span><span class="n">out</span><span class="p">)</span><span class="w">                    </span><span class="kd">::</span><span class="w"> </span><span class="n">nacc</span><span class="w">      </span><span class="c">!! the number of accepted function evaluations.</span>
+<span class="w">    </span><span class="kt">integer</span><span class="p">,</span><span class="w"> </span><span class="k">intent</span><span class="p">(</span><span class="n">out</span><span class="p">)</span><span class="w">                    </span><span class="kd">::</span><span class="w"> </span><span class="n">nfcnev</span><span class="w">    </span><span class="c">!! the total number of function evaluations. in a minor</span>
+<span class="w">                                                         </span><span class="c">!! point, note that the first evaluation is not used in the</span>
+<span class="w">                                                         </span><span class="c">!! core of the algorithm; it simply initializes the</span>
+<span class="w">                                                         </span><span class="c">!! algorithm.</span>
+<span class="w">    </span><span class="kt">integer</span><span class="p">,</span><span class="w"> </span><span class="k">intent</span><span class="p">(</span><span class="n">out</span><span class="p">)</span><span class="w">                    </span><span class="kd">::</span><span class="w"> </span><span class="n">ier</span><span class="w">       </span><span class="c">!! the error return number:</span>
+<span class="w">                                                         </span><span class="c">!!</span>
+<span class="w">                                                         </span><span class="c">!!  * 0 - normal return; termination criteria achieved.</span>
+<span class="w">                                                         </span><span class="c">!!  * 1 - number of function evaluations (nfcnev) is</span>
+<span class="w">                                                         </span><span class="c">!!    greater than the maximum number (maxevl).</span>
+<span class="w">                                                         </span><span class="c">!!  * 3 - the initial temperature is not positive.</span>
+<span class="w">                                                         </span><span class="c">!!  * 4 - user stop in problem function.</span>
+<span class="w">                                                         </span><span class="c">!!  * 99 - should not be seen; only used internally.</span>
+
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">wp</span><span class="p">),</span><span class="k">dimension</span><span class="p">(:),</span><span class="k">allocatable</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">xp</span><span class="w">      </span><span class="c">!! perturbed `x` vector (size `n`)</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">wp</span><span class="p">),</span><span class="k">dimension</span><span class="p">(:),</span><span class="k">allocatable</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">fstar</span><span class="w">   </span><span class="c">!! array of optimals found so far (size `neps`)</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">wp</span><span class="p">)</span><span class="w">                    </span><span class="kd">::</span><span class="w"> </span><span class="n">f</span><span class="w">             </span><span class="c">!! function value</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">wp</span><span class="p">)</span><span class="w">                    </span><span class="kd">::</span><span class="w"> </span><span class="n">fp</span><span class="w">            </span><span class="c">!! function value</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">wp</span><span class="p">)</span><span class="w">                    </span><span class="kd">::</span><span class="w"> </span><span class="n">p</span><span class="w">             </span><span class="c">!! for metropolis criteria</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">wp</span><span class="p">)</span><span class="w">                    </span><span class="kd">::</span><span class="w"> </span><span class="n">pp</span><span class="w">            </span><span class="c">!! for metropolis criteria</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">wp</span><span class="p">)</span><span class="w">                    </span><span class="kd">::</span><span class="w"> </span><span class="n">ratio</span><span class="w">         </span><span class="c">!! ratio of `nacp` to `ns`</span>
+<span class="w">    </span><span class="kt">integer</span><span class="w">                     </span><span class="kd">::</span><span class="w"> </span><span class="n">nup</span><span class="w">           </span><span class="c">!! number of uphill steps</span>
+<span class="w">    </span><span class="kt">integer</span><span class="w">                     </span><span class="kd">::</span><span class="w"> </span><span class="n">ndown</span><span class="w">         </span><span class="c">!! number of accepted downhill steps</span>
+<span class="w">    </span><span class="kt">integer</span><span class="w">                     </span><span class="kd">::</span><span class="w"> </span><span class="n">nrej</span><span class="w">          </span><span class="c">!! number of rejected downhill steps</span>
+<span class="w">    </span><span class="kt">integer</span><span class="w">                     </span><span class="kd">::</span><span class="w"> </span><span class="n">nnew</span><span class="w">          </span><span class="c">!! new optimal for this temperature</span>
+<span class="w">    </span><span class="kt">integer</span><span class="w">                     </span><span class="kd">::</span><span class="w"> </span><span class="n">i</span><span class="p">,</span><span class="w"> </span><span class="n">j</span><span class="p">,</span><span class="w"> </span><span class="n">m</span><span class="p">,</span><span class="w"> </span><span class="n">k</span><span class="w">    </span><span class="c">!! counter</span>
+<span class="w">    </span><span class="kt">integer</span><span class="w">                     </span><span class="kd">::</span><span class="w"> </span><span class="n">totmov</span><span class="w">        </span><span class="c">!! total moves</span>
+<span class="w">    </span><span class="kt">integer</span><span class="w">                     </span><span class="kd">::</span><span class="w"> </span><span class="n">nacp</span><span class="w">          </span><span class="c">!! number of accepts steps in a complete `ns` cycle</span>
+<span class="w">    </span><span class="kt">logical</span><span class="w">                     </span><span class="kd">::</span><span class="w"> </span><span class="n">quit</span><span class="w">          </span><span class="c">!! if the termination criteria was achieved</span>
+<span class="w">    </span><span class="kt">integer</span><span class="w">                     </span><span class="kd">::</span><span class="w"> </span><span class="n">unit</span><span class="w">          </span><span class="c">!! unit for printing</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">wp</span><span class="p">)</span><span class="w">                    </span><span class="kd">::</span><span class="w"> </span><span class="n">t_original</span><span class="w">    </span><span class="c">!! original input value of `t`</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">wp</span><span class="p">),</span><span class="k">dimension</span><span class="p">(:),</span><span class="k">allocatable</span><span class="w">    </span><span class="kd">::</span><span class="w"> </span><span class="n">vm_original</span><span class="w">   </span><span class="c">!! original input value of `vm` (size `n`)</span>
+<span class="w">    </span><span class="kt">logical</span><span class="w">                     </span><span class="kd">::</span><span class="w"> </span><span class="n">first</span><span class="w"> </span><span class="c">!! indicates first function eval</span>
+<span class="w">    </span><span class="kt">logical</span><span class="w">                     </span><span class="kd">::</span><span class="w"> </span><span class="nb">abort</span><span class="w"> </span><span class="c">!! indicates the known solution has been found</span>
+
+<span class="w">    </span><span class="c">! initialize:</span>
+<span class="w">    </span><span class="k">allocate</span><span class="p">(</span><span class="n">xp</span><span class="p">(</span><span class="n">me</span><span class="p">%</span><span class="n">n</span><span class="p">))</span>
+<span class="w">    </span><span class="k">allocate</span><span class="p">(</span><span class="n">fstar</span><span class="p">(</span><span class="n">me</span><span class="p">%</span><span class="n">neps</span><span class="p">))</span>
+<span class="w">    </span><span class="k">allocate</span><span class="p">(</span><span class="n">vm_original</span><span class="p">(</span><span class="n">me</span><span class="p">%</span><span class="n">n</span><span class="p">))</span>
+<span class="w">    </span><span class="n">unit</span><span class="w">        </span><span class="o">=</span><span class="w"> </span><span class="n">me</span><span class="p">%</span><span class="n">iunit</span>
+<span class="w">    </span><span class="n">nfcnev</span><span class="w">      </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span>
+<span class="w">    </span><span class="n">ier</span><span class="w">         </span><span class="o">=</span><span class="w"> </span><span class="mi">99</span>
+<span class="w">    </span><span class="n">xopt</span><span class="w">        </span><span class="o">=</span><span class="w"> </span><span class="n">x</span>
+<span class="w">    </span><span class="n">fopt</span><span class="w">        </span><span class="o">=</span><span class="w"> </span><span class="nb">huge</span><span class="p">(</span><span class="mf">1.0_wp</span><span class="p">)</span>
+<span class="w">    </span><span class="n">vm</span><span class="w">          </span><span class="o">=</span><span class="w"> </span><span class="nb">abs</span><span class="p">(</span><span class="n">vm</span><span class="p">)</span>
+<span class="w">    </span><span class="n">t_original</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="n">t</span>
+<span class="w">    </span><span class="n">vm_original</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">vm</span>
+<span class="w">    </span><span class="nb">abort</span><span class="w">       </span><span class="o">=</span><span class="w"> </span><span class="p">.</span><span class="n">false</span><span class="p">.</span>
+
+<span class="w">    </span><span class="c">! if the initial temperature is not positive, notify the user and</span>
+<span class="w">    </span><span class="c">! return to the calling routine.</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">t</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="mf">0.0_wp</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
+<span class="k">        if</span><span class="w"> </span><span class="p">(</span><span class="n">me</span><span class="p">%</span><span class="n">iprint</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="k">write</span><span class="p">(</span><span class="n">unit</span><span class="p">,</span><span class="s1">&#39;(A)&#39;</span><span class="p">)</span><span class="w"> </span><span class="s1">&#39;Error: The initial temperature must be non-negative.&#39;</span>
+<span class="w">        </span><span class="n">ier</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">3</span>
+<span class="w">        </span><span class="k">return</span>
+<span class="k">    end if</span>
+
+<span class="w">    </span><span class="c">! if the initial value is out of bounds, then just put</span>
+<span class="w">    </span><span class="c">! the violated ones on the nearest bound.</span>
+<span class="w">    </span><span class="k">where</span><span class="w"> </span><span class="p">(</span><span class="n">x</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="n">me</span><span class="p">%</span><span class="n">ub</span><span class="p">)</span>
+<span class="w">        </span><span class="n">x</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">me</span><span class="p">%</span><span class="n">ub</span>
+<span class="w">    </span><span class="k">else where</span><span class="w"> </span><span class="p">(</span><span class="n">x</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">me</span><span class="p">%</span><span class="n">lb</span><span class="p">)</span>
+<span class="w">        </span><span class="n">x</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">me</span><span class="p">%</span><span class="n">lb</span>
+<span class="w">    </span><span class="k">end where</span>
+
+<span class="w">    </span><span class="c">!  initialize the random number generator</span>
+<span class="w">    </span><span class="k">call </span><span class="n">rand_init</span><span class="p">(</span><span class="n">me</span><span class="p">%</span><span class="n">iseed1</span><span class="p">,</span><span class="n">me</span><span class="p">%</span><span class="n">iseed2</span><span class="p">)</span>
+
+<span class="w">    </span><span class="c">! evaluate the function with input x and return value as f.</span>
+<span class="w">    </span><span class="c">! keep trying if necessary until there is a valid function</span>
+<span class="w">    </span><span class="c">! evaluation.</span>
+<span class="w">    </span><span class="k">call </span><span class="n">me</span><span class="p">%</span><span class="n">perturb_and_evaluate</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">vm</span><span class="p">,</span><span class="n">xp</span><span class="p">,</span><span class="n">f</span><span class="p">,</span><span class="n">nfcnev</span><span class="p">,</span><span class="n">ier</span><span class="p">,</span><span class="n">first</span><span class="o">=</span><span class="p">.</span><span class="n">true</span><span class="p">.)</span>
+<span class="w">    </span><span class="k">select case</span><span class="w"> </span><span class="p">(</span><span class="n">ier</span><span class="p">)</span>
+<span class="w">    </span><span class="k">case</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">4</span><span class="p">)</span>
+<span class="w">        </span><span class="k">return</span>
+<span class="k">    end select</span>
+
+<span class="k">    </span><span class="n">f</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">me</span><span class="p">%</span><span class="n">func</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+<span class="w">    </span><span class="n">xopt</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">xp</span><span class="w"> </span><span class="c">! it may have been perturbed above</span>
+<span class="w">    </span><span class="n">fopt</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">f</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">me</span><span class="p">%</span><span class="n">iprint</span><span class="w"> </span><span class="o">&gt;=</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
+<span class="k">        write</span><span class="p">(</span><span class="n">unit</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;(A)&#39;</span><span class="p">)</span><span class="w"> </span><span class="s1">&#39;  &#39;</span>
+<span class="w">        </span><span class="k">call </span><span class="n">print_vector</span><span class="p">(</span><span class="n">unit</span><span class="p">,</span><span class="n">xp</span><span class="p">,</span><span class="n">me</span><span class="p">%</span><span class="n">n</span><span class="p">,</span><span class="s1">&#39;initial x&#39;</span><span class="p">)</span>
+<span class="w">        </span><span class="k">write</span><span class="p">(</span><span class="n">unit</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;(A,1X,G25.18)&#39;</span><span class="p">)</span><span class="w">  </span><span class="s1">&#39;  initial f: &#39;</span><span class="p">,</span><span class="w"> </span><span class="n">me</span><span class="p">%</span><span class="n">func</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+<span class="w">    </span><span class="k">end if</span>
+
+<span class="k">    </span><span class="n">reset</span><span class="p">:</span><span class="w"> </span><span class="k">do </span><span class="n">k</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="n">me</span><span class="p">%</span><span class="n">n_resets</span>
+
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">me</span><span class="p">%</span><span class="n">iprint</span><span class="w"> </span><span class="o">&gt;=</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
+<span class="k">            write</span><span class="p">(</span><span class="n">unit</span><span class="p">,</span><span class="s1">&#39;(A)&#39;</span><span class="p">)</span><span class="w">       </span><span class="s1">&#39;&#39;</span>
+<span class="w">            </span><span class="k">write</span><span class="p">(</span><span class="n">unit</span><span class="p">,</span><span class="s1">&#39;(A)&#39;</span><span class="p">)</span><span class="w">       </span><span class="s1">&#39;==========================================&#39;</span>
+<span class="w">            </span><span class="k">write</span><span class="p">(</span><span class="n">unit</span><span class="p">,</span><span class="s1">&#39;(A,1X,I5)&#39;</span><span class="p">)</span><span class="w"> </span><span class="s1">&#39; main loop &#39;</span><span class="p">,</span><span class="w"> </span><span class="n">k</span>
+<span class="w">            </span><span class="k">write</span><span class="p">(</span><span class="n">unit</span><span class="p">,</span><span class="s1">&#39;(A)&#39;</span><span class="p">)</span><span class="w">       </span><span class="s1">&#39;==========================================&#39;</span>
+<span class="w">            </span><span class="k">write</span><span class="p">(</span><span class="n">unit</span><span class="p">,</span><span class="s1">&#39;(A)&#39;</span><span class="p">)</span><span class="w">       </span><span class="s1">&#39;&#39;</span>
+<span class="w">        </span><span class="k">end if</span>
+
+<span class="w">        </span><span class="c">! restart the main loop</span>
+<span class="w">        </span><span class="n">fstar</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">huge</span><span class="p">(</span><span class="mf">1.0_wp</span><span class="p">)</span>
+<span class="w">        </span><span class="n">t</span><span class="w">     </span><span class="o">=</span><span class="w"> </span><span class="n">t_original</span>
+<span class="w">        </span><span class="n">vm</span><span class="w">    </span><span class="o">=</span><span class="w"> </span><span class="n">vm_original</span>
+<span class="w">        </span><span class="n">nacc</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span>
+<span class="w">        </span><span class="n">nacp</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span>
+
+<span class="w">        </span><span class="c">! the first function eval for a new main cycle</span>
+<span class="w">        </span><span class="n">first</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">k</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mi">1</span>
+
+<span class="w">        </span><span class="n">main</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="k">do</span>
+<span class="w">            </span><span class="c">!  start the main loop. note that it terminates if (i) the algorithm</span>
+<span class="w">            </span><span class="c">!  succesfully optimizes the function or (ii) there are too many</span>
+<span class="w">            </span><span class="c">!  function evaluations (more than maxevl).</span>
+<span class="w">            </span><span class="n">nup</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span>
+<span class="w">            </span><span class="n">nrej</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span>
+<span class="w">            </span><span class="n">nnew</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span>
+<span class="w">            </span><span class="n">ndown</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span>
+
+<span class="w">            </span><span class="n">nt_loop</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="k">do </span><span class="n">m</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="n">me</span><span class="p">%</span><span class="n">nt</span>
+<span class="w">                </span><span class="n">ns_loop</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="k">do </span><span class="n">j</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="n">me</span><span class="p">%</span><span class="n">ns</span>
+
+<span class="w">                    </span><span class="c">!  evaluate the function with the trial point xp and return as fp.</span>
+<span class="w">                    </span><span class="k">call </span><span class="n">me</span><span class="p">%</span><span class="n">perturb_and_evaluate</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">vm</span><span class="p">,</span><span class="n">xp</span><span class="p">,</span><span class="n">fp</span><span class="p">,</span><span class="n">nfcnev</span><span class="p">,</span><span class="n">ier</span><span class="p">,</span><span class="n">first</span><span class="o">=</span><span class="n">first</span><span class="p">)</span>
+<span class="w">                    </span><span class="n">first</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">.</span><span class="n">false</span><span class="p">.</span>
+<span class="w">                    </span><span class="k">select case</span><span class="w"> </span><span class="p">(</span><span class="n">ier</span><span class="p">)</span>
+<span class="w">                    </span><span class="k">case</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">4</span><span class="p">)</span>
+<span class="w">                        </span><span class="n">x</span><span class="w">    </span><span class="o">=</span><span class="w"> </span><span class="n">xopt</span>
+<span class="w">                        </span><span class="n">fopt</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">me</span><span class="p">%</span><span class="n">func</span><span class="p">(</span><span class="n">fopt</span><span class="p">)</span>
+<span class="w">                        </span><span class="k">return</span>
+<span class="k">                    end select</span>
+
+<span class="k">                    </span><span class="n">fp</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">me</span><span class="p">%</span><span class="n">func</span><span class="p">(</span><span class="n">fp</span><span class="p">)</span>
+<span class="w">                    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">me</span><span class="p">%</span><span class="n">iprint</span><span class="w"> </span><span class="o">&gt;=</span><span class="w"> </span><span class="mi">3</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
+<span class="k">                        write</span><span class="p">(</span><span class="n">unit</span><span class="p">,</span><span class="s1">&#39;(A)&#39;</span><span class="p">)</span><span class="w"> </span><span class="s1">&#39; &#39;</span>
+<span class="w">                        </span><span class="k">call </span><span class="n">print_vector</span><span class="p">(</span><span class="n">unit</span><span class="p">,</span><span class="n">x</span><span class="p">,</span><span class="n">me</span><span class="p">%</span><span class="n">n</span><span class="p">,</span><span class="s1">&#39;current x&#39;</span><span class="p">)</span>
+<span class="w">                        </span><span class="k">write</span><span class="p">(</span><span class="n">unit</span><span class="p">,</span><span class="s1">&#39;(A,G25.18)&#39;</span><span class="p">)</span><span class="w"> </span><span class="s1">&#39; current f: &#39;</span><span class="p">,</span><span class="w"> </span><span class="n">me</span><span class="p">%</span><span class="n">func</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+<span class="w">                        </span><span class="k">call </span><span class="n">print_vector</span><span class="p">(</span><span class="n">unit</span><span class="p">,</span><span class="n">xp</span><span class="p">,</span><span class="n">me</span><span class="p">%</span><span class="n">n</span><span class="p">,</span><span class="s1">&#39;trial x&#39;</span><span class="p">)</span>
+<span class="w">                        </span><span class="k">write</span><span class="p">(</span><span class="n">unit</span><span class="p">,</span><span class="s1">&#39;(A,G25.18)&#39;</span><span class="p">)</span><span class="w"> </span><span class="s1">&#39; resulting f: &#39;</span><span class="p">,</span><span class="w"> </span><span class="n">me</span><span class="p">%</span><span class="n">func</span><span class="p">(</span><span class="n">fp</span><span class="p">)</span>
+<span class="w">                    </span><span class="k">end if</span>
+
+<span class="k">                    if</span><span class="w"> </span><span class="p">(</span><span class="n">fp</span><span class="w"> </span><span class="o">&gt;=</span><span class="w"> </span><span class="n">f</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
+<span class="w">                        </span><span class="c">! function value increased: accept the new point</span>
+
+<span class="w">                        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">me</span><span class="p">%</span><span class="n">iprint</span><span class="w"> </span><span class="o">&gt;=</span><span class="w"> </span><span class="mi">3</span><span class="p">)</span><span class="w"> </span><span class="k">write</span><span class="p">(</span><span class="n">unit</span><span class="p">,</span><span class="s1">&#39;(A)&#39;</span><span class="p">)</span><span class="w"> </span><span class="s1">&#39;  point accepted&#39;</span>
+<span class="w">                        </span><span class="n">x</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">xp</span>
+<span class="w">                        </span><span class="n">f</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">fp</span>
+<span class="w">                        </span><span class="n">nacc</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">nacc</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span>
+<span class="w">                        </span><span class="n">nacp</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">nacp</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span>
+<span class="w">                        </span><span class="n">nup</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">nup</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span>
+
+<span class="w">                        </span><span class="c">!  if greater than any other point, record as new optimum.</span>
+<span class="w">                        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">fp</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="n">fopt</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
+<span class="k">                            if</span><span class="w"> </span><span class="p">(</span><span class="n">me</span><span class="p">%</span><span class="n">iprint</span><span class="w"> </span><span class="o">&gt;=</span><span class="w"> </span><span class="mi">3</span><span class="p">)</span><span class="w"> </span><span class="k">write</span><span class="p">(</span><span class="n">unit</span><span class="p">,</span><span class="s1">&#39;(A)&#39;</span><span class="p">)</span><span class="w"> </span><span class="s1">&#39;  new optimum&#39;</span>
+<span class="w">                            </span><span class="n">xopt</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">xp</span>
+<span class="w">                            </span><span class="n">fopt</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">fp</span>
+<span class="w">                            </span><span class="n">nnew</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">nnew</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span>
+<span class="w">                        </span><span class="k">end if</span>
+
+<span class="k">                    else</span>
+<span class="w">                        </span><span class="c">! if the point is lower, use the metropolis criteria to decide on</span>
+<span class="w">                        </span><span class="c">! acceptance or rejection.</span>
+<span class="w">                        </span><span class="c">! NOTE: if t=0, all downhill steps are rejected (monotonic)</span>
+
+<span class="w">                        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">t</span><span class="o">/=</span><span class="mf">0.0_wp</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
+<span class="k">                            </span><span class="n">p</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">exprep</span><span class="p">((</span><span class="n">fp</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">f</span><span class="p">)</span><span class="o">/</span><span class="n">t</span><span class="p">)</span>
+<span class="w">                            </span><span class="n">pp</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">uniform_random_number</span><span class="p">()</span>
+<span class="w">                            </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">pp</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">p</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
+<span class="k">                                if</span><span class="w"> </span><span class="p">(</span><span class="n">me</span><span class="p">%</span><span class="n">iprint</span><span class="w"> </span><span class="o">&gt;=</span><span class="w"> </span><span class="mi">3</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
+<span class="k">                                    if</span><span class="w"> </span><span class="p">(</span><span class="n">me</span><span class="p">%</span><span class="n">maximize</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
+<span class="k">                                        write</span><span class="p">(</span><span class="n">unit</span><span class="p">,</span><span class="s1">&#39;(A)&#39;</span><span class="p">)</span><span class="w">  </span><span class="s1">&#39;  though lower, point accepted&#39;</span>
+<span class="w">                                    </span><span class="k">else</span>
+<span class="k">                                        write</span><span class="p">(</span><span class="n">unit</span><span class="p">,</span><span class="s1">&#39;(A)&#39;</span><span class="p">)</span><span class="w">  </span><span class="s1">&#39;  though higher, point accepted&#39;</span>
+<span class="w">                                    </span><span class="k">end if</span>
+<span class="k">                                end if</span>
+<span class="k">                                </span><span class="n">x</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">xp</span>
+<span class="w">                                </span><span class="n">f</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">fp</span>
+<span class="w">                                </span><span class="n">nacc</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">nacc</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span>
+<span class="w">                                </span><span class="n">nacp</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">nacp</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span>
+<span class="w">                                </span><span class="n">ndown</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ndown</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span>
+<span class="w">                                </span><span class="k">cycle</span><span class="w">  </span><span class="c">! accepted</span>
+<span class="w">                            </span><span class="k">end if</span>
+<span class="k">                        end if</span>
+
+<span class="w">                        </span><span class="c">! rejected:</span>
+<span class="w">                        </span><span class="n">nrej</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">nrej</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span>
+<span class="w">                        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">me</span><span class="p">%</span><span class="n">iprint</span><span class="w"> </span><span class="o">&gt;=</span><span class="w"> </span><span class="mi">3</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
+<span class="k">                            if</span><span class="w"> </span><span class="p">(</span><span class="n">me</span><span class="p">%</span><span class="n">maximize</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
+<span class="k">                                write</span><span class="p">(</span><span class="n">unit</span><span class="p">,</span><span class="s1">&#39;(A)&#39;</span><span class="p">)</span><span class="w"> </span><span class="s1">&#39;  lower point rejected&#39;</span>
+<span class="w">                            </span><span class="k">else</span>
+<span class="k">                                write</span><span class="p">(</span><span class="n">unit</span><span class="p">,</span><span class="s1">&#39;(A)&#39;</span><span class="p">)</span><span class="w"> </span><span class="s1">&#39;  higher point rejected&#39;</span>
+<span class="w">                            </span><span class="k">end if</span>
+<span class="k">                        end if</span>
+
+<span class="k">                    end if</span>
+
+<span class="k">                end do </span><span class="n">ns_loop</span><span class="w"> </span><span class="c">! j - ns loop</span>
+
+<span class="w">                </span><span class="k">select case</span><span class="w"> </span><span class="p">(</span><span class="n">me</span><span class="p">%</span><span class="n">step_mode</span><span class="p">)</span>
+<span class="w">                </span><span class="k">case</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+<span class="w">                    </span><span class="c">! adjust vm so that approximately half of all evaluations are accepted.</span>
+<span class="w">                    </span><span class="n">ratio</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kt">real</span><span class="p">(</span><span class="n">nacp</span><span class="p">,</span><span class="n">wp</span><span class="p">)</span><span class="w"> </span><span class="o">/</span><span class="kt">real</span><span class="p">(</span><span class="n">me</span><span class="p">%</span><span class="n">ns</span><span class="p">,</span><span class="n">wp</span><span class="p">)</span>
+<span class="w">                    </span><span class="k">do </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="n">me</span><span class="p">%</span><span class="n">n</span>
+<span class="w">                        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">ratio</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mf">0.6_wp</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
+<span class="k">                            </span><span class="n">vm</span><span class="p">(</span><span class="n">i</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">vm</span><span class="p">(</span><span class="n">i</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="mf">1.0_wp</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">me</span><span class="p">%</span><span class="n">c</span><span class="p">(</span><span class="n">i</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="n">ratio</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mf">0.6_wp</span><span class="p">)</span><span class="o">/</span><span class="mf">0.4_wp</span><span class="p">)</span>
+<span class="w">                        </span><span class="k">else if</span><span class="w"> </span><span class="p">(</span><span class="n">ratio</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="mf">0.4_wp</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
+<span class="k">                            </span><span class="n">vm</span><span class="p">(</span><span class="n">i</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">vm</span><span class="p">(</span><span class="n">i</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="mf">1.0_wp</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">me</span><span class="p">%</span><span class="n">c</span><span class="p">(</span><span class="n">i</span><span class="p">)</span><span class="o">*</span><span class="p">((</span><span class="mf">0.4_wp</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">ratio</span><span class="p">)</span><span class="o">/</span><span class="mf">0.4_wp</span><span class="p">))</span>
+<span class="w">                        </span><span class="k">end if</span>
+<span class="k">                        if</span><span class="w"> </span><span class="p">(</span><span class="n">vm</span><span class="p">(</span><span class="n">i</span><span class="p">)</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="p">(</span><span class="n">me</span><span class="p">%</span><span class="n">ub</span><span class="p">(</span><span class="n">i</span><span class="p">)</span><span class="o">-</span><span class="n">me</span><span class="p">%</span><span class="n">lb</span><span class="p">(</span><span class="n">i</span><span class="p">)))</span><span class="w"> </span><span class="k">then</span>
+<span class="k">                            </span><span class="n">vm</span><span class="p">(</span><span class="n">i</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">me</span><span class="p">%</span><span class="n">ub</span><span class="p">(</span><span class="n">i</span><span class="p">)</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">me</span><span class="p">%</span><span class="n">lb</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+<span class="w">                        </span><span class="k">end if</span>
+<span class="k">                    end do</span>
+<span class="k">                    if</span><span class="w"> </span><span class="p">(</span><span class="n">me</span><span class="p">%</span><span class="n">iprint</span><span class="w"> </span><span class="o">&gt;=</span><span class="w"> </span><span class="mi">2</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
+<span class="k">                        write</span><span class="p">(</span><span class="n">unit</span><span class="p">,</span><span class="s1">&#39;(/A)&#39;</span><span class="p">)</span><span class="w"> </span><span class="s1">&#39;---------------------------------------------------&#39;</span>
+<span class="w">                        </span><span class="k">write</span><span class="p">(</span><span class="n">unit</span><span class="p">,</span><span class="s1">&#39;(A)&#39;</span><span class="p">)</span><span class="w">  </span><span class="s1">&#39; intermediate results after step length adjustment &#39;</span>
+<span class="w">                        </span><span class="k">write</span><span class="p">(</span><span class="n">unit</span><span class="p">,</span><span class="s1">&#39;(A/)&#39;</span><span class="p">)</span><span class="w"> </span><span class="s1">&#39;---------------------------------------------------&#39;</span>
+<span class="w">                        </span><span class="k">call </span><span class="n">print_vector</span><span class="p">(</span><span class="n">unit</span><span class="p">,</span><span class="w"> </span><span class="n">vm</span><span class="p">,</span><span class="w">   </span><span class="n">me</span><span class="p">%</span><span class="n">n</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;new step length (vm)&#39;</span><span class="p">)</span>
+<span class="w">                        </span><span class="k">call </span><span class="n">print_vector</span><span class="p">(</span><span class="n">unit</span><span class="p">,</span><span class="w"> </span><span class="n">xopt</span><span class="p">,</span><span class="w"> </span><span class="n">me</span><span class="p">%</span><span class="n">n</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;current optimal x&#39;</span><span class="p">)</span>
+<span class="w">                        </span><span class="k">call </span><span class="n">print_vector</span><span class="p">(</span><span class="n">unit</span><span class="p">,</span><span class="w"> </span><span class="n">x</span><span class="p">,</span><span class="w">    </span><span class="n">me</span><span class="p">%</span><span class="n">n</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;current x&#39;</span><span class="p">)</span>
+<span class="w">                        </span><span class="k">write</span><span class="p">(</span><span class="n">unit</span><span class="p">,</span><span class="s1">&#39;(A)&#39;</span><span class="p">)</span><span class="w"> </span><span class="s1">&#39; &#39;</span>
+<span class="w">                    </span><span class="k">end if</span>
+<span class="k">                case</span><span class="w"> </span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+<span class="w">                    </span><span class="c">! keep vm as is</span>
+<span class="w">                </span><span class="k">case</span><span class="w"> </span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+<span class="w">                    </span><span class="c">! use the constant factor:</span>
+<span class="w">                    </span><span class="n">vm</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">abs</span><span class="p">(</span><span class="n">me</span><span class="p">%</span><span class="n">vms</span><span class="p">)</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">vm</span>
+<span class="w">                </span><span class="k">case </span><span class="n">default</span>
+<span class="w">                    </span><span class="k">error stop</span><span class="w"> </span><span class="s1">&#39; invalid value of step_mode&#39;</span>
+<span class="w">                </span><span class="k">end select</span>
+
+<span class="k">                </span><span class="n">nacp</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span>
+
+<span class="w">            </span><span class="k">end do </span><span class="n">nt_loop</span><span class="w"> </span><span class="c">! m - nt loop</span>
+
+<span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">me</span><span class="p">%</span><span class="n">iprint</span><span class="w"> </span><span class="o">&gt;=</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
+<span class="k">                </span><span class="n">totmov</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">nup</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">ndown</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">nrej</span>
+<span class="w">                </span><span class="k">write</span><span class="p">(</span><span class="n">unit</span><span class="p">,</span><span class="s1">&#39;(/A)&#39;</span><span class="p">)</span><span class="w">      </span><span class="s1">&#39;--------------------------------------------------------&#39;</span>
+<span class="w">                </span><span class="k">write</span><span class="p">(</span><span class="n">unit</span><span class="p">,</span><span class="s1">&#39;(A)&#39;</span><span class="p">)</span><span class="w">       </span><span class="s1">&#39; intermediate results before next temperature reduction &#39;</span>
+<span class="w">                </span><span class="k">write</span><span class="p">(</span><span class="n">unit</span><span class="p">,</span><span class="s1">&#39;(A/)&#39;</span><span class="p">)</span><span class="w">      </span><span class="s1">&#39;--------------------------------------------------------&#39;</span>
+<span class="w">                </span><span class="k">write</span><span class="p">(</span><span class="n">unit</span><span class="p">,</span><span class="s1">&#39;(A,G12.5)&#39;</span><span class="p">)</span><span class="w"> </span><span class="s1">&#39;  current temperature:            &#39;</span><span class="p">,</span><span class="w"> </span><span class="n">t</span>
+<span class="w">                </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">me</span><span class="p">%</span><span class="n">maximize</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
+<span class="k">                    write</span><span class="p">(</span><span class="n">unit</span><span class="p">,</span><span class="s1">&#39;(A,G25.18)&#39;</span><span class="p">)</span><span class="w"> </span><span class="s1">&#39;  max function value so far:  &#39;</span><span class="p">,</span><span class="w"> </span><span class="n">fopt</span>
+<span class="w">                    </span><span class="k">write</span><span class="p">(</span><span class="n">unit</span><span class="p">,</span><span class="s1">&#39;(A,I8)&#39;</span><span class="p">)</span><span class="w">     </span><span class="s1">&#39;  total moves:                &#39;</span><span class="p">,</span><span class="w"> </span><span class="n">totmov</span>
+<span class="w">                    </span><span class="k">write</span><span class="p">(</span><span class="n">unit</span><span class="p">,</span><span class="s1">&#39;(A,I8)&#39;</span><span class="p">)</span><span class="w">     </span><span class="s1">&#39;     uphill:                  &#39;</span><span class="p">,</span><span class="w"> </span><span class="n">nup</span>
+<span class="w">                    </span><span class="k">write</span><span class="p">(</span><span class="n">unit</span><span class="p">,</span><span class="s1">&#39;(A,I8)&#39;</span><span class="p">)</span><span class="w">     </span><span class="s1">&#39;     accepted downhill:       &#39;</span><span class="p">,</span><span class="w"> </span><span class="n">ndown</span>
+<span class="w">                    </span><span class="k">write</span><span class="p">(</span><span class="n">unit</span><span class="p">,</span><span class="s1">&#39;(A,I8)&#39;</span><span class="p">)</span><span class="w">     </span><span class="s1">&#39;     rejected downhill:       &#39;</span><span class="p">,</span><span class="w"> </span><span class="n">nrej</span>
+<span class="w">                    </span><span class="k">write</span><span class="p">(</span><span class="n">unit</span><span class="p">,</span><span class="s1">&#39;(A,I8)&#39;</span><span class="p">)</span><span class="w">     </span><span class="s1">&#39;  new maxima this temperature:&#39;</span><span class="p">,</span><span class="w"> </span><span class="n">nnew</span>
+<span class="w">                </span><span class="k">else</span>
+<span class="k">                    write</span><span class="p">(</span><span class="n">unit</span><span class="p">,</span><span class="s1">&#39;(A,G25.18)&#39;</span><span class="p">)</span><span class="w"> </span><span class="s1">&#39;  min function value so far:  &#39;</span><span class="p">,</span><span class="w"> </span><span class="o">-</span><span class="n">fopt</span>
+<span class="w">                    </span><span class="k">write</span><span class="p">(</span><span class="n">unit</span><span class="p">,</span><span class="s1">&#39;(A,I8)&#39;</span><span class="p">)</span><span class="w">     </span><span class="s1">&#39;  total moves:                &#39;</span><span class="p">,</span><span class="w"> </span><span class="n">totmov</span>
+<span class="w">                    </span><span class="k">write</span><span class="p">(</span><span class="n">unit</span><span class="p">,</span><span class="s1">&#39;(A,I8)&#39;</span><span class="p">)</span><span class="w">     </span><span class="s1">&#39;     downhill:                &#39;</span><span class="p">,</span><span class="w"> </span><span class="n">nup</span>
+<span class="w">                    </span><span class="k">write</span><span class="p">(</span><span class="n">unit</span><span class="p">,</span><span class="s1">&#39;(A,I8)&#39;</span><span class="p">)</span><span class="w">     </span><span class="s1">&#39;     accepted uphill:         &#39;</span><span class="p">,</span><span class="w"> </span><span class="n">ndown</span>
+<span class="w">                    </span><span class="k">write</span><span class="p">(</span><span class="n">unit</span><span class="p">,</span><span class="s1">&#39;(A,I8)&#39;</span><span class="p">)</span><span class="w">     </span><span class="s1">&#39;     rejected uphill:         &#39;</span><span class="p">,</span><span class="w"> </span><span class="n">nrej</span>
+<span class="w">                    </span><span class="k">write</span><span class="p">(</span><span class="n">unit</span><span class="p">,</span><span class="s1">&#39;(A,I8)&#39;</span><span class="p">)</span><span class="w">     </span><span class="s1">&#39;  new minima this temperature:&#39;</span><span class="p">,</span><span class="w"> </span><span class="n">nnew</span>
+<span class="w">                </span><span class="k">end if</span>
+<span class="k">                call </span><span class="n">print_vector</span><span class="p">(</span><span class="n">unit</span><span class="p">,</span><span class="n">xopt</span><span class="p">,</span><span class="w"> </span><span class="n">me</span><span class="p">%</span><span class="n">n</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;current optimal x&#39;</span><span class="p">)</span>
+<span class="w">                </span><span class="k">call </span><span class="n">print_vector</span><span class="p">(</span><span class="n">unit</span><span class="p">,</span><span class="n">vm</span><span class="p">,</span><span class="w">   </span><span class="n">me</span><span class="p">%</span><span class="n">n</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;step length (vm)&#39;</span><span class="p">)</span>
+<span class="w">                </span><span class="k">write</span><span class="p">(</span><span class="n">unit</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;(A)&#39;</span><span class="p">)</span><span class="w"> </span><span class="s1">&#39; &#39;</span>
+<span class="w">            </span><span class="k">end if</span>
+
+<span class="w">            </span><span class="c">! check termination criteria.</span>
+<span class="w">            </span><span class="n">quit</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">.</span><span class="n">false</span><span class="p">.</span>
+<span class="w">            </span><span class="c">! first, check `f` if the known value is available</span>
+<span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">me</span><span class="p">%</span><span class="n">optimal_f_specified</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
+<span class="k">                </span><span class="n">quit</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">abs</span><span class="p">(</span><span class="n">me</span><span class="p">%</span><span class="n">func</span><span class="p">(</span><span class="n">fopt</span><span class="p">)</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">me</span><span class="p">%</span><span class="n">optimal_f</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;=</span><span class="w"> </span><span class="nb">abs</span><span class="p">(</span><span class="n">me</span><span class="p">%</span><span class="n">optimal_f_tol</span><span class="p">)</span>
+<span class="w">                </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">quit</span><span class="p">)</span><span class="w"> </span><span class="nb">abort</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">.</span><span class="n">true</span><span class="p">.</span>
+<span class="w">            </span><span class="k">end if</span>
+<span class="w">            </span><span class="c">! check the convergence tolerances:</span>
+<span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="p">(.</span><span class="nb">not</span><span class="p">.</span><span class="w"> </span><span class="n">quit</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
+<span class="k">                </span><span class="n">fstar</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">f</span>
+<span class="w">                </span><span class="n">quit</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">((</span><span class="n">fopt</span><span class="o">-</span><span class="n">f</span><span class="p">)</span><span class="o">&lt;=</span><span class="n">me</span><span class="p">%</span><span class="n">eps</span><span class="p">)</span><span class="w"> </span><span class="p">.</span><span class="nb">and</span><span class="p">.</span><span class="w"> </span><span class="p">(</span><span class="k">all</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">f</span><span class="o">-</span><span class="n">fstar</span><span class="p">)</span><span class="o">&lt;=</span><span class="n">me</span><span class="p">%</span><span class="n">eps</span><span class="p">))</span>
+<span class="w">            </span><span class="k">end if</span>
+
+<span class="w">            </span><span class="c">! terminate sa if appropriate.</span>
+<span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">quit</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
+<span class="k">                </span><span class="n">x</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">xopt</span>
+<span class="w">                </span><span class="n">ier</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span>
+<span class="w">                </span><span class="n">fopt</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">me</span><span class="p">%</span><span class="n">func</span><span class="p">(</span><span class="n">fopt</span><span class="p">)</span>
+<span class="w">                </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">me</span><span class="p">%</span><span class="n">iprint</span><span class="w"> </span><span class="o">&gt;=</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
+<span class="k">                    write</span><span class="p">(</span><span class="n">unit</span><span class="p">,</span><span class="s1">&#39;(/A)&#39;</span><span class="p">)</span><span class="w"> </span><span class="s1">&#39;----------------------------------------------&#39;</span>
+<span class="w">                    </span><span class="k">write</span><span class="p">(</span><span class="n">unit</span><span class="p">,</span><span class="s1">&#39;(A)&#39;</span><span class="p">)</span><span class="w">  </span><span class="s1">&#39;  sa achieved termination criteria. ier = 0.  &#39;</span>
+<span class="w">                    </span><span class="k">write</span><span class="p">(</span><span class="n">unit</span><span class="p">,</span><span class="s1">&#39;(A/)&#39;</span><span class="p">)</span><span class="w"> </span><span class="s1">&#39;----------------------------------------------&#39;</span>
+<span class="w">                </span><span class="k">end if</span>
+<span class="k">                if</span><span class="w"> </span><span class="p">(</span><span class="nb">abort</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
+<span class="k">                    exit </span><span class="n">reset</span><span class="w"> </span><span class="c">! the solution has been found, so can ignore</span>
+<span class="w">                               </span><span class="c">! the reset loop if that is being used</span>
+<span class="w">                </span><span class="k">else</span>
+<span class="k">                    exit</span>
+<span class="k">                end if</span>
+<span class="k">            end if</span>
+
+<span class="w">            </span><span class="c">!  if termination criteria is not met, prepare for another loop.</span>
+<span class="w">            </span><span class="n">t</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">abs</span><span class="p">(</span><span class="n">rt</span><span class="p">)</span><span class="o">*</span><span class="n">t</span>
+<span class="w">            </span><span class="k">do </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">me</span><span class="p">%</span><span class="n">neps</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="o">-</span><span class="mi">1</span>
+<span class="w">                </span><span class="n">fstar</span><span class="p">(</span><span class="n">i</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">fstar</span><span class="p">(</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+<span class="w">            </span><span class="k">end do</span>
+<span class="k">            </span><span class="n">f</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">fopt</span>
+<span class="w">            </span><span class="n">x</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">xopt</span>
+
+<span class="w">        </span><span class="k">end do </span><span class="n">main</span>
+
+<span class="w">    </span><span class="k">end do </span><span class="n">reset</span>
+
+<span class="w">    </span><span class="k">end subroutine </span><span class="n">sa</span>
+</pre></div>
+
+    </section>
+    <br>
+    
+    </div>
+  </div>
+
+      <hr>
+    </div> <!-- /container -->
+    <footer>
+      <div class="container">
+        <div class="row justify-content-between">
+          <div class="col">
+            <p>
+              simulated-annealing
+ was developed by Jacob Williams<br>              &copy; 2025 
+</p>
+          </div>
+          <div class="col">
+            <p class="text-end">
+              Documentation generated by
+              <a href="https://github.com/Fortran-FOSS-Programmers/ford">FORD</a>
+            </p>
+          </div>
+        </div>
+        <br>
+      </div> <!-- /container -->
+    </footer>
+  </body>
+</html>
