@@ -665,9 +665,6 @@
         return
     end if
 
-    ! save initial temperature for non-geometric cooling schedules
-    t0 = t
-
     ! if the initial value is out of bounds, then just put
     ! the violated ones on the nearest bound.
     where (x > me%ub)
@@ -909,16 +906,16 @@
                 t = abs(rt)*t
             case (2)
                 ! fast annealing (Cauchy): T(k) = T0 / (1 + k)
-                t = t0 / real(1 + temp_iter, wp)
+                t = t_original / real(1 + temp_iter, wp)
             case (3)
                 ! huang: T(k) = T0 / (1 + c*k)^n
-                t = t0 / (1.0_wp + me%cooling_param * real(temp_iter, wp))**me%n
+                t = t_original / (1.0_wp + me%cooling_param * real(temp_iter, wp))**me%n
             case (4)
                 ! boltzmann: T(k) = T0 / log(1 + k + e)
-                t = t0 / log(1.0_wp + real(temp_iter, wp) + exp(1.0_wp))
+                t = t_original / log(1.0_wp + real(temp_iter, wp) + exp(1.0_wp))
             case (5)
                 ! logarithmic: T(k) = T0 / (1 + c*log(1+k))
-                t = t0 / (1.0_wp + me%cooling_param * log(1.0_wp + real(temp_iter, wp)))
+                t = t_original / (1.0_wp + me%cooling_param * log(1.0_wp + real(temp_iter, wp)))
             case default
                 ! fallback to geometric
                 t = abs(rt)*t
