@@ -1129,7 +1129,6 @@
 
     case default
         error stop 'Error: invalid distribution_mode in perturb_variable'
-
     end select
 
     end function perturb_variable
