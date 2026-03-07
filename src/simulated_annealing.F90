@@ -211,7 +211,7 @@
 
         procedure :: func
         procedure :: perturb_and_evaluate
-        procedure :: perturb_variable
+        procedure,public :: perturb_variable  !! this is public so we can use it in the tests
 
     end type simulated_annealing_type
     !*******************************************************
