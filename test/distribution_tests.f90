@@ -55,7 +55,7 @@ do j = 1, n_dists
                           distribution_mode=[mode], dist_scale=[1.0_dp])
     case(sa_mode_triangular)  ! triangular
         call sa%initialize(fcn=dummy_fcn, n=1, lb=[lower], ub=[upper], &
-                          distribution_mode=[mode], dist_mode=[0.3_dp])
+                          distribution_mode=[mode])
     case(sa_mode_bipareto)  ! bipareto
         call sa%initialize(fcn=dummy_fcn, n=1, lb=[lower], ub=[upper], &
                           distribution_mode=[mode], dist_scale=[1.0_dp], dist_shape=[2.0_dp])

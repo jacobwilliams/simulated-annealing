@@ -191,7 +191,6 @@
         real(wp), dimension(:), allocatable :: dist_std_dev   !! standard deviation for normal/truncated_normal
         real(wp), dimension(:), allocatable :: dist_scale     !! scale parameter for cauchy/bipareto distributions
         real(wp), dimension(:), allocatable :: dist_shape     !! shape parameter for bipareto distribution
-        real(wp), dimension(:), allocatable :: dist_mode      !! mode parameter for triangular distribution (0-1)
 
         procedure(sa_func),pointer :: fcn => null()  !! the user's function
         procedure(dist_func),pointer :: distribution => null()  !! [DEPRECATED] single distribution (kept for compatibility)
@@ -273,8 +272,7 @@
                              cooling_schedule,cooling_param,&
                              optimal_f_specified,optimal_f,optimal_f_tol,&
                              distribution_mode,dist_std_dev,&
-                             dist_scale,dist_shape,&
-                             dist_mode)
+                             dist_scale,dist_shape)
 
     implicit none
 
@@ -319,7 +317,6 @@
     real(wp), dimension(:), intent(in), optional  :: dist_std_dev       !! std dev for normal/truncated_normal (per variable or scalar)
     real(wp), dimension(:), intent(in), optional  :: dist_scale         !! scale for cauchy/pareto (per variable or scalar)
     real(wp), dimension(:), intent(in), optional  :: dist_shape         !! shape for pareto (per variable or scalar)
-    real(wp), dimension(:), intent(in), optional  :: dist_mode          !! mode for triangular (0-1) (per variable or scalar)
 
     call me%destroy()
 
@@ -365,14 +362,12 @@
     allocate(me%dist_std_dev(n))
     allocate(me%dist_scale(n))
     allocate(me%dist_shape(n))
-    allocate(me%dist_mode(n))
 
     ! set default values (uniform distribution with default parameters):
     me%distribution_mode = sa_mode_uniform
     me%dist_std_dev = 1.0_wp
     me%dist_scale = 1.0_wp
     me%dist_shape = 1.0_wp
-    me%dist_mode = 0.5_wp
 
     ! override with user-supplied values (broadcast if scalar):
     if (present(distribution_mode)) then
@@ -409,15 +404,6 @@
             me%dist_shape = abs(dist_shape)
         else
             error stop 'Error: dist_shape must be scalar or size n.'
-        end if
-    end if
-    if (present(dist_mode)) then
-        if (size(dist_mode) == 1) then
-            me%dist_mode = dist_mode(1)
-        else if (size(dist_mode) == n) then
-            me%dist_mode = dist_mode
-        else
-            error stop 'Error: dist_mode must be scalar or size n.'
         end if
     end if
 
