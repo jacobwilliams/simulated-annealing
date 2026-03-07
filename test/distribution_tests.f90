@@ -17,19 +17,14 @@ real(dp) :: lower, upper, val
 integer :: i, j, k, iunit, mode
 character(len=100), dimension(n_dists) :: dist_names
 integer, dimension(n_dists),parameter :: dist_modes = [sa_mode_uniform, sa_mode_normal, sa_mode_cauchy, &
-                            sa_mode_exponential, sa_mode_pareto, sa_mode_beta, &
-                            sa_mode_triangular, sa_mode_kumaraswamy, sa_mode_bipareto]
+                            sa_mode_triangular, sa_mode_bipareto]
 character(len=*), parameter :: csv_file = 'distribution_samples.csv'
 
 ! Distribution names for header
 dist_names(sa_mode_uniform)     = 'uniform'
 dist_names(sa_mode_normal)      = 'normal'
 dist_names(sa_mode_cauchy)      = 'cauchy'
-dist_names(sa_mode_exponential) = 'exponential'
-dist_names(sa_mode_pareto)      = 'pareto'
-dist_names(sa_mode_beta)        = 'beta'
 dist_names(sa_mode_triangular)  = 'triangular'
-dist_names(sa_mode_kumaraswamy) = 'kumaraswamy'
 dist_names(sa_mode_bipareto)    = 'bipareto'
 
 ! Set bounds for perturbation
@@ -57,22 +52,10 @@ do j = 1, n_dists
                           distribution_mode=[mode], dist_std_dev=[2.0_dp])
     case(sa_mode_cauchy)  ! cauchy
         call sa%initialize(fcn=dummy_fcn, n=1, lb=[lower], ub=[upper], &
-                          distribution_mode=[mode], dist_location=[0.0_dp], dist_scale=[1.0_dp])
-    case(sa_mode_exponential)  ! exponential
-        call sa%initialize(fcn=dummy_fcn, n=1, lb=[lower], ub=[upper], &
-                          distribution_mode=[mode], dist_rate=[1.0_dp])
-    case(sa_mode_pareto)  ! pareto
-        call sa%initialize(fcn=dummy_fcn, n=1, lb=[lower], ub=[upper], &
-                          distribution_mode=[mode], dist_scale=[1.0_dp], dist_shape=[2.0_dp])
-    case(sa_mode_beta)  ! beta
-        call sa%initialize(fcn=dummy_fcn, n=1, lb=[lower], ub=[upper], &
-                          distribution_mode=[mode], dist_alpha=[2.0_dp], dist_beta=[5.0_dp])
+                          distribution_mode=[mode], dist_scale=[1.0_dp])
     case(sa_mode_triangular)  ! triangular
         call sa%initialize(fcn=dummy_fcn, n=1, lb=[lower], ub=[upper], &
                           distribution_mode=[mode], dist_mode=[0.3_dp])
-    case(sa_mode_kumaraswamy)  ! kumaraswamy
-        call sa%initialize(fcn=dummy_fcn, n=1, lb=[lower], ub=[upper], &
-                          distribution_mode=[mode], dist_a=[2.0_dp], dist_b=[5.0_dp])
     case(sa_mode_bipareto)  ! bipareto
         call sa%initialize(fcn=dummy_fcn, n=1, lb=[lower], ub=[upper], &
                           distribution_mode=[mode], dist_scale=[1.0_dp], dist_shape=[2.0_dp])

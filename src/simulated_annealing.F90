@@ -58,16 +58,16 @@
     real(wp),parameter :: pi = acos(-1.0_wp)  !! value of pi for this module's real kind
     real(wp),parameter :: twopi = 2.0_wp * pi
 
-    integer,parameter,public :: n_distribution_modes = 9  !! number of modes
+    integer,parameter,public :: n_distribution_modes = 5  !! number of modes
     integer,parameter,public :: sa_mode_uniform = 1
     integer,parameter,public :: sa_mode_normal = 2
     integer,parameter,public :: sa_mode_cauchy = 3
-    integer,parameter,public :: sa_mode_exponential = 4
-    integer,parameter,public :: sa_mode_pareto = 5
-    integer,parameter,public :: sa_mode_beta = 6
-    integer,parameter,public :: sa_mode_triangular = 7
-    integer,parameter,public :: sa_mode_kumaraswamy = 8
-    integer,parameter,public :: sa_mode_bipareto = 9
+    ! integer,parameter,public :: sa_mode_exponential = 4
+    ! integer,parameter,public :: sa_mode_pareto = 5
+    ! integer,parameter,public :: sa_mode_beta = 6
+    integer,parameter,public :: sa_mode_triangular = 4
+    ! integer,parameter,public :: sa_mode_kumaraswamy = 8
+    integer,parameter,public :: sa_mode_bipareto = 5
     ! integer,parameter :: sa_mode_reduced_uniform = 10
 
     !*******************************************************
@@ -189,25 +189,15 @@
                                                                 !! * `sa_mode_uniform` : uniform (default)
                                                                 !! * `sa_mode_normal` : normal (Gaussian)
                                                                 !! * `sa_mode_cauchy` : cauchy
-                                                                !! * `sa_mode_exponential` : exponential
-                                                                !! * `sa_mode_pareto` : pareto
-                                                                !! * `sa_mode_beta` : beta
                                                                 !! * `sa_mode_triangular` : triangular
-                                                                !! * `sa_mode_kumaraswamy` : kumaraswamy
                                                                 !! * `sa_mode_bipareto` : bipareto (two-sided pareto)
                                                                 !! * `sa_mode_reduced_uniform` : reduced uniform
 
         ! distribution parameters (per-variable, used depending on distribution_mode):
         real(wp), dimension(:), allocatable :: dist_std_dev   !! standard deviation for normal/truncated_normal
-        real(wp), dimension(:), allocatable :: dist_location  !! location parameter for cauchy distribution
-        real(wp), dimension(:), allocatable :: dist_scale     !! scale parameter for cauchy/pareto/bipareto distributions
-        real(wp), dimension(:), allocatable :: dist_rate      !! rate parameter for exponential distribution
-        real(wp), dimension(:), allocatable :: dist_shape     !! shape parameter for pareto/bipareto distribution
-        real(wp), dimension(:), allocatable :: dist_alpha     !! alpha parameter for beta distribution
-        real(wp), dimension(:), allocatable :: dist_beta      !! beta parameter for beta distribution
+        real(wp), dimension(:), allocatable :: dist_scale     !! scale parameter for cauchy/bipareto distributions
+        real(wp), dimension(:), allocatable :: dist_shape     !! shape parameter for bipareto distribution
         real(wp), dimension(:), allocatable :: dist_mode      !! mode parameter for triangular distribution (0-1)
-        real(wp), dimension(:), allocatable :: dist_a         !! a parameter for kumaraswamy distribution
-        real(wp), dimension(:), allocatable :: dist_b         !! b parameter for kumaraswamy distribution
 
         procedure(sa_func),pointer :: fcn => null()  !! the user's function
         procedure(dist_func),pointer :: distribution => null()  !! [DEPRECATED] single distribution (kept for compatibility)
@@ -289,8 +279,8 @@
                              cooling_schedule,cooling_param,&
                              optimal_f_specified,optimal_f,optimal_f_tol,&
                              distribution_mode,dist_std_dev,&
-                             dist_location,dist_scale,dist_rate,dist_shape,&
-                             dist_alpha,dist_beta,dist_mode,dist_a,dist_b)
+                             dist_scale,dist_shape,&
+                             dist_mode)
 
     implicit none
 
@@ -327,25 +317,15 @@
                                                                         !! * `sa_mode_uniform` : uniform (default)
                                                                         !! * `sa_mode_normal` : normal (Gaussian)
                                                                         !! * `sa_mode_cauchy` : cauchy
-                                                                        !! * `sa_mode_exponential` : exponential
-                                                                        !! * `sa_mode_pareto` : pareto
-                                                                        !! * `sa_mode_beta` : beta
                                                                         !! * `sa_mode_triangular` : triangular
-                                                                        !! * `sa_mode_kumaraswamy` : kumaraswamy
                                                                         !! * `sa_mode_bipareto` : bipareto (two-sided pareto)
                                                                         !! * `sa_mode_reduced_uniform` : reduced uniform
                                                                         !!
                                                                         !! Can be scalar (broadcast to all) or array(n)
     real(wp), dimension(:), intent(in), optional  :: dist_std_dev       !! std dev for normal/truncated_normal (per variable or scalar)
-    real(wp), dimension(:), intent(in), optional  :: dist_location      !! location for cauchy (per variable or scalar)
     real(wp), dimension(:), intent(in), optional  :: dist_scale         !! scale for cauchy/pareto (per variable or scalar)
-    real(wp), dimension(:), intent(in), optional  :: dist_rate          !! rate for exponential (per variable or scalar)
     real(wp), dimension(:), intent(in), optional  :: dist_shape         !! shape for pareto (per variable or scalar)
-    real(wp), dimension(:), intent(in), optional  :: dist_alpha         !! alpha for beta (per variable or scalar)
-    real(wp), dimension(:), intent(in), optional  :: dist_beta          !! beta for beta (per variable or scalar)
     real(wp), dimension(:), intent(in), optional  :: dist_mode          !! mode for triangular (0-1) (per variable or scalar)
-    real(wp), dimension(:), intent(in), optional  :: dist_a             !! a for kumaraswamy (per variable or scalar)
-    real(wp), dimension(:), intent(in), optional  :: dist_b             !! b for kumaraswamy (per variable or scalar)
 
     call me%destroy()
 
@@ -389,28 +369,16 @@
     ! allocate and set distribution parameters (per-variable):
     allocate(me%distribution_mode(n))
     allocate(me%dist_std_dev(n))
-    allocate(me%dist_location(n))
     allocate(me%dist_scale(n))
-    allocate(me%dist_rate(n))
     allocate(me%dist_shape(n))
-    allocate(me%dist_alpha(n))
-    allocate(me%dist_beta(n))
     allocate(me%dist_mode(n))
-    allocate(me%dist_a(n))
-    allocate(me%dist_b(n))
 
     ! set default values (uniform distribution with default parameters):
     me%distribution_mode = sa_mode_uniform
     me%dist_std_dev = 1.0_wp
-    me%dist_location = 0.0_wp
     me%dist_scale = 1.0_wp
-    me%dist_rate = 1.0_wp
     me%dist_shape = 1.0_wp
-    me%dist_alpha = 2.0_wp
-    me%dist_beta = 2.0_wp
     me%dist_mode = 0.5_wp
-    me%dist_a = 2.0_wp
-    me%dist_b = 2.0_wp
 
     ! override with user-supplied values (broadcast if scalar):
     if (present(distribution_mode)) then
@@ -431,15 +399,6 @@
             error stop 'Error: dist_std_dev must be scalar or size n.'
         end if
     end if
-    if (present(dist_location)) then
-        if (size(dist_location) == 1) then
-            me%dist_location = dist_location(1)
-        else if (size(dist_location) == n) then
-            me%dist_location = dist_location
-        else
-            error stop 'Error: dist_location must be scalar or size n.'
-        end if
-    end if
     if (present(dist_scale)) then
         if (size(dist_scale) == 1) then
             me%dist_scale = abs(dist_scale(1))
@@ -447,15 +406,6 @@
             me%dist_scale = abs(dist_scale)
         else
             error stop 'Error: dist_scale must be scalar or size n.'
-        end if
-    end if
-    if (present(dist_rate)) then
-        if (size(dist_rate) == 1) then
-            me%dist_rate = abs(dist_rate(1))
-        else if (size(dist_rate) == n) then
-            me%dist_rate = abs(dist_rate)
-        else
-            error stop 'Error: dist_rate must be scalar or size n.'
         end if
     end if
     if (present(dist_shape)) then
@@ -467,24 +417,6 @@
             error stop 'Error: dist_shape must be scalar or size n.'
         end if
     end if
-    if (present(dist_alpha)) then
-        if (size(dist_alpha) == 1) then
-            me%dist_alpha = abs(dist_alpha(1))
-        else if (size(dist_alpha) == n) then
-            me%dist_alpha = abs(dist_alpha)
-        else
-            error stop 'Error: dist_alpha must be scalar or size n.'
-        end if
-    end if
-    if (present(dist_beta)) then
-        if (size(dist_beta) == 1) then
-            me%dist_beta = abs(dist_beta(1))
-        else if (size(dist_beta) == n) then
-            me%dist_beta = abs(dist_beta)
-        else
-            error stop 'Error: dist_beta must be scalar or size n.'
-        end if
-    end if
     if (present(dist_mode)) then
         if (size(dist_mode) == 1) then
             me%dist_mode = dist_mode(1)
@@ -492,24 +424,6 @@
             me%dist_mode = dist_mode
         else
             error stop 'Error: dist_mode must be scalar or size n.'
-        end if
-    end if
-    if (present(dist_a)) then
-        if (size(dist_a) == 1) then
-            me%dist_a = abs(dist_a(1))
-        else if (size(dist_a) == n) then
-            me%dist_a = abs(dist_a)
-        else
-            error stop 'Error: dist_a must be scalar or size n.'
-        end if
-    end if
-    if (present(dist_b)) then
-        if (size(dist_b) == 1) then
-            me%dist_b = abs(dist_b(1))
-        else if (size(dist_b) == n) then
-            me%dist_b = abs(dist_b)
-        else
-            error stop 'Error: dist_b must be scalar or size n.'
         end if
     end if
 
@@ -1104,32 +1018,10 @@
         ! fallback to uniform if rejection sampling fails
         r = uniform(lower, upper)
 
-    case(sa_mode_exponential)  ! exponential
-        ! rejection sampling to ensure within bounds
-        do i = 1, max_tries
-            r = lower + exponential(me%dist_rate(ivar))
-            if (r >= lower .and. r <= upper) return
-        end do
-        ! fallback to uniform if rejection sampling fails
-        r = uniform(lower, upper)
-
-    case(sa_mode_pareto)  ! pareto
-        ! rejection sampling to ensure within bounds
-        do i = 1, max_tries
-            r = pareto(max(lower, me%dist_scale(ivar)), me%dist_shape(ivar))
-            if (r >= lower .and. r <= upper) return
-        end do
-        ! fallback to uniform if rejection sampling fails
-        r = uniform(lower, upper)
-
-    case(sa_mode_beta)  ! beta
-        r = lower + (upper - lower) * beta_dist(me%dist_alpha(ivar), me%dist_beta(ivar))
-
     case(sa_mode_triangular)  ! triangular
-        r = lower + (upper - lower) * triangular_dist(me%dist_mode(ivar))
-
-    case(sa_mode_kumaraswamy)  ! kumaraswamy
-        r = lower + (upper - lower) * kumaraswamy_dist(me%dist_a(ivar), me%dist_b(ivar))
+        ! center the peak at the current value of the variable
+        ! compute normalized position of x in [lower, upper]
+        r = lower + (upper - lower) * triangular_dist((x - lower) / (upper - lower))
 
     case(sa_mode_bipareto)  ! bipareto
         ! center the distribution on the current value of the variable
@@ -1301,48 +1193,6 @@
 
 !********************************************************************************
 !>
-!  Exponential random number with specified rate parameter.
-!  Useful for one-sided perturbations.
-
-    function exponential(rate)
-
-    implicit none
-
-    real(wp),intent(in) :: rate !! rate parameter (lambda)
-    real(wp) :: exponential
-
-    real(wp) :: u
-
-    u = uniform_random_number()
-    exponential = -log(u) / rate
-
-    end function exponential
-!********************************************************************************
-
-!********************************************************************************
-!>
-!  Pareto random number with specified scale and shape parameters.
-!  The Pareto distribution is a power-law probability distribution
-!  useful for modeling heavy-tailed phenomena.
-
-    function pareto(scale, shape)
-
-    implicit none
-
-    real(wp),intent(in) :: scale !! scale parameter (xm) - the minimum value of the distribution
-    real(wp),intent(in) :: shape !! shape parameter (alpha) - controls the tail behavior (smaller values = heavier tails)
-    real(wp) :: pareto
-
-    real(wp) :: u
-
-    u = uniform_random_number()
-    pareto = scale / u**(1.0_wp / shape)
-
-    end function pareto
-!********************************************************************************
-
-!********************************************************************************
-!>
 !  Truncated normal distribution within bounds [xl, xu].
 !  Uses rejection sampling to ensure the value stays within bounds.
 !
@@ -1373,92 +1223,6 @@
     truncated_normal = uniform(xl, xu)
 
     end function truncated_normal
-!********************************************************************************
-
-!********************************************************************************
-!>
-!  Beta distribution on [0,1] using two gamma random variables.
-!
-!### Note
-!  This uses the property that if X ~ Gamma(alpha) and Y ~ Gamma(beta),
-!  then X/(X+Y) ~ Beta(alpha, beta).
-
-    function beta_dist(alpha, beta_param)
-
-    implicit none
-
-    real(wp),intent(in) :: alpha      !! alpha shape parameter (must be > 0)
-    real(wp),intent(in) :: beta_param !! beta shape parameter (must be > 0)
-    real(wp) :: beta_dist
-
-    real(wp) :: x, y
-
-    ! generate two gamma random variables
-    x = gamma_dist(alpha)
-    y = gamma_dist(beta_param)
-
-    ! beta variate using transformation
-    beta_dist = x / (x + y)
-
-    end function beta_dist
-!********************************************************************************
-
-!********************************************************************************
-!>
-!  Gamma distribution using Marsaglia and Tsang's method.
-!
-!### Reference
-!  * Marsaglia, G. and Tsang, W. W. (2000).
-!    "A Simple Method for Generating Gamma Variables".
-!    ACM Transactions on Mathematical Software, 26(3), 363-372.
-
-    function gamma_dist(alpha)
-
-    implicit none
-
-    real(wp),intent(in) :: alpha !! shape parameter (must be > 0)
-    real(wp) :: gamma_dist
-
-    real(wp) :: d, c, x, v, u
-    real(wp) :: alpha_adj
-
-    if (alpha < 1.0_wp) then
-        ! for alpha < 1, use alpha+1 and scale by U^(1/alpha)
-        alpha_adj = alpha + 1.0_wp
-    else
-        alpha_adj = alpha
-    end if
-
-    d = alpha_adj - 1.0_wp/3.0_wp
-    c = 1.0_wp / sqrt(9.0_wp * d)
-
-    do
-        do
-            x = normal(0.0_wp, 1.0_wp)
-            v = 1.0_wp + c * x
-            if (v > 0.0_wp) exit
-        end do
-
-        v = v * v * v
-        u = uniform_random_number()
-
-        if (u < 1.0_wp - 0.0331_wp * x * x * x * x) then
-            gamma_dist = d * v
-            exit
-        end if
-
-        if (log(u) < 0.5_wp * x * x + d * (1.0_wp - v + log(v))) then
-            gamma_dist = d * v
-            exit
-        end if
-    end do
-
-    ! correction for alpha < 1
-    if (alpha < 1.0_wp) then
-        gamma_dist = gamma_dist * uniform_random_number()**(1.0_wp/alpha)
-    end if
-
-    end function gamma_dist
 !********************************************************************************
 
 !********************************************************************************
@@ -1499,36 +1263,6 @@
 
 !********************************************************************************
 !>
-!  Kumaraswamy distribution on [0,1].
-!  Uses direct inverse CDF - very efficient, no rejection needed.
-!
-!### Note
-!  The Kumaraswamy distribution is similar to Beta but simpler to sample.
-!  Common parameter choices:
-!  - a = b = 2: symmetric, similar to Beta(2,2)
-!  - a < b: left-skewed
-!  - a > b: right-skewed
-
-    function kumaraswamy_dist(a, b)
-
-    implicit none
-
-    real(wp),intent(in) :: a !! first shape parameter (must be > 0)
-    real(wp),intent(in) :: b !! second shape parameter (must be > 0)
-    real(wp) :: kumaraswamy_dist
-
-    real(wp) :: u
-
-    u = uniform_random_number()
-
-    ! inverse CDF: F^(-1)(u) = (1 - (1-u)^(1/b))^(1/a)
-    kumaraswamy_dist = (1.0_wp - (1.0_wp - u)**(1.0_wp / b))**(1.0_wp / a)
-
-    end function kumaraswamy_dist
-!********************************************************************************
-
-!********************************************************************************
-!>
 !  Bi-polar (two-sided) Pareto distribution.
 !  Generates a symmetric heavy-tailed distribution centered at a location.
 !
@@ -1557,7 +1291,7 @@
 
     integer,parameter :: max_tries = 1000
     integer :: i
-    real(wp) :: magnitude, sign_val
+    real(wp) :: magnitude, sign_val, u
 
     ! rejection sampling to ensure within bounds
     do i = 1, max_tries
@@ -1568,8 +1302,9 @@
             sign_val = 1.0_wp
         end if
 
-        ! generate Pareto-distributed magnitude
-        magnitude = pareto(scale, shape) - scale
+        ! generate Pareto-distributed magnitude (inlined)
+        u = uniform_random_number()
+        magnitude = (scale / u**(1.0_wp / shape)) - scale
 
         ! apply signed magnitude to center
         bipareto = center + sign_val * magnitude

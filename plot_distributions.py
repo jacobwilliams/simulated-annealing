@@ -39,7 +39,7 @@ print(f"Loaded {len(df)} valid samples for {n_dists} distributions")
 print()
 
 # Create a figure with subplots for each distribution
-fig, axes = plt.subplots(2, 5, figsize=(20, 8))
+fig, axes = plt.subplots(1, 5, figsize=(20, 8))
 fig.suptitle('Distribution Samples from Simulated Annealing Perturbations',
              fontsize=16, fontweight='bold')
 
@@ -75,7 +75,7 @@ plt.savefig(f'distribution_histograms{output_ext}', dpi=300, bbox_inches='tight'
 print(f"Saved histogram plot to: distribution_histograms{output_ext}")
 
 # Create a second figure showing time series (samples over time)
-fig2, axes2 = plt.subplots(2, 5, figsize=(20, 8))
+fig2, axes2 = plt.subplots(1, 5, figsize=(20, 8))
 fig2.suptitle('Distribution Samples Time History',
               fontsize=16, fontweight='bold')
 
