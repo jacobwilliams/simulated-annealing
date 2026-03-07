@@ -158,35 +158,35 @@
                                        !! if this value is achieved.
         real(wp) :: optimal_f_tol = 0.0_wp !! absolute tolerance for the `optimal_f` check
 
-        ! distribution selection for perturbations:
-        integer :: distribution_mode = 1 !! distribution to use for perturbations:
-                                         !!
-                                         !! * 1 : uniform (default)
-                                         !! * 2 : normal (Gaussian)
-                                         !! * 3 : cauchy
-                                         !! * 4 : exponential
-                                         !! * 5 : pareto
-                                         !! * 6 : truncated_normal
-                                         !! * 7 : beta
-                                         !! * 8 : triangular
-                                         !! * 9 : kumaraswamy
-                                         !! * 10 : bipareto (two-sided pareto)
+        ! distribution selection for perturbations (per-variable):
+        integer, dimension(:), allocatable :: distribution_mode !! distribution to use for perturbations for each variable:
+                                                                !!
+                                                                !! * 1 : uniform (default)
+                                                                !! * 2 : normal (Gaussian)
+                                                                !! * 3 : cauchy
+                                                                !! * 4 : exponential
+                                                                !! * 5 : pareto
+                                                                !! * 6 : truncated_normal
+                                                                !! * 7 : beta
+                                                                !! * 8 : triangular
+                                                                !! * 9 : kumaraswamy
+                                                                !! * 10 : bipareto (two-sided pareto)
 
-        ! distribution parameters (used depending on distribution_mode):
-        real(wp) :: dist_mean = 0.0_wp      !! mean for normal/truncated_normal distributions
-        real(wp) :: dist_std_dev = 1.0_wp   !! standard deviation for normal/truncated_normal
-        real(wp) :: dist_location = 0.0_wp  !! location parameter for cauchy distribution
-        real(wp) :: dist_scale = 1.0_wp     !! scale parameter for cauchy/pareto distributions
-        real(wp) :: dist_rate = 1.0_wp      !! rate parameter for exponential distribution
-        real(wp) :: dist_shape = 1.0_wp     !! shape parameter for pareto distribution
-        real(wp) :: dist_alpha = 2.0_wp     !! alpha parameter for beta distribution
-        real(wp) :: dist_beta = 2.0_wp      !! beta parameter for beta distribution
-        real(wp) :: dist_mode = 0.5_wp      !! mode parameter for triangular distribution (0-1)
-        real(wp) :: dist_a = 2.0_wp         !! a parameter for kumaraswamy distribution
-        real(wp) :: dist_b = 2.0_wp         !! b parameter for kumaraswamy distribution
+        ! distribution parameters (per-variable, used depending on distribution_mode):
+        real(wp), dimension(:), allocatable :: dist_mean      !! mean for normal/truncated_normal distributions
+        real(wp), dimension(:), allocatable :: dist_std_dev   !! standard deviation for normal/truncated_normal
+        real(wp), dimension(:), allocatable :: dist_location  !! location parameter for cauchy distribution
+        real(wp), dimension(:), allocatable :: dist_scale     !! scale parameter for cauchy/pareto/bipareto distributions
+        real(wp), dimension(:), allocatable :: dist_rate      !! rate parameter for exponential distribution
+        real(wp), dimension(:), allocatable :: dist_shape     !! shape parameter for pareto/bipareto distribution
+        real(wp), dimension(:), allocatable :: dist_alpha     !! alpha parameter for beta distribution
+        real(wp), dimension(:), allocatable :: dist_beta      !! beta parameter for beta distribution
+        real(wp), dimension(:), allocatable :: dist_mode      !! mode parameter for triangular distribution (0-1)
+        real(wp), dimension(:), allocatable :: dist_a         !! a parameter for kumaraswamy distribution
+        real(wp), dimension(:), allocatable :: dist_b         !! b parameter for kumaraswamy distribution
 
         procedure(sa_func),pointer :: fcn => null()  !! the user's function
-        procedure(dist_func),pointer :: distribution => null()  !! the distribution function for perturbations
+        procedure(dist_func),pointer :: distribution => null()  !! [DEPRECATED] single distribution (kept for compatibility)
 
     contains
 
@@ -198,6 +198,7 @@
 
         procedure :: func
         procedure :: perturb_and_evaluate
+        procedure :: perturb_variable
 
     end type simulated_annealing_type
     !*******************************************************
@@ -294,21 +295,22 @@
     real(wp), intent(in), optional  :: optimal_f          !! if `optimal_f_specified=True` the solver will stop
                                                           !! if this value is achieved.
     real(wp), intent(in), optional  :: optimal_f_tol      !! absolute tolerance for the `optimal_f` check
-    integer, intent(in), optional   :: distribution_mode  !! distribution for perturbations:
-                                                          !! 1=uniform (default), 2=normal, 3=cauchy,
-                                                          !! 4=exponential, 5=pareto, 6=truncated_normal,
-                                                          !! 7=beta, 8=triangular, 9=kumaraswamy, 10=bipareto
-    real(wp), intent(in), optional  :: dist_mean          !! mean for normal/truncated_normal
-    real(wp), intent(in), optional  :: dist_std_dev       !! std dev for normal/truncated_normal
-    real(wp), intent(in), optional  :: dist_location      !! location for cauchy
-    real(wp), intent(in), optional  :: dist_scale         !! scale for cauchy/pareto
-    real(wp), intent(in), optional  :: dist_rate          !! rate for exponential
-    real(wp), intent(in), optional  :: dist_shape         !! shape for pareto
-    real(wp), intent(in), optional  :: dist_alpha         !! alpha for beta
-    real(wp), intent(in), optional  :: dist_beta          !! beta for beta
-    real(wp), intent(in), optional  :: dist_mode          !! mode for triangular (0-1)
-    real(wp), intent(in), optional  :: dist_a             !! a for kumaraswamy
-    real(wp), intent(in), optional  :: dist_b             !! b for kumaraswamy
+    integer, dimension(:), intent(in), optional   :: distribution_mode  !! distribution for perturbations (per variable):
+                                                                        !! 1=uniform (default), 2=normal, 3=cauchy,
+                                                                        !! 4=exponential, 5=pareto, 6=truncated_normal,
+                                                                        !! 7=beta, 8=triangular, 9=kumaraswamy, 10=bipareto
+                                                                        !! Can be scalar (broadcast to all) or array(n)
+    real(wp), dimension(:), intent(in), optional  :: dist_mean          !! mean for normal/truncated_normal (per variable or scalar)
+    real(wp), dimension(:), intent(in), optional  :: dist_std_dev       !! std dev for normal/truncated_normal (per variable or scalar)
+    real(wp), dimension(:), intent(in), optional  :: dist_location      !! location for cauchy (per variable or scalar)
+    real(wp), dimension(:), intent(in), optional  :: dist_scale         !! scale for cauchy/pareto (per variable or scalar)
+    real(wp), dimension(:), intent(in), optional  :: dist_rate          !! rate for exponential (per variable or scalar)
+    real(wp), dimension(:), intent(in), optional  :: dist_shape         !! shape for pareto (per variable or scalar)
+    real(wp), dimension(:), intent(in), optional  :: dist_alpha         !! alpha for beta (per variable or scalar)
+    real(wp), dimension(:), intent(in), optional  :: dist_beta          !! beta for beta (per variable or scalar)
+    real(wp), dimension(:), intent(in), optional  :: dist_mode          !! mode for triangular (0-1) (per variable or scalar)
+    real(wp), dimension(:), intent(in), optional  :: dist_a             !! a for kumaraswamy (per variable or scalar)
+    real(wp), dimension(:), intent(in), optional  :: dist_b             !! b for kumaraswamy (per variable or scalar)
 
     call me%destroy()
 
@@ -347,35 +349,165 @@
     if (present(optimal_f)           ) me%optimal_f = optimal_f
     if (present(optimal_f_tol)       ) me%optimal_f_tol = abs(optimal_f_tol)
 
-    ! set distribution parameters:
-    if (present(distribution_mode)   ) me%distribution_mode = distribution_mode
-    if (present(dist_mean)           ) me%dist_mean = dist_mean
-    if (present(dist_std_dev)        ) me%dist_std_dev = abs(dist_std_dev)
-    if (present(dist_location)       ) me%dist_location = dist_location
-    if (present(dist_scale)          ) me%dist_scale = abs(dist_scale)
-    if (present(dist_rate)           ) me%dist_rate = abs(dist_rate)
-    if (present(dist_shape)          ) me%dist_shape = abs(dist_shape)
-    if (present(dist_alpha)          ) me%dist_alpha = abs(dist_alpha)
-    if (present(dist_beta)           ) me%dist_beta = abs(dist_beta)
-    if (present(dist_mode)           ) me%dist_mode = dist_mode
-    if (present(dist_a)              ) me%dist_a = abs(dist_a)
-    if (present(dist_b)              ) me%dist_b = abs(dist_b)
+    ! allocate and set distribution parameters (per-variable):
+    allocate(me%distribution_mode(n))
+    allocate(me%dist_mean(n))
+    allocate(me%dist_std_dev(n))
+    allocate(me%dist_location(n))
+    allocate(me%dist_scale(n))
+    allocate(me%dist_rate(n))
+    allocate(me%dist_shape(n))
+    allocate(me%dist_alpha(n))
+    allocate(me%dist_beta(n))
+    allocate(me%dist_mode(n))
+    allocate(me%dist_a(n))
+    allocate(me%dist_b(n))
 
-    ! set the distribution function pointer:
-    select case (me%distribution_mode)
-    case(1); me%distribution => wrapper_uniform
-    case(2); me%distribution => wrapper_normal
-    case(3); me%distribution => wrapper_cauchy
-    case(4); me%distribution => wrapper_exponential
-    case(5); me%distribution => wrapper_pareto
-    case(6); me%distribution => wrapper_truncated_normal
-    case(7); me%distribution => wrapper_beta
-    case(8); me%distribution => wrapper_triangular
-    case(9); me%distribution => wrapper_kumaraswamy
-    case(10); me%distribution => wrapper_bipareto
-    case default
-        error stop 'Error: invalid distribution_mode. Must be 1-10.'
-    end select
+    ! set default values (uniform distribution with default parameters):
+    me%distribution_mode = 1
+    me%dist_mean = 0.0_wp
+    me%dist_std_dev = 1.0_wp
+    me%dist_location = 0.0_wp
+    me%dist_scale = 1.0_wp
+    me%dist_rate = 1.0_wp
+    me%dist_shape = 1.0_wp
+    me%dist_alpha = 2.0_wp
+    me%dist_beta = 2.0_wp
+    me%dist_mode = 0.5_wp
+    me%dist_a = 2.0_wp
+    me%dist_b = 2.0_wp
+
+    ! override with user-supplied values (broadcast if scalar):
+    if (present(distribution_mode)) then
+        if (size(distribution_mode) == 1) then
+            me%distribution_mode = distribution_mode(1)  ! broadcast scalar
+        else if (size(distribution_mode) == n) then
+            me%distribution_mode = distribution_mode
+        else
+            error stop 'Error: distribution_mode must be scalar or size n.'
+        end if
+    end if
+    if (present(dist_mean)) then
+        if (size(dist_mean) == 1) then
+            me%dist_mean = dist_mean(1)
+        else if (size(dist_mean) == n) then
+            me%dist_mean = dist_mean
+        else
+            error stop 'Error: dist_mean must be scalar or size n.'
+        end if
+    end if
+    if (present(dist_std_dev)) then
+        if (size(dist_std_dev) == 1) then
+            me%dist_std_dev = abs(dist_std_dev(1))
+        else if (size(dist_std_dev) == n) then
+            me%dist_std_dev = abs(dist_std_dev)
+        else
+            error stop 'Error: dist_std_dev must be scalar or size n.'
+        end if
+    end if
+    if (present(dist_location)) then
+        if (size(dist_location) == 1) then
+            me%dist_location = dist_location(1)
+        else if (size(dist_location) == n) then
+            me%dist_location = dist_location
+        else
+            error stop 'Error: dist_location must be scalar or size n.'
+        end if
+    end if
+    if (present(dist_scale)) then
+        if (size(dist_scale) == 1) then
+            me%dist_scale = abs(dist_scale(1))
+        else if (size(dist_scale) == n) then
+            me%dist_scale = abs(dist_scale)
+        else
+            error stop 'Error: dist_scale must be scalar or size n.'
+        end if
+    end if
+    if (present(dist_rate)) then
+        if (size(dist_rate) == 1) then
+            me%dist_rate = abs(dist_rate(1))
+        else if (size(dist_rate) == n) then
+            me%dist_rate = abs(dist_rate)
+        else
+            error stop 'Error: dist_rate must be scalar or size n.'
+        end if
+    end if
+    if (present(dist_shape)) then
+        if (size(dist_shape) == 1) then
+            me%dist_shape = abs(dist_shape(1))
+        else if (size(dist_shape) == n) then
+            me%dist_shape = abs(dist_shape)
+        else
+            error stop 'Error: dist_shape must be scalar or size n.'
+        end if
+    end if
+    if (present(dist_alpha)) then
+        if (size(dist_alpha) == 1) then
+            me%dist_alpha = abs(dist_alpha(1))
+        else if (size(dist_alpha) == n) then
+            me%dist_alpha = abs(dist_alpha)
+        else
+            error stop 'Error: dist_alpha must be scalar or size n.'
+        end if
+    end if
+    if (present(dist_beta)) then
+        if (size(dist_beta) == 1) then
+            me%dist_beta = abs(dist_beta(1))
+        else if (size(dist_beta) == n) then
+            me%dist_beta = abs(dist_beta)
+        else
+            error stop 'Error: dist_beta must be scalar or size n.'
+        end if
+    end if
+    if (present(dist_mode)) then
+        if (size(dist_mode) == 1) then
+            me%dist_mode = dist_mode(1)
+        else if (size(dist_mode) == n) then
+            me%dist_mode = dist_mode
+        else
+            error stop 'Error: dist_mode must be scalar or size n.'
+        end if
+    end if
+    if (present(dist_a)) then
+        if (size(dist_a) == 1) then
+            me%dist_a = abs(dist_a(1))
+        else if (size(dist_a) == n) then
+            me%dist_a = abs(dist_a)
+        else
+            error stop 'Error: dist_a must be scalar or size n.'
+        end if
+    end if
+    if (present(dist_b)) then
+        if (size(dist_b) == 1) then
+            me%dist_b = abs(dist_b(1))
+        else if (size(dist_b) == n) then
+            me%dist_b = abs(dist_b)
+        else
+            error stop 'Error: dist_b must be scalar or size n.'
+        end if
+    end if
+
+    ! validate distribution modes:
+    if (any(me%distribution_mode < 1 .or. me%distribution_mode > 10)) then
+        error stop 'Error: invalid distribution_mode. Must be 1-10 for all variables.'
+    end if
+
+    ! [DEPRECATED] For backward compatibility, set the single distribution pointer
+    ! based on the first variable's distribution mode:
+    ! select case (me%distribution_mode(1))
+    ! case(1); me%distribution => wrapper_uniform
+    ! case(2); me%distribution => wrapper_normal
+    ! case(3); me%distribution => wrapper_cauchy
+    ! case(4); me%distribution => wrapper_exponential
+    ! case(5); me%distribution => wrapper_pareto
+    ! case(6); me%distribution => wrapper_truncated_normal
+    ! case(7); me%distribution => wrapper_beta
+    ! case(8); me%distribution => wrapper_triangular
+    ! case(9); me%distribution => wrapper_kumaraswamy
+    ! case(10); me%distribution => wrapper_bipareto
+    ! case default
+    !     error stop 'Error: invalid distribution_mode. Must be 1-10.'
+    ! end select
 
     end subroutine initialize_sa
 !********************************************************************************
@@ -821,15 +953,15 @@
                 ! a random point in the bounds:
                 ! [if it fails, a new random one is tried next time]
                 do i = 1, me%n
-                    xp(i) = me%distribution(me%lb(i),me%ub(i))
+                    xp(i) = me%perturb_variable(i, me%lb(i), me%ub(i))
                 end do
             end if
         else
-            ! perturb all of them:
+            ! perturb all of them using per-variable distributions:
             do i = 1, me%n
                 lower = max( me%lb(i), x(i) - vm(i) )
                 upper = min( me%ub(i), x(i) + vm(i) )
-                xp(i) = me%distribution(lower,upper)
+                xp(i) = me%perturb_variable(i, lower, upper)
             end do
         end if
 
@@ -897,231 +1029,83 @@
 
 !********************************************************************************
 !>
-!  Uniform distribution wrapper.
+!  Perturb a single variable using its assigned distribution and parameters.
 
-    function wrapper_uniform(me, lower, upper) result(r)
-
-    implicit none
-
-    class(simulated_annealing_type),intent(inout) :: me
-    real(wp),intent(in) :: lower
-    real(wp),intent(in) :: upper
-    real(wp) :: r
-
-    r = uniform(lower, upper)
-
-    end function wrapper_uniform
-!********************************************************************************
-
-!********************************************************************************
-!>
-!  Normal distribution wrapper.
-
-    function wrapper_normal(me, lower, upper) result(r)
+    function perturb_variable(me, ivar, lower, upper) result(r)
 
     implicit none
 
     class(simulated_annealing_type),intent(inout) :: me
-    real(wp),intent(in) :: lower
-    real(wp),intent(in) :: upper
-    real(wp) :: r
+    integer,intent(in)  :: ivar   !! variable index
+    real(wp),intent(in) :: lower  !! lower bound
+    real(wp),intent(in) :: upper  !! upper bound
+    real(wp) :: r  !! perturbed value
 
-    real(wp) :: mean
-
-    ! use midpoint of [lower, upper] as mean
-    mean = (lower + upper) / 2.0_wp
-    r = truncated_normal(mean, me%dist_std_dev, lower, upper)
-
-    end function wrapper_normal
-!********************************************************************************
-
-!********************************************************************************
-!>
-!  Cauchy distribution wrapper.
-
-    function wrapper_cauchy(me, lower, upper) result(r)
-
-    implicit none
-
-    class(simulated_annealing_type),intent(inout) :: me
-    real(wp),intent(in) :: lower
-    real(wp),intent(in) :: upper
-    real(wp) :: r
-
-    integer,parameter :: max_tries = 1000
-    integer :: i
-    real(wp) :: location
-
-    ! use midpoint of [lower, upper] as location
-    location = (lower + upper) / 2.0_wp
-
-    ! rejection sampling to ensure within bounds
-    do i = 1, max_tries
-        r = cauchy(location, me%dist_scale)
-        if (r >= lower .and. r <= upper) return
-    end do
-
-    ! fallback to uniform if rejection sampling fails
-    r = uniform(lower, upper)
-
-    end function wrapper_cauchy
-!********************************************************************************
-
-!********************************************************************************
-!>
-!  Exponential distribution wrapper.
-
-    function wrapper_exponential(me, lower, upper) result(r)
-
-    implicit none
-
-    class(simulated_annealing_type),intent(inout) :: me
-    real(wp),intent(in) :: lower
-    real(wp),intent(in) :: upper
-    real(wp) :: r
-
+    real(wp) :: mean, location
     integer,parameter :: max_tries = 1000
     integer :: i
 
-    ! rejection sampling to ensure within bounds
-    do i = 1, max_tries
-        r = lower + exponential(me%dist_rate)
-        if (r >= lower .and. r <= upper) return
-    end do
+    ! select distribution based on the variable's distribution_mode:
+    select case (me%distribution_mode(ivar))
 
-    ! fallback to uniform if rejection sampling fails
-    r = uniform(lower, upper)
+    case(1)  ! uniform
+        r = uniform(lower, upper)
 
-    end function wrapper_exponential
-!********************************************************************************
+    case(2)  ! normal (truncated)
+        mean = (lower + upper) / 2.0_wp
+        r = truncated_normal(mean, me%dist_std_dev(ivar), lower, upper)
 
-!********************************************************************************
-!>
-!  Pareto distribution wrapper.
+    case(3)  ! cauchy
+        location = (lower + upper) / 2.0_wp
+        ! rejection sampling to ensure within bounds
+        do i = 1, max_tries
+            r = cauchy(location, me%dist_scale(ivar))
+            if (r >= lower .and. r <= upper) return
+        end do
+        ! fallback to uniform if rejection sampling fails
+        r = uniform(lower, upper)
 
-    function wrapper_pareto(me, lower, upper) result(r)
+    case(4)  ! exponential
+        ! rejection sampling to ensure within bounds
+        do i = 1, max_tries
+            r = lower + exponential(me%dist_rate(ivar))
+            if (r >= lower .and. r <= upper) return
+        end do
+        ! fallback to uniform if rejection sampling fails
+        r = uniform(lower, upper)
 
-    implicit none
+    case(5)  ! pareto
+        ! rejection sampling to ensure within bounds
+        do i = 1, max_tries
+            r = pareto(max(lower, me%dist_scale(ivar)), me%dist_shape(ivar))
+            if (r >= lower .and. r <= upper) return
+        end do
+        ! fallback to uniform if rejection sampling fails
+        r = uniform(lower, upper)
 
-    class(simulated_annealing_type),intent(inout) :: me
-    real(wp),intent(in) :: lower
-    real(wp),intent(in) :: upper
-    real(wp) :: r
+    case(6)  ! truncated_normal
+        mean = (lower + upper) / 2.0_wp
+        r = truncated_normal(mean, me%dist_std_dev(ivar), lower, upper)
 
-    integer,parameter :: max_tries = 1000
-    integer :: i
+    case(7)  ! beta
+        r = lower + (upper - lower) * beta_dist(me%dist_alpha(ivar), me%dist_beta(ivar))
 
-    ! rejection sampling to ensure within bounds
-    do i = 1, max_tries
-        r = pareto(max(lower, me%dist_scale), me%dist_shape)
-        if (r >= lower .and. r <= upper) return
-    end do
+    case(8)  ! triangular
+        r = lower + (upper - lower) * triangular_dist(me%dist_mode(ivar))
 
-    ! fallback to uniform if rejection sampling fails
-    r = uniform(lower, upper)
+    case(9)  ! kumaraswamy
+        r = lower + (upper - lower) * kumaraswamy_dist(me%dist_a(ivar), me%dist_b(ivar))
 
-    end function wrapper_pareto
-!********************************************************************************
+    case(10)  ! bipareto
+        r = bipareto((lower + upper) / 2.0_wp, me%dist_scale(ivar), &
+                     me%dist_shape(ivar), lower, upper)
 
-!********************************************************************************
-!>
-!  Truncated normal distribution wrapper.
+    case default
+        error stop 'Error: invalid distribution_mode in perturb_variable'
 
-    function wrapper_truncated_normal(me, lower, upper) result(r)
+    end select
 
-    implicit none
-
-    class(simulated_annealing_type),intent(inout) :: me
-    real(wp),intent(in) :: lower
-    real(wp),intent(in) :: upper
-    real(wp) :: r
-
-    real(wp) :: mean
-
-    ! use midpoint of [lower, upper] as mean
-    mean = (lower + upper) / 2.0_wp
-    r = truncated_normal(mean, me%dist_std_dev, lower, upper)
-
-    end function wrapper_truncated_normal
-!********************************************************************************
-
-!********************************************************************************
-!>
-!  Beta distribution wrapper.
-
-    function wrapper_beta(me, lower, upper) result(r)
-
-    implicit none
-
-    class(simulated_annealing_type),intent(inout) :: me
-    real(wp),intent(in) :: lower
-    real(wp),intent(in) :: upper
-    real(wp) :: r
-
-    ! beta distribution on [0,1], then scale to [lower, upper]
-    r = lower + (upper - lower) * beta_dist(me%dist_alpha, me%dist_beta)
-
-    end function wrapper_beta
-!********************************************************************************
-
-!********************************************************************************
-!>
-!  Triangular distribution wrapper.
-
-    function wrapper_triangular(me, lower, upper) result(r)
-
-    implicit none
-
-    class(simulated_annealing_type),intent(inout) :: me
-    real(wp),intent(in) :: lower
-    real(wp),intent(in) :: upper
-    real(wp) :: r
-
-    ! triangular distribution on [0,1] with mode, then scale to [lower, upper]
-    r = lower + (upper - lower) * triangular_dist(me%dist_mode)
-
-    end function wrapper_triangular
-!********************************************************************************
-
-!********************************************************************************
-!>
-!  Kumaraswamy distribution wrapper.
-
-    function wrapper_kumaraswamy(me, lower, upper) result(r)
-
-    implicit none
-
-    class(simulated_annealing_type),intent(inout) :: me
-    real(wp),intent(in) :: lower
-    real(wp),intent(in) :: upper
-    real(wp) :: r
-
-    ! kumaraswamy distribution on [0,1], then scale to [lower, upper]
-    r = lower + (upper - lower) * kumaraswamy_dist(me%dist_a, me%dist_b)
-
-    end function wrapper_kumaraswamy
-!********************************************************************************
-
-!********************************************************************************
-!>
-!  Bi-polar (two-sided) Pareto distribution wrapper.
-
-    function wrapper_bipareto(me, lower, upper) result(r)
-
-    implicit none
-
-    class(simulated_annealing_type),intent(inout) :: me
-    real(wp),intent(in) :: lower
-    real(wp),intent(in) :: upper
-    real(wp) :: r
-
-    real(wp) :: center
-
-    ! use midpoint as center
-    center = (lower + upper) / 2.0_wp
-    r = bipareto(center, me%dist_scale, me%dist_shape, lower, upper)
-
-    end function wrapper_bipareto
+    end function perturb_variable
 !********************************************************************************
 
 !********************************************************************************
