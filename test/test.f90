@@ -69,9 +69,9 @@ call print_vector(output_unit,c, n, 'c vector')
 write(output_unit, '(A)') '  ****   end of driver routine output   ****'
 write(output_unit, '(A)') '  ****   before call to sa.             ****'
 
-call sa%initialize(fcn,n,lb,ub,c,&
+call sa%initialize(n,lb,ub,c,&
                    max,eps,ns,nt,neps,maxevl,&
-                   iprint,iseed1,iseed2,step_mode,vms,iunit)
+                   iprint,iseed1,iseed2,step_mode,vms,iunit, fcn=fcn)
 
 call sa%optimize(x, rt, t, vm, xopt, fopt, nacc, nfcnev, ier)
 

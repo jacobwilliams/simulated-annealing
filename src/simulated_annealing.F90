@@ -192,8 +192,14 @@
         real(wp), dimension(:), allocatable :: dist_scale     !! scale parameter for cauchy/bipareto distributions
         real(wp), dimension(:), allocatable :: dist_shape     !! shape parameter for bipareto distribution
 
+        ! serial function evaluation:
         procedure(sa_func),pointer :: fcn => null()  !! the user's function
-        procedure(dist_func),pointer :: distribution => null()  !! [DEPRECATED] single distribution (kept for compatibility)
+
+        ! parallel function evaluation (optional):
+        logical :: parallel_mode = .false. !! if true, the user wants to evaluate multiple points in parallel (e.g. on a GPU or with OpenMP). if false, the user will evaluate one point at a time. if true, the user must provide all of n_inputs_to_send, fcn_parallel_input and fcn_parallel_output.
+        procedure(sa_func_parallel_inputs),pointer :: n_inputs_to_send => null()  !! if the user wants to evaluate multiple points in parallel, this function should return the number of input points that will be sent for evaluation at a time.
+        procedure(sa_func_parallel_inputs_func),pointer :: fcn_parallel_input => null()  !! this function receives the input points for evaluation
+        procedure(sa_func_parallel_output_func),pointer :: fcn_parallel_output => null()  !! this function receives the output points from the parallel evaluation. The `x` here will be one of the ones sent via `sa_func_parallel_inputs_func`, The algorithm will only process one at the time.
 
     contains
 
@@ -227,6 +233,45 @@
                                                       !! * -2 : stop the optimization process
 
         end subroutine sa_func
+
+        subroutine sa_func_parallel_inputs(me, n_inputs)
+            !! interface for parallel function evaluations.
+            !! This is used when the user wants to evaluate
+            !! multiple points in parallel (e.g. on a GPU or with OpenMP)
+            !! This function should return the number of input points to be received
+            import :: simulated_annealing_type
+            implicit none
+            class(simulated_annealing_type),intent(inout) :: me
+            integer,intent(out) :: n_inputs !! number of inputs that can be received
+        end subroutine sa_func_parallel_inputs
+
+        subroutine sa_func_parallel_inputs_func(me, x)
+            !! interface for parallel function evaluations.
+            !! This function receives the input points for evaluation
+            import :: wp, simulated_annealing_type
+            implicit none
+            class(simulated_annealing_type),intent(inout) :: me
+            real(wp),dimension(:,:),intent(in) :: x  !! input points (n_inputs x n)
+        end subroutine sa_func_parallel_inputs_func
+
+        subroutine sa_func_parallel_output_func(me, x, f, istat)
+            !! interface for parallel function evaluations.
+            !! This function receives the output points from the
+            !! parallel evaluation. The `x` here will be one of the ones
+            !! sent via `sa_func_parallel_inputs_func`, The algorithm
+            !! will only process one at the time.
+            import :: wp, simulated_annealing_type
+            implicit none
+            class(simulated_annealing_type),intent(inout) :: me
+            real(wp),dimension(:),intent(in) :: x
+            real(wp), intent(out)            :: f
+            integer, intent(out)             :: istat !! status flag:
+                                                      !!
+                                                      !! * 0 : valid function evaluation
+                                                      !! * -1 : invalid function evaluation.
+                                                      !!   try a different input vector.
+                                                      !! * -2 : stop the optimization process
+        end subroutine sa_func_parallel_output_func
 
         function dist_func(me, lower, upper) result(r)
             !! interface for distribution functions used for perturbations
@@ -265,19 +310,19 @@
 !  See the definition of [[simulated_annealing_type]] for the options.
 !  Any options not set here will use the default values in the type.
 
-    subroutine initialize_sa(me,fcn,n,lb,ub,c,&
+    subroutine initialize_sa(me,n,lb,ub,c,&
                              maximize,eps,ns,nt,neps,maxevl,&
                              iprint,iseed1,iseed2,step_mode,vms,iunit,&
                              use_initial_guess,n_resets,&
                              cooling_schedule,cooling_param,&
                              optimal_f_specified,optimal_f,optimal_f_tol,&
                              distribution_mode,dist_std_dev,&
-                             dist_scale,dist_shape)
+                             dist_scale,dist_shape,&
+                             fcn,n_inputs_to_send,fcn_parallel_input,fcn_parallel_output)
 
     implicit none
 
     class(simulated_annealing_type),intent(inout) :: me
-    procedure(sa_func)                            :: fcn
     integer, intent(in)                           :: n
     real(wp), dimension(n), intent(in)            :: lb
     real(wp), dimension(n), intent(in)            :: ub
@@ -316,10 +361,29 @@
     real(wp), dimension(:), intent(in), optional  :: dist_std_dev       !! std dev for normal/truncated_normal (per variable or scalar)
     real(wp), dimension(:), intent(in), optional  :: dist_scale         !! scale for cauchy/pareto (per variable or scalar)
     real(wp), dimension(:), intent(in), optional  :: dist_shape         !! shape for pareto (per variable or scalar)
+    procedure(sa_func),optional :: fcn
+    procedure(sa_func_parallel_inputs),optional :: n_inputs_to_send
+    procedure(sa_func_parallel_inputs_func),optional :: fcn_parallel_input
+    procedure(sa_func_parallel_output_func),optional :: fcn_parallel_output
 
     call me%destroy()
 
-    me%fcn => fcn
+    if (present(fcn)) then
+        ! serial function evaluation:
+        me%fcn => fcn
+        me%parallel_mode = .false.
+    else if (present(n_inputs_to_send) .and. &
+             present(fcn_parallel_input) .and. &
+             present(fcn_parallel_output)) then
+        ! parallel function evaluation:
+        me%n_inputs_to_send    => n_inputs_to_send
+        me%fcn_parallel_input  => fcn_parallel_input
+        me%fcn_parallel_output => fcn_parallel_output
+        me%parallel_mode = .true.
+    else
+        error stop 'Error: either fcn (serial mode) or all of n_inputs_to_send, fcn_parallel_input and fcn_parallel_output (parallel mode) must be provided.'
+    end if
+
     me%n  = n
     me%lb = lb
     me%ub = ub
@@ -856,11 +920,12 @@
     integer,intent(inout)             :: ier     !! status output code
     logical,intent(in),optional       :: first   !! to use the input `x` the first time
 
-    integer :: i         !! counter
-    integer :: istat     !! user function status code
-    logical :: first_try !! local copy of `first`
-    real(wp) :: lower    !! lower bound to use for random interval
-    real(wp) :: upper    !! upper bound to use for random interval
+    integer :: i          !! counter
+    integer :: istat      !! user function status code
+    logical :: first_try  !! local copy of `first`
+    integer :: n_inputs   !! number of inputs to send to the user function for parallel evaluation
+    logical :: reallocate !! whether to reallocate `xp_mat` for parallel evaluation
+    real(wp),dimension(:,:),allocatable :: xp_mat !! array of `xp` vectors for parallel evaluation
 
     if (present(first)) then
         first_try = first
@@ -868,39 +933,38 @@
         first_try = .false.
     end if
 
-    do
+    do  ! we must return at least one that doesn't fail (or we exceed the max number of function evaluations)
 
-        if (first_try) then
-            if (me%use_initial_guess) then
-                ! use the initial guess
-                ! [note if this evauation fails, the subsequent ones
-                !  are perturbed from this one]
-                xp = x
-                first_try = .false.
-            else
-                ! a random point in the bounds:
-                ! [if it fails, a new random one is tried next time]
-                do i = 1, me%n
-                    xp(i) = me%perturb_variable(i, x(i), me%distribution_mode(i), me%lb(i), me%ub(i))
-                end do
+        if (me%parallel_mode) then
+            ! parallel mode: generate and send multiple x vectors
+            call me%n_inputs_to_send(n_inputs)  !! get the inputs to send to the user function for parallel evaluation
+            n_inputs = max(1, n_inputs)  !! there must be at least one
+            ! do we need to reallocate xp_mat? (if n_inputs has changed):
+            reallocate = .true.
+            if (allocated(xp_mat)) then
+                if (size(xp_mat,1) == me%n .and. size(xp_mat,2) == n_inputs) then
+                    reallocate = .false.
+                end if
             end if
-        else
-            ! perturb all of them using per-variable distributions:
-            do i = 1, me%n
-                lower = max( me%lb(i), x(i) - vm(i) )
-                upper = min( me%ub(i), x(i) + vm(i) )
-                xp(i) = me%perturb_variable(i, x(i), me%distribution_mode(i), lower, upper)
+            if (reallocate) then
+                if (allocated(xp_mat)) deallocate(xp_mat)
+                allocate(xp_mat(me%n, n_inputs))
+            end if
+            do i = 1, n_inputs
+                xp_mat(:,i) = get_xp()  ! get a perturbed `x` value for each input
             end do
+            call me%fcn_parallel_input(xp_mat)  !! send the perturbed `x` values to the user function for parallel evaluation
+            call me%fcn_parallel_output(xp, fp, istat)  !! get the function values and status code back from the user function for parallel evaluation
+        else
+            ! serial mode: generate and send a single x vector
+            xp = get_xp()  ! single funciton evaluation
+            call me%fcn(xp, fp, istat)  ! evaluate the function with the trial point xp and return as fp.
         end if
+        nfcnev = nfcnev + 1  ! function eval counter (note: for parallel runs,
+                             ! only count one evaluation per returned values.
+                             ! others can still be running)
 
-        ! evaluate the function with the trial
-        ! point xp and return as fp.
-        call me%fcn(xp, fp, istat)
-
-        ! function eval counter:
-        nfcnev = nfcnev + 1
-
-        !  if too many function evaluations occur, terminate the algorithm.
+        ! if too many function evaluations occur, terminate the algorithm.
         if (nfcnev > me%maxevl) then
             if (me%iprint>0) then
                 write(me%iunit, '(A)') ' too many function evaluations; consider'
@@ -928,6 +992,39 @@
         exit ! finished
 
     end do
+
+    contains
+
+        function get_xp() result(xp)
+            ! get a perturbed `x` value
+            real(wp),dimension(me%n) :: xp !! the perturbed `x` value
+            real(wp) :: lower    !! lower bound to use for random interval
+            real(wp) :: upper    !! upper bound to use for random interval
+            integer :: i !! counter
+
+            if (first_try) then
+                if (me%use_initial_guess) then
+                    ! use the initial guess
+                    ! [note if this evauation fails, the subsequent ones
+                    !  are perturbed from this one]
+                    xp = x
+                    first_try = .false.
+                else
+                    ! a random point in the bounds:
+                    ! [if it fails, a new random one is tried next time]
+                    do i = 1, me%n
+                        xp(i) = me%perturb_variable(i, x(i), me%distribution_mode(i), me%lb(i), me%ub(i))
+                    end do
+                end if
+            else
+                ! perturb all of them using per-variable distributions:
+                do i = 1, me%n
+                    lower = max( me%lb(i), x(i) - vm(i) )
+                    upper = min( me%ub(i), x(i) + vm(i) )
+                    xp(i) = me%perturb_variable(i, x(i), me%distribution_mode(i), lower, upper)
+                end do
+            end if
+        end function get_xp
 
     end subroutine perturb_and_evaluate
 !********************************************************************************
