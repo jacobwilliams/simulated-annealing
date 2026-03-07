@@ -62,13 +62,8 @@
     integer,parameter,public :: sa_mode_uniform = 1
     integer,parameter,public :: sa_mode_normal = 2
     integer,parameter,public :: sa_mode_cauchy = 3
-    ! integer,parameter,public :: sa_mode_exponential = 4
-    ! integer,parameter,public :: sa_mode_pareto = 5
-    ! integer,parameter,public :: sa_mode_beta = 6
     integer,parameter,public :: sa_mode_triangular = 4
-    ! integer,parameter,public :: sa_mode_kumaraswamy = 8
     integer,parameter,public :: sa_mode_bipareto = 5
-    ! integer,parameter :: sa_mode_reduced_uniform = 10
 
     !*******************************************************
     type,public :: simulated_annealing_type
@@ -191,7 +186,6 @@
                                                                 !! * `sa_mode_cauchy` : cauchy
                                                                 !! * `sa_mode_triangular` : triangular
                                                                 !! * `sa_mode_bipareto` : bipareto (two-sided pareto)
-                                                                !! * `sa_mode_reduced_uniform` : reduced uniform
 
         ! distribution parameters (per-variable, used depending on distribution_mode):
         real(wp), dimension(:), allocatable :: dist_std_dev   !! standard deviation for normal/truncated_normal
