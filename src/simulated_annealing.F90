@@ -158,7 +158,35 @@
                                        !! if this value is achieved.
         real(wp) :: optimal_f_tol = 0.0_wp !! absolute tolerance for the `optimal_f` check
 
+        ! distribution selection for perturbations:
+        integer :: distribution_mode = 1 !! distribution to use for perturbations:
+                                         !!
+                                         !! * 1 : uniform (default)
+                                         !! * 2 : normal (Gaussian)
+                                         !! * 3 : cauchy
+                                         !! * 4 : exponential
+                                         !! * 5 : pareto
+                                         !! * 6 : truncated_normal
+                                         !! * 7 : beta
+                                         !! * 8 : triangular
+                                         !! * 9 : kumaraswamy
+                                         !! * 10 : bipareto (two-sided pareto)
+
+        ! distribution parameters (used depending on distribution_mode):
+        real(wp) :: dist_mean = 0.0_wp      !! mean for normal/truncated_normal distributions
+        real(wp) :: dist_std_dev = 1.0_wp   !! standard deviation for normal/truncated_normal
+        real(wp) :: dist_location = 0.0_wp  !! location parameter for cauchy distribution
+        real(wp) :: dist_scale = 1.0_wp     !! scale parameter for cauchy/pareto distributions
+        real(wp) :: dist_rate = 1.0_wp      !! rate parameter for exponential distribution
+        real(wp) :: dist_shape = 1.0_wp     !! shape parameter for pareto distribution
+        real(wp) :: dist_alpha = 2.0_wp     !! alpha parameter for beta distribution
+        real(wp) :: dist_beta = 2.0_wp      !! beta parameter for beta distribution
+        real(wp) :: dist_mode = 0.5_wp      !! mode parameter for triangular distribution (0-1)
+        real(wp) :: dist_a = 2.0_wp         !! a parameter for kumaraswamy distribution
+        real(wp) :: dist_b = 2.0_wp         !! b parameter for kumaraswamy distribution
+
         procedure(sa_func),pointer :: fcn => null()  !! the user's function
+        procedure(dist_func),pointer :: distribution => null()  !! the distribution function for perturbations
 
     contains
 
@@ -191,6 +219,16 @@
                                                       !! * -2 : stop the optimization process
 
         end subroutine sa_func
+
+        function dist_func(me, lower, upper) result(r)
+            !! interface for distribution functions used for perturbations
+            import :: wp, simulated_annealing_type
+            implicit none
+            class(simulated_annealing_type),intent(inout) :: me
+            real(wp),intent(in) :: lower  !! lower bound
+            real(wp),intent(in) :: upper  !! upper bound
+            real(wp) :: r  !! random value within [lower, upper]
+        end function dist_func
     end interface
     !*******************************************************
 
@@ -223,7 +261,10 @@
                              maximize,eps,ns,nt,neps,maxevl,&
                              iprint,iseed1,iseed2,step_mode,vms,iunit,&
                              use_initial_guess,n_resets,&
-                             optimal_f_specified,optimal_f,optimal_f_tol)
+                             optimal_f_specified,optimal_f,optimal_f_tol,&
+                             distribution_mode,dist_mean,dist_std_dev,&
+                             dist_location,dist_scale,dist_rate,dist_shape,&
+                             dist_alpha,dist_beta,dist_mode,dist_a,dist_b)
 
     implicit none
 
@@ -253,6 +294,21 @@
     real(wp), intent(in), optional  :: optimal_f          !! if `optimal_f_specified=True` the solver will stop
                                                           !! if this value is achieved.
     real(wp), intent(in), optional  :: optimal_f_tol      !! absolute tolerance for the `optimal_f` check
+    integer, intent(in), optional   :: distribution_mode  !! distribution for perturbations:
+                                                          !! 1=uniform (default), 2=normal, 3=cauchy,
+                                                          !! 4=exponential, 5=pareto, 6=truncated_normal,
+                                                          !! 7=beta, 8=triangular, 9=kumaraswamy, 10=bipareto
+    real(wp), intent(in), optional  :: dist_mean          !! mean for normal/truncated_normal
+    real(wp), intent(in), optional  :: dist_std_dev       !! std dev for normal/truncated_normal
+    real(wp), intent(in), optional  :: dist_location      !! location for cauchy
+    real(wp), intent(in), optional  :: dist_scale         !! scale for cauchy/pareto
+    real(wp), intent(in), optional  :: dist_rate          !! rate for exponential
+    real(wp), intent(in), optional  :: dist_shape         !! shape for pareto
+    real(wp), intent(in), optional  :: dist_alpha         !! alpha for beta
+    real(wp), intent(in), optional  :: dist_beta          !! beta for beta
+    real(wp), intent(in), optional  :: dist_mode          !! mode for triangular (0-1)
+    real(wp), intent(in), optional  :: dist_a             !! a for kumaraswamy
+    real(wp), intent(in), optional  :: dist_b             !! b for kumaraswamy
 
     call me%destroy()
 
@@ -290,6 +346,36 @@
     if (present(optimal_f_specified) ) me%optimal_f_specified = optimal_f_specified
     if (present(optimal_f)           ) me%optimal_f = optimal_f
     if (present(optimal_f_tol)       ) me%optimal_f_tol = abs(optimal_f_tol)
+
+    ! set distribution parameters:
+    if (present(distribution_mode)   ) me%distribution_mode = distribution_mode
+    if (present(dist_mean)           ) me%dist_mean = dist_mean
+    if (present(dist_std_dev)        ) me%dist_std_dev = abs(dist_std_dev)
+    if (present(dist_location)       ) me%dist_location = dist_location
+    if (present(dist_scale)          ) me%dist_scale = abs(dist_scale)
+    if (present(dist_rate)           ) me%dist_rate = abs(dist_rate)
+    if (present(dist_shape)          ) me%dist_shape = abs(dist_shape)
+    if (present(dist_alpha)          ) me%dist_alpha = abs(dist_alpha)
+    if (present(dist_beta)           ) me%dist_beta = abs(dist_beta)
+    if (present(dist_mode)           ) me%dist_mode = dist_mode
+    if (present(dist_a)              ) me%dist_a = abs(dist_a)
+    if (present(dist_b)              ) me%dist_b = abs(dist_b)
+
+    ! set the distribution function pointer:
+    select case (me%distribution_mode)
+    case(1); me%distribution => wrapper_uniform
+    case(2); me%distribution => wrapper_normal
+    case(3); me%distribution => wrapper_cauchy
+    case(4); me%distribution => wrapper_exponential
+    case(5); me%distribution => wrapper_pareto
+    case(6); me%distribution => wrapper_truncated_normal
+    case(7); me%distribution => wrapper_beta
+    case(8); me%distribution => wrapper_triangular
+    case(9); me%distribution => wrapper_kumaraswamy
+    case(10); me%distribution => wrapper_bipareto
+    case default
+        error stop 'Error: invalid distribution_mode. Must be 1-10.'
+    end select
 
     end subroutine initialize_sa
 !********************************************************************************
@@ -735,8 +821,7 @@
                 ! a random point in the bounds:
                 ! [if it fails, a new random one is tried next time]
                 do i = 1, me%n
-                    xp(i) = uniform(me%lb(i),me%ub(i))
-                    !xp(i) = me%lb(i) + (me%ub(i)-me%lb(i))*uniform_random_number()
+                    xp(i) = me%distribution(me%lb(i),me%ub(i))
                 end do
             end if
         else
@@ -744,8 +829,7 @@
             do i = 1, me%n
                 lower = max( me%lb(i), x(i) - vm(i) )
                 upper = min( me%ub(i), x(i) + vm(i) )
-                xp(i) = uniform(lower,upper)
-                !xp(i) = lower + (upper-lower)*uniform_random_number()
+                xp(i) = me%distribution(lower,upper)
             end do
         end if
 
@@ -809,6 +893,235 @@
     end if
 
     end function func
+!********************************************************************************
+
+!********************************************************************************
+!>
+!  Uniform distribution wrapper.
+
+    function wrapper_uniform(me, lower, upper) result(r)
+
+    implicit none
+
+    class(simulated_annealing_type),intent(inout) :: me
+    real(wp),intent(in) :: lower
+    real(wp),intent(in) :: upper
+    real(wp) :: r
+
+    r = uniform(lower, upper)
+
+    end function wrapper_uniform
+!********************************************************************************
+
+!********************************************************************************
+!>
+!  Normal distribution wrapper.
+
+    function wrapper_normal(me, lower, upper) result(r)
+
+    implicit none
+
+    class(simulated_annealing_type),intent(inout) :: me
+    real(wp),intent(in) :: lower
+    real(wp),intent(in) :: upper
+    real(wp) :: r
+
+    real(wp) :: mean
+
+    ! use midpoint of [lower, upper] as mean
+    mean = (lower + upper) / 2.0_wp
+    r = truncated_normal(mean, me%dist_std_dev, lower, upper)
+
+    end function wrapper_normal
+!********************************************************************************
+
+!********************************************************************************
+!>
+!  Cauchy distribution wrapper.
+
+    function wrapper_cauchy(me, lower, upper) result(r)
+
+    implicit none
+
+    class(simulated_annealing_type),intent(inout) :: me
+    real(wp),intent(in) :: lower
+    real(wp),intent(in) :: upper
+    real(wp) :: r
+
+    integer,parameter :: max_tries = 1000
+    integer :: i
+    real(wp) :: location
+
+    ! use midpoint of [lower, upper] as location
+    location = (lower + upper) / 2.0_wp
+
+    ! rejection sampling to ensure within bounds
+    do i = 1, max_tries
+        r = cauchy(location, me%dist_scale)
+        if (r >= lower .and. r <= upper) return
+    end do
+
+    ! fallback to uniform if rejection sampling fails
+    r = uniform(lower, upper)
+
+    end function wrapper_cauchy
+!********************************************************************************
+
+!********************************************************************************
+!>
+!  Exponential distribution wrapper.
+
+    function wrapper_exponential(me, lower, upper) result(r)
+
+    implicit none
+
+    class(simulated_annealing_type),intent(inout) :: me
+    real(wp),intent(in) :: lower
+    real(wp),intent(in) :: upper
+    real(wp) :: r
+
+    integer,parameter :: max_tries = 1000
+    integer :: i
+
+    ! rejection sampling to ensure within bounds
+    do i = 1, max_tries
+        r = lower + exponential(me%dist_rate)
+        if (r >= lower .and. r <= upper) return
+    end do
+
+    ! fallback to uniform if rejection sampling fails
+    r = uniform(lower, upper)
+
+    end function wrapper_exponential
+!********************************************************************************
+
+!********************************************************************************
+!>
+!  Pareto distribution wrapper.
+
+    function wrapper_pareto(me, lower, upper) result(r)
+
+    implicit none
+
+    class(simulated_annealing_type),intent(inout) :: me
+    real(wp),intent(in) :: lower
+    real(wp),intent(in) :: upper
+    real(wp) :: r
+
+    integer,parameter :: max_tries = 1000
+    integer :: i
+
+    ! rejection sampling to ensure within bounds
+    do i = 1, max_tries
+        r = pareto(max(lower, me%dist_scale), me%dist_shape)
+        if (r >= lower .and. r <= upper) return
+    end do
+
+    ! fallback to uniform if rejection sampling fails
+    r = uniform(lower, upper)
+
+    end function wrapper_pareto
+!********************************************************************************
+
+!********************************************************************************
+!>
+!  Truncated normal distribution wrapper.
+
+    function wrapper_truncated_normal(me, lower, upper) result(r)
+
+    implicit none
+
+    class(simulated_annealing_type),intent(inout) :: me
+    real(wp),intent(in) :: lower
+    real(wp),intent(in) :: upper
+    real(wp) :: r
+
+    real(wp) :: mean
+
+    ! use midpoint of [lower, upper] as mean
+    mean = (lower + upper) / 2.0_wp
+    r = truncated_normal(mean, me%dist_std_dev, lower, upper)
+
+    end function wrapper_truncated_normal
+!********************************************************************************
+
+!********************************************************************************
+!>
+!  Beta distribution wrapper.
+
+    function wrapper_beta(me, lower, upper) result(r)
+
+    implicit none
+
+    class(simulated_annealing_type),intent(inout) :: me
+    real(wp),intent(in) :: lower
+    real(wp),intent(in) :: upper
+    real(wp) :: r
+
+    ! beta distribution on [0,1], then scale to [lower, upper]
+    r = lower + (upper - lower) * beta_dist(me%dist_alpha, me%dist_beta)
+
+    end function wrapper_beta
+!********************************************************************************
+
+!********************************************************************************
+!>
+!  Triangular distribution wrapper.
+
+    function wrapper_triangular(me, lower, upper) result(r)
+
+    implicit none
+
+    class(simulated_annealing_type),intent(inout) :: me
+    real(wp),intent(in) :: lower
+    real(wp),intent(in) :: upper
+    real(wp) :: r
+
+    ! triangular distribution on [0,1] with mode, then scale to [lower, upper]
+    r = lower + (upper - lower) * triangular_dist(me%dist_mode)
+
+    end function wrapper_triangular
+!********************************************************************************
+
+!********************************************************************************
+!>
+!  Kumaraswamy distribution wrapper.
+
+    function wrapper_kumaraswamy(me, lower, upper) result(r)
+
+    implicit none
+
+    class(simulated_annealing_type),intent(inout) :: me
+    real(wp),intent(in) :: lower
+    real(wp),intent(in) :: upper
+    real(wp) :: r
+
+    ! kumaraswamy distribution on [0,1], then scale to [lower, upper]
+    r = lower + (upper - lower) * kumaraswamy_dist(me%dist_a, me%dist_b)
+
+    end function wrapper_kumaraswamy
+!********************************************************************************
+
+!********************************************************************************
+!>
+!  Bi-polar (two-sided) Pareto distribution wrapper.
+
+    function wrapper_bipareto(me, lower, upper) result(r)
+
+    implicit none
+
+    class(simulated_annealing_type),intent(inout) :: me
+    real(wp),intent(in) :: lower
+    real(wp),intent(in) :: upper
+    real(wp) :: r
+
+    real(wp) :: center
+
+    ! use midpoint as center
+    center = (lower + upper) / 2.0_wp
+    r = bipareto(center, me%dist_scale, me%dist_shape, lower, upper)
+
+    end function wrapper_bipareto
 !********************************************************************************
 
 !********************************************************************************
@@ -920,6 +1233,336 @@
     uniform = xl + (xu-xl)*uniform_random_number()
 
     end function uniform
+!********************************************************************************
+
+!********************************************************************************
+!>
+!  Normal (Gaussian) random number with specified mean and standard deviation.
+!  Uses the Box-Muller transform.
+
+    function normal(mean, std_dev)
+
+    implicit none
+
+    real(wp),intent(in) :: mean    !! mean of the distribution
+    real(wp),intent(in) :: std_dev !! standard deviation
+    real(wp) :: normal
+
+    real(wp) :: u1, u2
+
+    u1 = uniform_random_number()
+    u2 = uniform_random_number()
+
+    normal = mean + std_dev * sqrt(-2.0_wp * log(u1)) * cos(2.0_wp * acos(-1.0_wp) * u2)
+
+    end function normal
+!********************************************************************************
+
+!********************************************************************************
+!>
+!  Cauchy random number with specified location and scale parameters.
+!  The Cauchy distribution has heavier tails than the normal distribution,
+!  which can be useful for occasional large jumps in simulated annealing.
+
+    function cauchy(location, scale)
+
+    implicit none
+
+    real(wp),intent(in) :: location !! location parameter (median)
+    real(wp),intent(in) :: scale    !! scale parameter
+    real(wp) :: cauchy
+
+    real(wp) :: u
+
+    u = uniform_random_number()
+    cauchy = location + scale * tan(acos(-1.0_wp) * (u - 0.5_wp))
+
+    end function cauchy
+!********************************************************************************
+
+!********************************************************************************
+!>
+!  Exponential random number with specified rate parameter.
+!  Useful for one-sided perturbations.
+
+    function exponential(rate)
+
+    implicit none
+
+    real(wp),intent(in) :: rate !! rate parameter (lambda)
+    real(wp) :: exponential
+
+    real(wp) :: u
+
+    u = uniform_random_number()
+    exponential = -log(u) / rate
+
+    end function exponential
+!********************************************************************************
+
+!********************************************************************************
+!>
+!  Pareto random number with specified scale and shape parameters.
+!  The Pareto distribution is a power-law probability distribution
+!  useful for modeling heavy-tailed phenomena.
+
+    function pareto(scale, shape)
+
+    implicit none
+
+    real(wp),intent(in) :: scale !! scale parameter (xm) - the minimum value of the distribution
+    real(wp),intent(in) :: shape !! shape parameter (alpha) - controls the tail behavior (smaller values = heavier tails)
+    real(wp) :: pareto
+
+    real(wp) :: u
+
+    u = uniform_random_number()
+    pareto = scale / u**(1.0_wp / shape)
+
+    end function pareto
+!********************************************************************************
+
+!********************************************************************************
+!>
+!  Truncated normal distribution within bounds [xl, xu].
+!  Uses rejection sampling to ensure the value stays within bounds.
+!
+!### Note
+!  For efficiency, if bounds are more than a few standard deviations
+!  from the mean, consider using uniform distribution instead.
+
+    function truncated_normal(mean, std_dev, xl, xu)
+
+    implicit none
+
+    real(wp),intent(in) :: mean    !! mean of the underlying normal distribution
+    real(wp),intent(in) :: std_dev !! standard deviation
+    real(wp),intent(in) :: xl      !! lower bound
+    real(wp),intent(in) :: xu      !! upper bound
+    real(wp) :: truncated_normal
+
+    integer,parameter :: max_tries = 1000
+    integer :: i
+
+    ! rejection sampling
+    do i = 1, max_tries
+        truncated_normal = normal(mean, std_dev)
+        if (truncated_normal >= xl .and. truncated_normal <= xu) return
+    end do
+
+    ! fallback to uniform if rejection sampling fails
+    truncated_normal = uniform(xl, xu)
+
+    end function truncated_normal
+!********************************************************************************
+
+!********************************************************************************
+!>
+!  Beta distribution on [0,1] using two gamma random variables.
+!
+!### Note
+!  This uses the property that if X ~ Gamma(alpha) and Y ~ Gamma(beta),
+!  then X/(X+Y) ~ Beta(alpha, beta).
+
+    function beta_dist(alpha, beta_param)
+
+    implicit none
+
+    real(wp),intent(in) :: alpha      !! alpha shape parameter (must be > 0)
+    real(wp),intent(in) :: beta_param !! beta shape parameter (must be > 0)
+    real(wp) :: beta_dist
+
+    real(wp) :: x, y
+
+    ! generate two gamma random variables
+    x = gamma_dist(alpha)
+    y = gamma_dist(beta_param)
+
+    ! beta variate using transformation
+    beta_dist = x / (x + y)
+
+    end function beta_dist
+!********************************************************************************
+
+!********************************************************************************
+!>
+!  Gamma distribution using Marsaglia and Tsang's method.
+!
+!### Reference
+!  * Marsaglia, G. and Tsang, W. W. (2000).
+!    "A Simple Method for Generating Gamma Variables".
+!    ACM Transactions on Mathematical Software, 26(3), 363-372.
+
+    function gamma_dist(alpha)
+
+    implicit none
+
+    real(wp),intent(in) :: alpha !! shape parameter (must be > 0)
+    real(wp) :: gamma_dist
+
+    real(wp) :: d, c, x, v, u
+    real(wp) :: alpha_adj
+
+    if (alpha < 1.0_wp) then
+        ! for alpha < 1, use alpha+1 and scale by U^(1/alpha)
+        alpha_adj = alpha + 1.0_wp
+    else
+        alpha_adj = alpha
+    end if
+
+    d = alpha_adj - 1.0_wp/3.0_wp
+    c = 1.0_wp / sqrt(9.0_wp * d)
+
+    do
+        do
+            x = normal(0.0_wp, 1.0_wp)
+            v = 1.0_wp + c * x
+            if (v > 0.0_wp) exit
+        end do
+
+        v = v * v * v
+        u = uniform_random_number()
+
+        if (u < 1.0_wp - 0.0331_wp * x * x * x * x) then
+            gamma_dist = d * v
+            exit
+        end if
+
+        if (log(u) < 0.5_wp * x * x + d * (1.0_wp - v + log(v))) then
+            gamma_dist = d * v
+            exit
+        end if
+    end do
+
+    ! correction for alpha < 1
+    if (alpha < 1.0_wp) then
+        gamma_dist = gamma_dist * uniform_random_number()**(1.0_wp/alpha)
+    end if
+
+    end function gamma_dist
+!********************************************************************************
+
+!********************************************************************************
+!>
+!  Triangular distribution on [0,1] with specified mode.
+!  Uses inverse transform sampling - very efficient, no rejection needed.
+!
+!### Note
+!  The mode parameter should be in [0,1]. Common choices:
+!  - mode = 0.5: symmetric triangular
+!  - mode < 0.5: left-skewed
+!  - mode > 0.5: right-skewed
+
+    function triangular_dist(mode)
+
+    implicit none
+
+    real(wp),intent(in) :: mode !! mode of the distribution (should be in [0,1])
+    real(wp) :: triangular_dist
+
+    real(wp) :: u, mode_clipped
+
+    ! ensure mode is in [0,1]
+    mode_clipped = max(0.0_wp, min(1.0_wp, mode))
+
+    u = uniform_random_number()
+
+    if (u < mode_clipped) then
+        ! left side of triangle
+        triangular_dist = sqrt(u * mode_clipped)
+    else
+        ! right side of triangle
+        triangular_dist = 1.0_wp - sqrt((1.0_wp - u) * (1.0_wp - mode_clipped))
+    end if
+
+    end function triangular_dist
+!********************************************************************************
+
+!********************************************************************************
+!>
+!  Kumaraswamy distribution on [0,1].
+!  Uses direct inverse CDF - very efficient, no rejection needed.
+!
+!### Note
+!  The Kumaraswamy distribution is similar to Beta but simpler to sample.
+!  Common parameter choices:
+!  - a = b = 2: symmetric, similar to Beta(2,2)
+!  - a < b: left-skewed
+!  - a > b: right-skewed
+
+    function kumaraswamy_dist(a, b)
+
+    implicit none
+
+    real(wp),intent(in) :: a !! first shape parameter (must be > 0)
+    real(wp),intent(in) :: b !! second shape parameter (must be > 0)
+    real(wp) :: kumaraswamy_dist
+
+    real(wp) :: u
+
+    u = uniform_random_number()
+
+    ! inverse CDF: F^(-1)(u) = (1 - (1-u)^(1/b))^(1/a)
+    kumaraswamy_dist = (1.0_wp - (1.0_wp - u)**(1.0_wp / b))**(1.0_wp / a)
+
+    end function kumaraswamy_dist
+!********************************************************************************
+
+!********************************************************************************
+!>
+!  Bi-polar (two-sided) Pareto distribution.
+!  Generates a symmetric heavy-tailed distribution centered at a location.
+!
+!### Note
+!  Unlike the standard Pareto which is one-sided (heavy tail on right only),
+!  the bi-polar Pareto is symmetric and allows large jumps in both directions.
+!  This is particularly useful for optimization where perturbations should be
+!  unbiased with respect to direction.
+!
+!  The distribution:
+!  - Randomly chooses a direction (positive or negative with equal probability)
+!  - Generates a Pareto-distributed magnitude
+!  - Applies the signed magnitude to the center location
+!  - Uses rejection sampling to ensure the result stays within [xl, xu]
+
+    function bipareto(center, scale, shape, xl, xu)
+
+    implicit none
+
+    real(wp),intent(in) :: center !! center location of the distribution
+    real(wp),intent(in) :: scale  !! scale parameter for the Pareto distribution
+    real(wp),intent(in) :: shape  !! shape parameter (smaller values = heavier tails)
+    real(wp),intent(in) :: xl     !! lower bound
+    real(wp),intent(in) :: xu     !! upper bound
+    real(wp) :: bipareto
+
+    integer,parameter :: max_tries = 1000
+    integer :: i
+    real(wp) :: magnitude, sign_val
+
+    ! rejection sampling to ensure within bounds
+    do i = 1, max_tries
+        ! randomly choose direction: -1 or +1
+        if (uniform_random_number() < 0.5_wp) then
+            sign_val = -1.0_wp
+        else
+            sign_val = 1.0_wp
+        end if
+
+        ! generate Pareto-distributed magnitude
+        magnitude = pareto(scale, shape) - scale
+
+        ! apply signed magnitude to center
+        bipareto = center + sign_val * magnitude
+
+        ! check if within bounds
+        if (bipareto >= xl .and. bipareto <= xu) return
+    end do
+
+    ! fallback to uniform if rejection sampling fails
+    bipareto = uniform(xl, xu)
+
+    end function bipareto
 !********************************************************************************
 
 !********************************************************************************
