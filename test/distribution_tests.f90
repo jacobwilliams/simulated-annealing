@@ -5,32 +5,35 @@ program distribution_tests
 !! functions in the simulated annealing module.
 
 use iso_fortran_env, only: output_unit
-use simulated_annealing_module, only: simulated_annealing_type, dp => simann_wp
+use simulated_annealing_module, dp => simann_wp
 
 implicit none
 
 type(simulated_annealing_type) :: sa
-integer, parameter :: n_samples = 10000  !! number of samples to generate per distribution
-integer, parameter :: n_dists = 10      !! number of distribution types
+integer, parameter :: n_samples = 100000  !! number of samples to generate per distribution
+integer, parameter :: n_dists = n_distribution_modes      !! number of distribution types
 real(dp), dimension(n_samples, n_dists) :: samples
-real(dp) :: lower, upper
-integer :: i, j, k, iunit
+real(dp) :: lower, upper, val
+integer :: i, j, k, iunit, mode
 character(len=100), dimension(n_dists) :: dist_names
+integer, dimension(n_dists),parameter :: dist_modes = [sa_mode_uniform, sa_mode_normal, sa_mode_cauchy, &
+                            sa_mode_exponential, sa_mode_pareto, sa_mode_beta, &
+                            sa_mode_triangular, sa_mode_kumaraswamy, sa_mode_bipareto]
 character(len=*), parameter :: csv_file = 'distribution_samples.csv'
 
 ! Distribution names for header
-dist_names(1)  = 'uniform'
-dist_names(2)  = 'normal'
-dist_names(3)  = 'cauchy'
-dist_names(4)  = 'exponential'
-dist_names(5)  = 'pareto'
-dist_names(6)  = 'truncated_normal'
-dist_names(7)  = 'beta'
-dist_names(8)  = 'triangular'
-dist_names(9)  = 'kumaraswamy'
-dist_names(10) = 'bipareto'
+dist_names(sa_mode_uniform)     = 'uniform'
+dist_names(sa_mode_normal)      = 'normal'
+dist_names(sa_mode_cauchy)      = 'cauchy'
+dist_names(sa_mode_exponential) = 'exponential'
+dist_names(sa_mode_pareto)      = 'pareto'
+dist_names(sa_mode_beta)        = 'beta'
+dist_names(sa_mode_triangular)  = 'triangular'
+dist_names(sa_mode_kumaraswamy) = 'kumaraswamy'
+dist_names(sa_mode_bipareto)    = 'bipareto'
 
 ! Set bounds for perturbation
+val = 1.0_dp  ! variable value
 lower = -5.0_dp
 upper = 5.0_dp
 
@@ -41,45 +44,43 @@ write(output_unit, '(A)') ''
 
 ! Generate samples for each distribution
 do j = 1, n_dists
+    mode = dist_modes(j)
     write(output_unit, '(A,I0,A,A)') 'Generating samples for distribution ', j, ': ', trim(dist_names(j))
 
     ! Initialize with appropriate distribution and parameters for each type
     select case(j)
-    case(1)  ! uniform
+    case(sa_mode_uniform)  ! uniform
         call sa%initialize(fcn=dummy_fcn, n=1, lb=[lower], ub=[upper], &
-                          distribution_mode=[1])
-    case(2)  ! normal
+                          distribution_mode=[mode])
+    case(sa_mode_normal)  ! normal
         call sa%initialize(fcn=dummy_fcn, n=1, lb=[lower], ub=[upper], &
-                          distribution_mode=[2], dist_mean=[0.0_dp], dist_std_dev=[2.0_dp])
-    case(3)  ! cauchy
+                          distribution_mode=[mode], dist_std_dev=[2.0_dp])
+    case(sa_mode_cauchy)  ! cauchy
         call sa%initialize(fcn=dummy_fcn, n=1, lb=[lower], ub=[upper], &
-                          distribution_mode=[3], dist_location=[0.0_dp], dist_scale=[1.0_dp])
-    case(4)  ! exponential
+                          distribution_mode=[mode], dist_location=[0.0_dp], dist_scale=[1.0_dp])
+    case(sa_mode_exponential)  ! exponential
         call sa%initialize(fcn=dummy_fcn, n=1, lb=[lower], ub=[upper], &
-                          distribution_mode=[4], dist_rate=[1.0_dp])
-    case(5)  ! pareto
+                          distribution_mode=[mode], dist_rate=[1.0_dp])
+    case(sa_mode_pareto)  ! pareto
         call sa%initialize(fcn=dummy_fcn, n=1, lb=[lower], ub=[upper], &
-                          distribution_mode=[5], dist_scale=[1.0_dp], dist_shape=[2.0_dp])
-    case(6)  ! truncated_normal
+                          distribution_mode=[mode], dist_scale=[1.0_dp], dist_shape=[2.0_dp])
+    case(sa_mode_beta)  ! beta
         call sa%initialize(fcn=dummy_fcn, n=1, lb=[lower], ub=[upper], &
-                          distribution_mode=[6], dist_mean=[0.0_dp], dist_std_dev=[2.0_dp])
-    case(7)  ! beta
+                          distribution_mode=[mode], dist_alpha=[2.0_dp], dist_beta=[5.0_dp])
+    case(sa_mode_triangular)  ! triangular
         call sa%initialize(fcn=dummy_fcn, n=1, lb=[lower], ub=[upper], &
-                          distribution_mode=[7], dist_alpha=[2.0_dp], dist_beta=[5.0_dp])
-    case(8)  ! triangular
+                          distribution_mode=[mode], dist_mode=[0.3_dp])
+    case(sa_mode_kumaraswamy)  ! kumaraswamy
         call sa%initialize(fcn=dummy_fcn, n=1, lb=[lower], ub=[upper], &
-                          distribution_mode=[8], dist_mode=[0.3_dp])
-    case(9)  ! kumaraswamy
+                          distribution_mode=[mode], dist_a=[2.0_dp], dist_b=[5.0_dp])
+    case(sa_mode_bipareto)  ! bipareto
         call sa%initialize(fcn=dummy_fcn, n=1, lb=[lower], ub=[upper], &
-                          distribution_mode=[9], dist_a=[2.0_dp], dist_b=[5.0_dp])
-    case(10)  ! bipareto
-        call sa%initialize(fcn=dummy_fcn, n=1, lb=[lower], ub=[upper], &
-                          distribution_mode=[10], dist_scale=[1.0_dp], dist_shape=[2.0_dp])
+                          distribution_mode=[mode], dist_scale=[1.0_dp], dist_shape=[2.0_dp])
     end select
 
     ! Generate samples
     do i = 1, n_samples
-        samples(i, j) = sa%perturb_variable(1, lower, upper)
+        samples(i, j) = sa%perturb_variable(1, val, mode, lower, upper)
     end do
 
     ! Clean up for next iteration

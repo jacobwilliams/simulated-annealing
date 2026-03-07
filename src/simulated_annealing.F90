@@ -58,6 +58,18 @@
     real(wp),parameter :: pi = acos(-1.0_wp)  !! value of pi for this module's real kind
     real(wp),parameter :: twopi = 2.0_wp * pi
 
+    integer,parameter,public :: n_distribution_modes = 9  !! number of modes
+    integer,parameter,public :: sa_mode_uniform = 1
+    integer,parameter,public :: sa_mode_normal = 2
+    integer,parameter,public :: sa_mode_cauchy = 3
+    integer,parameter,public :: sa_mode_exponential = 4
+    integer,parameter,public :: sa_mode_pareto = 5
+    integer,parameter,public :: sa_mode_beta = 6
+    integer,parameter,public :: sa_mode_triangular = 7
+    integer,parameter,public :: sa_mode_kumaraswamy = 8
+    integer,parameter,public :: sa_mode_bipareto = 9
+    ! integer,parameter :: sa_mode_reduced_uniform = 10
+
     !*******************************************************
     type,public :: simulated_annealing_type
 
@@ -174,19 +186,18 @@
         ! distribution selection for perturbations (per-variable):
         integer, dimension(:), allocatable :: distribution_mode !! distribution to use for perturbations for each variable:
                                                                 !!
-                                                                !! * 1 : uniform (default)
-                                                                !! * 2 : normal (Gaussian)
-                                                                !! * 3 : cauchy
-                                                                !! * 4 : exponential
-                                                                !! * 5 : pareto
-                                                                !! * 6 : truncated_normal
-                                                                !! * 7 : beta
-                                                                !! * 8 : triangular
-                                                                !! * 9 : kumaraswamy
-                                                                !! * 10 : bipareto (two-sided pareto)
+                                                                !! * `sa_mode_uniform` : uniform (default)
+                                                                !! * `sa_mode_normal` : normal (Gaussian)
+                                                                !! * `sa_mode_cauchy` : cauchy
+                                                                !! * `sa_mode_exponential` : exponential
+                                                                !! * `sa_mode_pareto` : pareto
+                                                                !! * `sa_mode_beta` : beta
+                                                                !! * `sa_mode_triangular` : triangular
+                                                                !! * `sa_mode_kumaraswamy` : kumaraswamy
+                                                                !! * `sa_mode_bipareto` : bipareto (two-sided pareto)
+                                                                !! * `sa_mode_reduced_uniform` : reduced uniform
 
         ! distribution parameters (per-variable, used depending on distribution_mode):
-        real(wp), dimension(:), allocatable :: dist_mean      !! mean for normal/truncated_normal distributions
         real(wp), dimension(:), allocatable :: dist_std_dev   !! standard deviation for normal/truncated_normal
         real(wp), dimension(:), allocatable :: dist_location  !! location parameter for cauchy distribution
         real(wp), dimension(:), allocatable :: dist_scale     !! scale parameter for cauchy/pareto/bipareto distributions
@@ -277,7 +288,7 @@
                              use_initial_guess,n_resets,&
                              cooling_schedule,cooling_param,&
                              optimal_f_specified,optimal_f,optimal_f_tol,&
-                             distribution_mode,dist_mean,dist_std_dev,&
+                             distribution_mode,dist_std_dev,&
                              dist_location,dist_scale,dist_rate,dist_shape,&
                              dist_alpha,dist_beta,dist_mode,dist_a,dist_b)
 
@@ -312,11 +323,19 @@
                                                           !! if this value is achieved.
     real(wp), intent(in), optional  :: optimal_f_tol      !! absolute tolerance for the `optimal_f` check
     integer, dimension(:), intent(in), optional   :: distribution_mode  !! distribution for perturbations (per variable):
-                                                                        !! 1=uniform (default), 2=normal, 3=cauchy,
-                                                                        !! 4=exponential, 5=pareto, 6=truncated_normal,
-                                                                        !! 7=beta, 8=triangular, 9=kumaraswamy, 10=bipareto
+                                                                        !!
+                                                                        !! * `sa_mode_uniform` : uniform (default)
+                                                                        !! * `sa_mode_normal` : normal (Gaussian)
+                                                                        !! * `sa_mode_cauchy` : cauchy
+                                                                        !! * `sa_mode_exponential` : exponential
+                                                                        !! * `sa_mode_pareto` : pareto
+                                                                        !! * `sa_mode_beta` : beta
+                                                                        !! * `sa_mode_triangular` : triangular
+                                                                        !! * `sa_mode_kumaraswamy` : kumaraswamy
+                                                                        !! * `sa_mode_bipareto` : bipareto (two-sided pareto)
+                                                                        !! * `sa_mode_reduced_uniform` : reduced uniform
+                                                                        !!
                                                                         !! Can be scalar (broadcast to all) or array(n)
-    real(wp), dimension(:), intent(in), optional  :: dist_mean          !! mean for normal/truncated_normal (per variable or scalar)
     real(wp), dimension(:), intent(in), optional  :: dist_std_dev       !! std dev for normal/truncated_normal (per variable or scalar)
     real(wp), dimension(:), intent(in), optional  :: dist_location      !! location for cauchy (per variable or scalar)
     real(wp), dimension(:), intent(in), optional  :: dist_scale         !! scale for cauchy/pareto (per variable or scalar)
@@ -369,7 +388,6 @@
 
     ! allocate and set distribution parameters (per-variable):
     allocate(me%distribution_mode(n))
-    allocate(me%dist_mean(n))
     allocate(me%dist_std_dev(n))
     allocate(me%dist_location(n))
     allocate(me%dist_scale(n))
@@ -382,8 +400,7 @@
     allocate(me%dist_b(n))
 
     ! set default values (uniform distribution with default parameters):
-    me%distribution_mode = 1
-    me%dist_mean = 0.0_wp
+    me%distribution_mode = sa_mode_uniform
     me%dist_std_dev = 1.0_wp
     me%dist_location = 0.0_wp
     me%dist_scale = 1.0_wp
@@ -403,15 +420,6 @@
             me%distribution_mode = distribution_mode
         else
             error stop 'Error: distribution_mode must be scalar or size n.'
-        end if
-    end if
-    if (present(dist_mean)) then
-        if (size(dist_mean) == 1) then
-            me%dist_mean = dist_mean(1)
-        else if (size(dist_mean) == n) then
-            me%dist_mean = dist_mean
-        else
-            error stop 'Error: dist_mean must be scalar or size n.'
         end if
     end if
     if (present(dist_std_dev)) then
@@ -506,8 +514,8 @@
     end if
 
     ! validate distribution modes:
-    if (any(me%distribution_mode < 1 .or. me%distribution_mode > 10)) then
-        error stop 'Error: invalid distribution_mode. Must be 1-10 for all variables.'
+    if (any(me%distribution_mode < 1 .or. me%distribution_mode > n_distribution_modes)) then
+        error stop 'Error: invalid distribution_mode.'
     end if
 
     end subroutine initialize_sa
@@ -980,7 +988,7 @@
                 ! a random point in the bounds:
                 ! [if it fails, a new random one is tried next time]
                 do i = 1, me%n
-                    xp(i) = me%perturb_variable(i, me%lb(i), me%ub(i))
+                    xp(i) = me%perturb_variable(i, x(i), me%distribution_mode(i), me%lb(i), me%ub(i))
                 end do
             end if
         else
@@ -988,7 +996,7 @@
             do i = 1, me%n
                 lower = max( me%lb(i), x(i) - vm(i) )
                 upper = min( me%ub(i), x(i) + vm(i) )
-                xp(i) = me%perturb_variable(i, lower, upper)
+                xp(i) = me%perturb_variable(i, x(i), me%distribution_mode(i), lower, upper)
             end do
         end if
 
@@ -1058,12 +1066,14 @@
 !>
 !  Perturb a single variable using its assigned distribution and parameters.
 
-    function perturb_variable(me, ivar, lower, upper) result(r)
+    function perturb_variable(me, ivar, x, mode, lower, upper) result(r)
 
     implicit none
 
     class(simulated_annealing_type),intent(inout) :: me
-    integer,intent(in)  :: ivar   !! variable index
+    integer,intent(in) :: ivar  !! variable index
+    real(wp),intent(in) :: x !! variable value to perturb
+    integer,intent(in) :: mode !! perturbation distribution mode (see `distribution_mode` for details)
     real(wp),intent(in) :: lower  !! lower bound
     real(wp),intent(in) :: upper  !! upper bound
     real(wp) :: r  !! perturbed value
@@ -1073,17 +1083,19 @@
     integer :: i
 
     ! select distribution based on the variable's distribution_mode:
-    select case (me%distribution_mode(ivar))
+    select case (mode)
 
-    case(1)  ! uniform
+    case(sa_mode_uniform)  ! uniform
         r = uniform(lower, upper)
 
-    case(2)  ! normal (truncated)
-        mean = (lower + upper) / 2.0_wp
+    case(sa_mode_normal)  ! normal (truncated)
+        ! mean = (lower + upper) / 2.0_wp
+        mean = x ! center the distribution on the current value of the variable
         r = truncated_normal(mean, me%dist_std_dev(ivar), lower, upper)
 
-    case(3)  ! cauchy
-        location = (lower + upper) / 2.0_wp
+    case(sa_mode_cauchy)  ! cauchy
+        ! location = (lower + upper) / 2.0_wp
+        location = x ! center the distribution on the current value of the variable
         ! rejection sampling to ensure within bounds
         do i = 1, max_tries
             r = cauchy(location, me%dist_scale(ivar))
@@ -1092,7 +1104,7 @@
         ! fallback to uniform if rejection sampling fails
         r = uniform(lower, upper)
 
-    case(4)  ! exponential
+    case(sa_mode_exponential)  ! exponential
         ! rejection sampling to ensure within bounds
         do i = 1, max_tries
             r = lower + exponential(me%dist_rate(ivar))
@@ -1101,7 +1113,7 @@
         ! fallback to uniform if rejection sampling fails
         r = uniform(lower, upper)
 
-    case(5)  ! pareto
+    case(sa_mode_pareto)  ! pareto
         ! rejection sampling to ensure within bounds
         do i = 1, max_tries
             r = pareto(max(lower, me%dist_scale(ivar)), me%dist_shape(ivar))
@@ -1110,21 +1122,18 @@
         ! fallback to uniform if rejection sampling fails
         r = uniform(lower, upper)
 
-    case(6)  ! truncated_normal
-        mean = (lower + upper) / 2.0_wp
-        r = truncated_normal(mean, me%dist_std_dev(ivar), lower, upper)
-
-    case(7)  ! beta
+    case(sa_mode_beta)  ! beta
         r = lower + (upper - lower) * beta_dist(me%dist_alpha(ivar), me%dist_beta(ivar))
 
-    case(8)  ! triangular
+    case(sa_mode_triangular)  ! triangular
         r = lower + (upper - lower) * triangular_dist(me%dist_mode(ivar))
 
-    case(9)  ! kumaraswamy
+    case(sa_mode_kumaraswamy)  ! kumaraswamy
         r = lower + (upper - lower) * kumaraswamy_dist(me%dist_a(ivar), me%dist_b(ivar))
 
-    case(10)  ! bipareto
-        r = bipareto((lower + upper) / 2.0_wp, me%dist_scale(ivar), &
+    case(sa_mode_bipareto)  ! bipareto
+        ! center the distribution on the current value of the variable
+        r = bipareto(x, me%dist_scale(ivar), &
                      me%dist_shape(ivar), lower, upper)
 
     case default
