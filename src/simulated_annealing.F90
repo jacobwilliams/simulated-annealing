@@ -55,6 +55,9 @@
 #endif
     integer,parameter,public :: simann_wp = wp   !! for exporting from the module
 
+    real(wp),parameter :: pi = acos(-1.0_wp)  !! value of pi for this module's real kind
+    real(wp),parameter :: twopi = 2.0_wp * pi
+
     !*******************************************************
     type,public :: simulated_annealing_type
 
@@ -150,6 +153,16 @@
                                     !! * 3 : adjust by a constant `vms` factor
         real(wp)  :: vms = 0.1_wp         !! for `step_mode=3`, the factor to adjust `vm`
         integer   :: iunit = output_unit  !! unit number for prints.
+
+        ! cooling schedule options:
+        integer   :: cooling_schedule = 1 !! temperature reduction schedule:
+                                          !!
+                                          !! * 1 : geometric (default): T(k+1) = rt * T(k)
+                                          !! * 2 : fast annealing (Cauchy): T(k) = T0 / (1 + k)
+                                          !! * 3 : huang: T(k) = T0 / (1 + cooling_param * k)^n
+                                          !! * 4 : boltzmann: T(k) = T0 / log(1 + k + exp(1))
+                                          !! * 5 : logarithmic: T(k) = T0 / (1 + cooling_param * log(1 + k))
+        real(wp)  :: cooling_param = 1.0_wp !! parameter for cooling schedules 3 and 5. suggested value: 1.0
 
         ! option to specify the known answer, so the solver will stop if it finds it:
         logical :: optimal_f_specified = .false. !! if the optional `f` value is known,
@@ -262,6 +275,7 @@
                              maximize,eps,ns,nt,neps,maxevl,&
                              iprint,iseed1,iseed2,step_mode,vms,iunit,&
                              use_initial_guess,n_resets,&
+                             cooling_schedule,cooling_param,&
                              optimal_f_specified,optimal_f,optimal_f_tol,&
                              distribution_mode,dist_mean,dist_std_dev,&
                              dist_location,dist_scale,dist_rate,dist_shape,&
@@ -289,6 +303,8 @@
     integer, intent(in), optional                 :: iunit
     logical, intent(in), optional                 :: use_initial_guess
     integer, intent(in), optional                 :: n_resets
+    integer, intent(in), optional                 :: cooling_schedule   !! temperature reduction schedule (1-5)
+    real(wp), intent(in), optional                :: cooling_param      !! parameter for cooling schedules 3 and 5
     logical, intent(in), optional  :: optimal_f_specified !! if the optional `f` value is known,
                                                           !! it can be specified by `optimal_f`.
                                                           !! [Default is False]
@@ -345,6 +361,8 @@
     if (present(iunit)               ) me%iunit = iunit
     if (present(use_initial_guess)   ) me%use_initial_guess = use_initial_guess
     if (present(n_resets)            ) me%n_resets = n_resets
+    if (present(cooling_schedule)    ) me%cooling_schedule = cooling_schedule
+    if (present(cooling_param)       ) me%cooling_param = cooling_param
     if (present(optimal_f_specified) ) me%optimal_f_specified = optimal_f_specified
     if (present(optimal_f)           ) me%optimal_f = optimal_f
     if (present(optimal_f_tol)       ) me%optimal_f_tol = abs(optimal_f_tol)
@@ -492,23 +510,6 @@
         error stop 'Error: invalid distribution_mode. Must be 1-10 for all variables.'
     end if
 
-    ! [DEPRECATED] For backward compatibility, set the single distribution pointer
-    ! based on the first variable's distribution mode:
-    ! select case (me%distribution_mode(1))
-    ! case(1); me%distribution => wrapper_uniform
-    ! case(2); me%distribution => wrapper_normal
-    ! case(3); me%distribution => wrapper_cauchy
-    ! case(4); me%distribution => wrapper_exponential
-    ! case(5); me%distribution => wrapper_pareto
-    ! case(6); me%distribution => wrapper_truncated_normal
-    ! case(7); me%distribution => wrapper_beta
-    ! case(8); me%distribution => wrapper_triangular
-    ! case(9); me%distribution => wrapper_kumaraswamy
-    ! case(10); me%distribution => wrapper_bipareto
-    ! case default
-    !     error stop 'Error: invalid distribution_mode. Must be 1-10.'
-    ! end select
-
     end subroutine initialize_sa
 !********************************************************************************
 
@@ -639,6 +640,8 @@
     real(wp),dimension(:),allocatable    :: vm_original   !! original input value of `vm` (size `n`)
     logical                     :: first !! indicates first function eval
     logical                     :: abort !! indicates the known solution has been found
+    real(wp)                    :: t0            !! initial temperature (for non-geometric cooling schedules)
+    integer                     :: temp_iter     !! temperature iteration counter (for non-geometric cooling schedules)
 
     ! initialize:
     allocate(xp(me%n))
@@ -661,6 +664,9 @@
         ier = 3
         return
     end if
+
+    ! save initial temperature for non-geometric cooling schedules
+    t0 = t
 
     ! if the initial value is out of bounds, then just put
     ! the violated ones on the nearest bound.
@@ -706,6 +712,7 @@
         t     = t_original
         vm    = vm_original
         nacc  = 0
+        temp_iter = 0  ! reset temperature iteration counter
         nacp  = 0
 
         ! the first function eval for a new main cycle
@@ -893,7 +900,30 @@
             end if
 
             !  if termination criteria is not met, prepare for another loop.
-            t = abs(rt)*t
+            temp_iter = temp_iter + 1
+
+            ! apply the selected cooling schedule
+            select case (me%cooling_schedule)
+            case (1)
+                ! geometric (classical): T(k+1) = rt * T(k)
+                t = abs(rt)*t
+            case (2)
+                ! fast annealing (Cauchy): T(k) = T0 / (1 + k)
+                t = t0 / real(1 + temp_iter, wp)
+            case (3)
+                ! huang: T(k) = T0 / (1 + c*k)^n
+                t = t0 / (1.0_wp + me%cooling_param * real(temp_iter, wp))**me%n
+            case (4)
+                ! boltzmann: T(k) = T0 / log(1 + k + e)
+                t = t0 / log(1.0_wp + real(temp_iter, wp) + exp(1.0_wp))
+            case (5)
+                ! logarithmic: T(k) = T0 / (1 + c*log(1+k))
+                t = t0 / (1.0_wp + me%cooling_param * log(1.0_wp + real(temp_iter, wp)))
+            case default
+                ! fallback to geometric
+                t = abs(rt)*t
+            end select
+
             do i = me%neps, 2, -1
                 fstar(i) = fstar(i-1)
             end do
@@ -1237,7 +1267,7 @@
     u1 = uniform_random_number()
     u2 = uniform_random_number()
 
-    normal = mean + std_dev * sqrt(-2.0_wp * log(u1)) * cos(2.0_wp * acos(-1.0_wp) * u2)
+    normal = mean + std_dev * sqrt(-2.0_wp * log(u1)) * cos(twopi * u2)
 
     end function normal
 !********************************************************************************
@@ -1259,7 +1289,7 @@
     real(wp) :: u
 
     u = uniform_random_number()
-    cauchy = location + scale * tan(acos(-1.0_wp) * (u - 0.5_wp))
+    cauchy = location + scale * tan(pi * (u - 0.5_wp))
 
     end function cauchy
 !********************************************************************************
