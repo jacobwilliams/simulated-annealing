@@ -311,7 +311,6 @@
                                                                         !! * `sa_mode_cauchy` : cauchy
                                                                         !! * `sa_mode_triangular` : triangular
                                                                         !! * `sa_mode_bipareto` : bipareto (two-sided pareto)
-                                                                        !! * `sa_mode_reduced_uniform` : reduced uniform
                                                                         !!
                                                                         !! Can be scalar (broadcast to all) or array(n)
     real(wp), dimension(:), intent(in), optional  :: dist_std_dev       !! std dev for normal/truncated_normal (per variable or scalar)
