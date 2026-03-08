@@ -1089,8 +1089,14 @@ contains
 
        case(sa_mode_triangular)  ! triangular
          ! center the peak at the current value of the variable
-         ! compute normalized position of x in [lower, upper]
-         r = lower + (upper - lower) * triangular_dist((x - lower) / (upper - lower))
+         ! handle degenerate interval to avoid division by zero
+         if (upper == lower) then
+            ! interval has collapsed to a point: always return that value
+            r = lower
+         else
+            ! compute normalized position of x in [lower, upper]
+            r = lower + (upper - lower) * triangular_dist((x - lower) / (upper - lower))
+         end if
 
        case(sa_mode_bipareto)  ! bipareto
          ! center the distribution on the current value of the variable
