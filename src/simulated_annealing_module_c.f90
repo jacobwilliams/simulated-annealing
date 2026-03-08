@@ -31,13 +31,13 @@ module simulated_annealing_module_c
             integer(c_int) :: n_inputs
         end subroutine c_sa_func_parallel_inputs
 
-        subroutine c_sa_func_parallel_inputs_func(ipointer, x, n_inputs, n) bind(c)
+        subroutine c_sa_func_parallel_inputs_func(ipointer, x, n, n_inputs) bind(c)
             import :: c_double, c_int, c_intptr_t
             implicit none
             integer(c_intptr_t), value :: ipointer
-            integer(c_int), value :: n_inputs
             integer(c_int), value :: n
-            real(c_double), dimension(n_inputs, n) :: x
+            integer(c_int), value :: n_inputs
+            real(c_double), dimension(n, n_inputs) :: x  !! C's x[n_inputs][n] maps to Fortran's x(n,n_inputs) due to row/column-major difference
         end subroutine c_sa_func_parallel_inputs_func
 
         subroutine c_sa_func_parallel_output_func(ipointer, x, n, f, istat) bind(c)
@@ -118,6 +118,7 @@ contains
 
         select type (me)
          type is (c_sa_wrapper_type)
+            ! Pass dimensions matching Fortran x(n, n_inputs) so C interprets as x[n_inputs][n]
             call me%c_fcn_parallel_input_ptr(me%ipointer, x, size(x, 1), size(x, 2))
         end select
 
