@@ -251,7 +251,7 @@ module simulated_annealing_module
          import :: wp, simulated_annealing_type
          implicit none
          class(simulated_annealing_type),intent(inout) :: me
-         real(wp),dimension(:,:),intent(in) :: x  !! input points (n_inputs x n)
+         real(wp),dimension(:,:),intent(in) :: x  !! input points (n x n_inputs), each column is one x vector
       end subroutine sa_func_parallel_inputs_func
 
       subroutine sa_func_parallel_output_func(me, x, f, istat)
