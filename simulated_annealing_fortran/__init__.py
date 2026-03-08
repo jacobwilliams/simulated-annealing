@@ -22,10 +22,10 @@ else:
 
 
 # Define ctypes for the callback function signature
-# void fcn(size_t ipointer, double* x, int n, double* f, int* istat)
+# void fcn(size_t iproblem, double* x, int n, double* f, int* istat)
 CALLBACK_FUNC = ctypes.CFUNCTYPE(
     None,  # return type (void)
-    ctypes.c_size_t,  # ipointer
+    ctypes.c_size_t,  # iproblem
     ctypes.POINTER(ctypes.c_double),  # x array
     ctypes.c_int,  # n
     ctypes.POINTER(ctypes.c_double),  # f
@@ -52,7 +52,7 @@ class sa_fortran():
 
         # Define the Fortran library functions
         self.lib.initialize_simulated_annealing.argtypes = [
-            ctypes.POINTER(ctypes.c_size_t),  # ipointer (out)
+            ctypes.POINTER(ctypes.c_size_t),  # iproblem (out)
             ctypes.c_int,  # n
             ctypes.POINTER(ctypes.c_double),  # lb
             ctypes.POINTER(ctypes.c_double),  # ub
@@ -88,7 +88,7 @@ class sa_fortran():
         self.lib.initialize_simulated_annealing.restype = None
 
         self.lib.solve_simulated_annealing.argtypes = [
-            ctypes.c_size_t,  # ipointer (pass by value)
+            ctypes.c_size_t,  # iproblem (pass by value)
             ctypes.c_int,  # n
             ctypes.POINTER(ctypes.c_double),  # x (inout)
             ctypes.c_double,  # rt
@@ -102,11 +102,11 @@ class sa_fortran():
         ]
         self.lib.solve_simulated_annealing.restype = None
 
-        self.lib.destroy_simulated_annealing.argtypes = [ctypes.c_size_t]  # ipointer (pass by value)
+        self.lib.destroy_simulated_annealing.argtypes = [ctypes.c_size_t]  # iproblem (pass by value)
         self.lib.destroy_simulated_annealing.restype = None
 
         # Instance variables
-        self.ipointer = None
+        self.iproblem = None
         self.callback_ref = None  # Keep reference to prevent garbage collection
         self.n = None
 
@@ -215,7 +215,7 @@ class sa_fortran():
 
         # Create callback wrapper
         @CALLBACK_FUNC
-        def callback_wrapper(ipointer, x_ptr, n_val, f_ptr, istat_ptr):
+        def callback_wrapper(iproblem, x_ptr, n_val, f_ptr, istat_ptr):
             try:
                 x = np.ctypeslib.as_array(x_ptr, shape=(n_val,))
                 f = fcn(x)
@@ -228,12 +228,12 @@ class sa_fortran():
         # Keep reference to prevent garbage collection
         self.callback_ref = callback_wrapper
 
-        # Initialize ipointer
-        self.ipointer = ctypes.c_size_t()
+        # Initialize iproblem
+        self.iproblem = ctypes.c_size_t()
 
         # Call Fortran initialize
         self.lib.initialize_simulated_annealing(
-            ctypes.byref(self.ipointer),
+            ctypes.byref(self.iproblem),
             ctypes.c_int(n),
             lb.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
             ub.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
@@ -271,9 +271,9 @@ class sa_fortran():
         """
         Destroy the simulated annealing instance and free memory.
         """
-        if self.ipointer is not None:
-            self.lib.destroy_simulated_annealing(self.ipointer)
-            self.ipointer = None
+        if self.iproblem is not None:
+            self.lib.destroy_simulated_annealing(self.iproblem)
+            self.iproblem = None
             self.callback_ref = None
             self.n = None
 
@@ -306,7 +306,7 @@ class sa_fortran():
             - 't': float, final temperature
             - 'vm': array, final step lengths
         """
-        if self.ipointer is None:
+        if self.iproblem is None:
             raise RuntimeError("Must call initialize() before solve()")
 
         # Convert inputs to numpy arrays
@@ -327,7 +327,7 @@ class sa_fortran():
 
         # Call Fortran solve
         self.lib.solve_simulated_annealing(
-            self.ipointer,
+            self.iproblem,
             ctypes.c_int(self.n),
             x.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
             ctypes.c_double(rt),

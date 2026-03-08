@@ -20,36 +20,36 @@ module simulated_annealing_module_c
 
     ! C function pointer types for callbacks
     abstract interface
-        subroutine c_sa_func(ipointer, x, n, f, istat) bind(c)
+        subroutine c_sa_func(iproblem, x, n, f, istat) bind(c)
             import :: c_double, c_int, c_intptr_t
             implicit none
-            integer(c_intptr_t), value :: ipointer
+            integer(c_intptr_t), value :: iproblem
             integer(c_int), value :: n
             real(c_double), dimension(n) :: x
             real(c_double) :: f
             integer(c_int) :: istat
         end subroutine c_sa_func
 
-        subroutine c_sa_func_parallel_inputs(ipointer, n_inputs) bind(c)
+        subroutine c_sa_func_parallel_inputs(iproblem, n_inputs) bind(c)
             import :: c_int, c_intptr_t
             implicit none
-            integer(c_intptr_t), value :: ipointer
+            integer(c_intptr_t), value :: iproblem
             integer(c_int) :: n_inputs
         end subroutine c_sa_func_parallel_inputs
 
-        subroutine c_sa_func_parallel_inputs_func(ipointer, x, n, n_inputs) bind(c)
+        subroutine c_sa_func_parallel_inputs_func(iproblem, x, n, n_inputs) bind(c)
             import :: c_double, c_int, c_intptr_t
             implicit none
-            integer(c_intptr_t), value :: ipointer
+            integer(c_intptr_t), value :: iproblem
             integer(c_int), value :: n
             integer(c_int), value :: n_inputs
             real(c_double), dimension(n, n_inputs) :: x  !! C's x[n_inputs][n] maps to Fortran's x(n,n_inputs) due to row/column-major difference
         end subroutine c_sa_func_parallel_inputs_func
 
-        subroutine c_sa_func_parallel_output_func(ipointer, x, n, f, istat) bind(c)
+        subroutine c_sa_func_parallel_output_func(iproblem, x, n, f, istat) bind(c)
             import :: c_double, c_int, c_intptr_t
             implicit none
-            integer(c_intptr_t), value :: ipointer
+            integer(c_intptr_t), value :: iproblem
             integer(c_int), value :: n
             real(c_double), dimension(n) :: x
             real(c_double) :: f
@@ -64,7 +64,7 @@ module simulated_annealing_module_c
         procedure(c_sa_func_parallel_inputs), pointer, nopass :: c_n_inputs_ptr => null()
         procedure(c_sa_func_parallel_inputs_func), pointer, nopass :: c_fcn_parallel_input_ptr => null()
         procedure(c_sa_func_parallel_output_func), pointer, nopass :: c_fcn_parallel_output_ptr => null()
-        integer(c_intptr_t) :: ipointer = 0  !! pointer to this wrapper (for callbacks)
+        integer(c_intptr_t) :: iproblem = 0  !! pointer to this wrapper (for callbacks)
     end type c_sa_wrapper_type
 
 contains
@@ -74,14 +74,14 @@ contains
 !>
 !  Convert an integer pointer to a [[c_sa_wrapper_type]] pointer.
 
-    subroutine int_pointer_to_f_pointer(ipointer, p)
+    subroutine int_pointer_to_f_pointer(iproblem, p)
 
-        integer(c_intptr_t), intent(in) :: ipointer !! integer pointer from C
+        integer(c_intptr_t), intent(in) :: iproblem !! integer pointer from C
         type(c_sa_wrapper_type), pointer :: p !! fortran pointer
 
         type(c_ptr) :: cp
 
-        cp = transfer(ipointer, c_null_ptr)
+        cp = transfer(iproblem, c_null_ptr)
         if (c_associated(cp)) then
             call c_f_pointer(cp, p)
         else
@@ -102,7 +102,7 @@ contains
 
         select type (me)
          type is (c_sa_wrapper_type)
-          call me%c_fcn_ptr(me%ipointer, x, size(x), f, istat)
+          call me%c_fcn_ptr(me%iproblem, x, size(x), f, istat)
         end select
 
     end subroutine fcn_wrapper
@@ -113,7 +113,7 @@ contains
 
         select type (me)
          type is (c_sa_wrapper_type)
-          call me%c_n_inputs_ptr(me%ipointer, n_inputs)
+          call me%c_n_inputs_ptr(me%iproblem, n_inputs)
         end select
 
     end subroutine n_inputs_wrapper
@@ -125,7 +125,7 @@ contains
         select type (me)
          type is (c_sa_wrapper_type)
             ! Pass dimensions matching Fortran x(n, n_inputs) so C interprets as x[n_inputs][n]
-            call me%c_fcn_parallel_input_ptr(me%ipointer, x, size(x, 1), size(x, 2))
+            call me%c_fcn_parallel_input_ptr(me%iproblem, x, size(x, 1), size(x, 2))
         end select
 
     end subroutine fcn_parallel_input_wrapper
@@ -138,7 +138,7 @@ contains
 
         select type (me)
          type is (c_sa_wrapper_type)
-            call me%c_fcn_parallel_output_ptr(me%ipointer, x, size(x), f, istat)
+            call me%c_fcn_parallel_output_ptr(me%iproblem, x, size(x), f, istat)
         end select
 
     end subroutine fcn_parallel_output_wrapper
@@ -147,7 +147,7 @@ contains
 !>
 !  create a [[simulated_annealing_type]] from C
 
-    subroutine initialize_simulated_annealing(ipointer, n, lb, ub, c, &
+    subroutine initialize_simulated_annealing(iproblem, n, lb, ub, c, &
                                               maximize, eps, ns, nt, neps, maxevl, &
                                               iprint, iseed1, iseed2, step_mode, vms, iunit, &
                                               use_initial_guess, n_resets, &
@@ -158,7 +158,7 @@ contains
                                               fcn, n_inputs_to_send, fcn_parallel_input, fcn_parallel_output) &
       bind(C, name="initialize_simulated_annealing")
 
-        integer(c_intptr_t), intent(out) :: ipointer
+        integer(c_intptr_t), intent(out) :: iproblem
         integer(c_int), intent(in), value :: n
         real(c_double), dimension(n), intent(in) :: lb
         real(c_double), dimension(n), intent(in) :: ub
@@ -200,7 +200,7 @@ contains
 
         ! Store the wrapper pointer for use in callbacks
         cp = c_loc(wrapper)
-        wrapper%ipointer = transfer(cp, 0_c_intptr_t)
+        wrapper%iproblem = transfer(cp, 0_c_intptr_t)
 
         ! Convert C function pointers to Fortran procedure pointers
         use_serial_mode = .false.
@@ -265,7 +265,7 @@ contains
         end if
 
         ! Return converted pointer to C (pointer to the wrapper)
-        ipointer = wrapper%ipointer
+        iproblem = wrapper%iproblem
 
     end subroutine initialize_simulated_annealing
 
@@ -273,14 +273,14 @@ contains
 !>
 !  destroy a [[simulated_annealing_type]] from C
 
-    subroutine destroy_simulated_annealing(ipointer) &
+    subroutine destroy_simulated_annealing(iproblem) &
       bind(C, name="destroy_simulated_annealing")
 
-        integer(c_intptr_t), intent(in), value :: ipointer
+        integer(c_intptr_t), intent(in), value :: iproblem
 
         type(c_sa_wrapper_type), pointer :: wrapper
 
-        call int_pointer_to_f_pointer(ipointer, wrapper)
+        call int_pointer_to_f_pointer(iproblem, wrapper)
 
         if (associated(wrapper)) then
          call wrapper%destroy()
@@ -293,10 +293,10 @@ contains
 !>
 !  solve optimization problem using simulated annealing from C
 
-    subroutine solve_simulated_annealing(ipointer, n, x, rt, t, vm, xopt, fopt, nacc, nfcnev, ier) &
+    subroutine solve_simulated_annealing(iproblem, n, x, rt, t, vm, xopt, fopt, nacc, nfcnev, ier) &
       bind(C, name="solve_simulated_annealing")
 
-        integer(c_intptr_t), intent(in), value :: ipointer
+        integer(c_intptr_t), intent(in), value :: iproblem
         integer(c_int), intent(in), value :: n
         real(c_double), dimension(n), intent(inout) :: x
         real(c_double), intent(in), value :: rt
@@ -310,7 +310,7 @@ contains
 
         type(c_sa_wrapper_type), pointer :: wrapper
 
-        call int_pointer_to_f_pointer(ipointer, wrapper)
+        call int_pointer_to_f_pointer(iproblem, wrapper)
 
         if (associated(wrapper)) then
             call wrapper%optimize(x=x, rt=rt, t=t, vm=vm, &
