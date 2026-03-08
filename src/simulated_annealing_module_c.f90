@@ -1,3 +1,9 @@
+!********************************************************************************
+!>
+!  C interface wrapper for the simulated annealing optimization algorithm.
+!  This can be used to call the Fortran implementation from C
+!  or other languages that can interface with C (such as Python).
+
 module simulated_annealing_module_c
 
     use iso_c_binding, only: c_double, c_int, c_char, c_null_char, &
