@@ -652,7 +652,7 @@ contains
          return
       end select
 
-      f = me%func(f)
+      f    = me%func(f)
       xopt = xp ! it may have been perturbed above
       fopt = f
       if (me%iprint >= 1) then
@@ -672,15 +672,13 @@ contains
          end if
 
          ! restart the main loop
-         fstar = huge(1.0_wp)
-         t     = t_original
-         vm    = vm_original
-         nacc  = 0
-         temp_iter = 0  ! reset temperature iteration counter
-         nacp  = 0
-
-         ! the first function eval for a new main cycle
-         first = k > 1
+         fstar     = huge(1.0_wp)
+         t         = t_original
+         vm        = vm_original
+         nacc      = 0
+         temp_iter = 0      ! reset temperature iteration counter
+         nacp      = 0
+         first     = k > 1  ! the first function eval for a new main cycle
 
          main : do
             ! start the main loop. note that it terminates if (i) the algorithm
@@ -723,7 +721,7 @@ contains
                      nacp = nacp + 1
                      nup = nup + 1
 
-                     !  if greater than any other point, record as new optimum.
+                     ! if greater than any other point, record as new optimum.
                      if (fp > fopt) then
                         if (me%iprint >= 3) write(unit,'(A)') '  new optimum'
                         xopt = xp
@@ -1014,7 +1012,7 @@ contains
                ! [if it fails, a new random one is tried next time]
                do i = 1, me%n
                   xp(i) = me%perturb_variable(i, x(i), me%distribution_mode(i), &
-                     me%lb(i), me%ub(i))
+                                              me%lb(i), me%ub(i))
                end do
             end if
          else
@@ -1023,7 +1021,7 @@ contains
                lower = max( me%lb(i), x(i) - vm(i) )
                upper = min( me%ub(i), x(i) + vm(i) )
                xp(i) = me%perturb_variable(i, x(i), me%distribution_mode(i), &
-                  lower, upper)
+                                           lower, upper)
             end do
          end if
       end function get_xp
