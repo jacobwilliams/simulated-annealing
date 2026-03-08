@@ -466,8 +466,14 @@ contains
       end if
       if (present(dist_shape)) then
          if (size(dist_shape) == 1) then
+            if (dist_shape(1) <= 0.0) then
+               error stop 'Error: dist_shape must be strictly positive.'
+            end if
             me%dist_shape = abs(dist_shape(1))
          else if (size(dist_shape) == n) then
+            if (any(dist_shape <= 0.0)) then
+               error stop 'Error: all dist_shape values must be strictly positive.'
+            end if
             me%dist_shape = abs(dist_shape)
          else
             error stop 'Error: dist_shape must be scalar or size n.'
