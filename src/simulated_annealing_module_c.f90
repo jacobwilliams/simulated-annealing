@@ -270,7 +270,7 @@ contains
     subroutine destroy_simulated_annealing(ipointer) &
       bind(C, name="destroy_simulated_annealing")
 
-        integer(c_intptr_t), intent(in) :: ipointer
+        integer(c_intptr_t), intent(in), value :: ipointer
 
         type(c_sa_wrapper_type), pointer :: wrapper
 
@@ -290,7 +290,7 @@ contains
     subroutine solve_simulated_annealing(ipointer, n, x, rt, t, vm, xopt, fopt, nacc, nfcnev, ier) &
       bind(C, name="solve_simulated_annealing")
 
-        integer(c_intptr_t), intent(in) :: ipointer
+        integer(c_intptr_t), intent(in), value :: ipointer
         integer(c_int), intent(in), value :: n
         real(c_double), dimension(n), intent(inout) :: x
         real(c_double), intent(in), value :: rt

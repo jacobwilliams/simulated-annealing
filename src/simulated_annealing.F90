@@ -369,8 +369,6 @@ contains
                                                                                 !! `sa_func_parallel_inputs_func`,
                                                                                 !! The algorithm will only process one at the time.
 
-      call me%destroy()
-
       if (present(fcn)) then
          ! serial function evaluation:
          me%fcn => fcn
