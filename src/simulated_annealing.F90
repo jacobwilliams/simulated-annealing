@@ -1224,7 +1224,7 @@ contains
 
       real(wp) :: u1, u2
 
-      u1 = uniform_random_number()
+      u1 = max( uniform_random_number(), tiny(1.0_wp) )
       u2 = uniform_random_number()
 
       normal = mean + std_dev * sqrt(-2.0_wp * log(u1)) * cos(twopi * u2)
