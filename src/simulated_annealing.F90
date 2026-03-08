@@ -257,13 +257,12 @@
         subroutine sa_func_parallel_output_func(me, x, f, istat)
             !! interface for parallel function evaluations.
             !! This function receives the output points from the
-            !! parallel evaluation. The `x` here will be one of the ones
-            !! sent via `sa_func_parallel_inputs_func`, The algorithm
-            !! will only process one at the time.
+            !! parallel evaluation. Returns both the `x` and `f` values
+            !! for a completed evaluation (typically from a queue).
             import :: wp, simulated_annealing_type
             implicit none
             class(simulated_annealing_type),intent(inout) :: me
-            real(wp),dimension(:),intent(in) :: x
+            real(wp),dimension(:),intent(out) :: x
             real(wp), intent(out)            :: f
             integer, intent(out)             :: istat !! status flag:
                                                       !!
