@@ -39,6 +39,7 @@
 module simulated_annealing_module
 
    use iso_fortran_env
+   use, intrinsic :: ieee_exceptions
 
    implicit none
 
@@ -1117,8 +1118,6 @@ contains
 
    pure function exprep(x) result(f)
 
-      use, intrinsic :: ieee_exceptions
-
       logical,dimension(2) :: flags
       type(ieee_flag_type),parameter,dimension(2) :: out_of_range = &
          [ieee_overflow,ieee_underflow]
@@ -1288,9 +1287,10 @@ contains
 !
 !### Note
 !  The mode parameter should be in [0,1]. Common choices:
-!  - mode = 0.5: symmetric triangular
-!  - mode < 0.5: left-skewed
-!  - mode > 0.5: right-skewed
+!
+!   * mode = 0.5: symmetric triangular
+!   * mode < 0.5: left-skewed
+!   * mode > 0.5: right-skewed
 
    function triangular_dist(mode)
 
@@ -1327,10 +1327,11 @@ contains
 !  unbiased with respect to direction.
 !
 !  The distribution:
-!  - Randomly chooses a direction (positive or negative with equal probability)
-!  - Generates a Pareto-distributed magnitude
-!  - Applies the signed magnitude to the center location
-!  - Uses rejection sampling to ensure the result stays within [xl, xu]
+!
+!   * Randomly chooses a direction (positive or negative with equal probability)
+!   * Generates a Pareto-distributed magnitude
+!   * Applies the signed magnitude to the center location
+!   * Uses rejection sampling to ensure the result stays within [xl, xu]
 
    function bipareto(center, scale, shape, xl, xu)
 
