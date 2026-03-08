@@ -995,11 +995,11 @@
     contains
 
         function get_xp() result(xp)
-            ! get a perturbed `x` value
+            !! get a perturbed `x` value
             real(wp),dimension(me%n) :: xp !! the perturbed `x` value
-            real(wp) :: lower    !! lower bound to use for random interval
-            real(wp) :: upper    !! upper bound to use for random interval
-            integer :: i !! counter
+            real(wp) :: lower  !! lower bound to use for random interval
+            real(wp) :: upper  !! upper bound to use for random interval
+            integer  :: i      !! counter
 
             if (first_try) then
                 if (me%use_initial_guess) then
@@ -1012,7 +1012,8 @@
                     ! a random point in the bounds:
                     ! [if it fails, a new random one is tried next time]
                     do i = 1, me%n
-                        xp(i) = me%perturb_variable(i, x(i), me%distribution_mode(i), me%lb(i), me%ub(i))
+                        xp(i) = me%perturb_variable(i, x(i), me%distribution_mode(i), &
+                                                    me%lb(i), me%ub(i))
                     end do
                 end if
             else
@@ -1020,7 +1021,8 @@
                 do i = 1, me%n
                     lower = max( me%lb(i), x(i) - vm(i) )
                     upper = min( me%ub(i), x(i) + vm(i) )
-                    xp(i) = me%perturb_variable(i, x(i), me%distribution_mode(i), lower, upper)
+                    xp(i) = me%perturb_variable(i, x(i), me%distribution_mode(i), &
+                                                lower, upper)
                 end do
             end if
         end function get_xp

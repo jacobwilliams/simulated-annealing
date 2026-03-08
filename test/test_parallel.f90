@@ -92,9 +92,18 @@ call print_vector(output_unit, lb, n, 'Lower bounds')
 call print_vector(output_unit, ub, n, 'Upper bounds')
 
 ! initialize SA with parallel function evaluation:
-call sa%initialize(n=n, lb=lb, ub=ub, c=c, &
-                   maximize=.false., eps=eps, ns=ns, nt=nt, maxevl=maxevl, &
-                   iprint=iprint, iseed1=iseed1, iseed2=iseed2, &
+call sa%initialize(n=n, &
+                   lb=lb, &
+                   ub=ub, &
+                   c=c, &
+                   maximize=.false., &
+                   eps=eps, &
+                   ns=ns, &
+                   nt=nt, &
+                   maxevl=maxevl, &
+                   iprint=iprint, &
+                   iseed1=iseed1, &
+                   iseed2=iseed2, &
                    n_resets=n_resets,&
                    use_initial_guess=.true., &
                    n_inputs_to_send=get_n_available_workers, &
