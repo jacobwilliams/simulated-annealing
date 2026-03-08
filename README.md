@@ -2,14 +2,15 @@
 ============
 
 A modern Fortran simulated annealing optimization method. ***A work in progress.***
-### Status
+
+## Status
 
 [![Language](https://img.shields.io/badge/-Fortran-734f96?logo=fortran&logoColor=white)](https://github.com/topics/fortran)
 [![CI Status](https://github.com/jacobwilliams/simulated-annealing/actions/workflows/CI.yml/badge.svg)](https://github.com/jacobwilliams/simulated-annealing/actions)
 [![GitHub release](https://img.shields.io/github/release/jacobwilliams/simulated-annealing.svg?style=plastic)](https://github.com/jacobwilliams/simulated-annealing/releases/latest)
 [![codecov](https://codecov.io/gh/jacobwilliams/simulated-annealing/branch/master/graph/badge.svg?token=43HK33CSMY)](https://codecov.io/gh/jacobwilliams/simulated-annealing)
 
-### Building
+## Building
 
 A [Fortran Package Manager](https://github.com/fortran-lang/fpm) manifest file is included, so that the library and test cases can be compiled with FPM. For example:
 
@@ -26,15 +27,15 @@ simulated-annealing = { git="https://github.com/jacobwilliams/simulated-annealin
 
 To generate the documentation using [ford](https://github.com/Fortran-FOSS-Programmers/ford), run: ```ford ford.md```
 
-### See also
+## See also
 
   *  https://www.netlib.org/opt/simann.f
 
-### Documentation
+## Documentation
 
 The latest API documentation can be found [here](https://jacobwilliams.github.io/simulated-annealing/). This was generated from the source code using [FORD](https://github.com/Fortran-FOSS-Programmers/ford).
 
-### References
+## References
 
   * Corana et al., "[Minimizing multimodal functions of continuous variables
     with the "simulated annealing" algorithm](https://dl.acm.org/doi/10.1145/29380.29864)", september 1987
