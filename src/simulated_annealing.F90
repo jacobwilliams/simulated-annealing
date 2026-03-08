@@ -251,7 +251,7 @@ module simulated_annealing_module
          import :: wp, simulated_annealing_type
          implicit none
          class(simulated_annealing_type),intent(inout) :: me
-         real(wp),dimension(:,:),intent(in) :: x  !! input points (n x n_inputs)
+         real(wp),dimension(:,:),intent(in) :: x  !! input points (n x n_inputs), each column is one x vector
       end subroutine sa_func_parallel_inputs_func
 
       subroutine sa_func_parallel_output_func(me, x, f, istat)
@@ -464,8 +464,14 @@ contains
       end if
       if (present(dist_shape)) then
          if (size(dist_shape) == 1) then
+            if (dist_shape(1) <= 0.0) then
+               error stop 'Error: dist_shape must be strictly positive.'
+            end if
             me%dist_shape = abs(dist_shape(1))
          else if (size(dist_shape) == n) then
+            if (any(dist_shape <= 0.0)) then
+               error stop 'Error: all dist_shape values must be strictly positive.'
+            end if
             me%dist_shape = abs(dist_shape)
          else
             error stop 'Error: dist_shape must be scalar or size n.'
@@ -1087,8 +1093,14 @@ contains
 
        case(sa_mode_triangular)  ! triangular
          ! center the peak at the current value of the variable
-         ! compute normalized position of x in [lower, upper]
-         r = lower + (upper - lower) * triangular_dist((x - lower) / (upper - lower))
+         ! handle degenerate interval to avoid division by zero
+         if (upper == lower) then
+            ! interval has collapsed to a point: always return that value
+            r = lower
+         else
+            ! compute normalized position of x in [lower, upper]
+            r = lower + (upper - lower) * triangular_dist((x - lower) / (upper - lower))
+         end if
 
        case(sa_mode_bipareto)  ! bipareto
          ! center the distribution on the current value of the variable
@@ -1216,7 +1228,7 @@ contains
 
       real(wp) :: u1, u2
 
-      u1 = uniform_random_number()
+      u1 = max( uniform_random_number(), tiny(1.0_wp) )
       u2 = uniform_random_number()
 
       normal = mean + std_dev * sqrt(-2.0_wp * log(u1)) * cos(twopi * u2)
