@@ -17,12 +17,17 @@ import multiprocessing as mp
 from multiprocessing import Queue, Process
 import time
 import sys
+import csv
+import pandas as pd
+import matplotlib.pyplot as plt
 
 # Import the class and callback types
 from simulated_annealing_fortran import (sa_fortran,
                                          CALLBACK_N_INPUTS,
                                          CALLBACK_PARALLEL_INPUT,
                                          CALLBACK_PARALLEL_OUTPUT)
+
+PLOT_ITERATIONS = True
 
 def rastrigin(x):
     """
@@ -31,7 +36,16 @@ def rastrigin(x):
     """
     A = 10.0
     n = len(x)
-    return A * n + sum(xi**2 - A * np.cos(2 * np.pi * xi) for xi in x)
+    res = A * n + sum(xi**2 - A * np.cos(2 * np.pi * xi) for xi in x)
+
+    if PLOT_ITERATIONS:
+        ##################################################################
+        # log all function evaluations to a CSV file for later analysis
+        with open('function_evaluations.csv', 'a', newline='') as csvfile:
+            writer = csv.writer(csvfile)
+            writer.writerow(list(x) + [res])
+        ##################################################################
+    return res
 
 ################
 # from scipy:
@@ -199,7 +213,7 @@ def main():
         iprint=2,
         iseed1=1234,
         iseed2=5678,
-        step_mode=1,  # 1=adaptive step size (default)
+        step_mode=2,  # 1=adaptive step size (default), 2=constant step size (no adjustment)
         cooling_schedule=2,  # 2=fast annealing (terminates quicker)
         n_resets=3,  # Restart search from best point found
         optimal_f_specified=False,  # Don't use optimal stopping criterion
@@ -216,10 +230,14 @@ def main():
     start_time = time.time()
     sys.stdout.flush()  # Flush Python output before Fortran writes
 
+    # note: with step_mode=2 and t0=0, the algorithm will use a fixed step size
+    # and no temperature reduction, effectively performing a parallel random
+    # search.
+
     result = optimizer.solve(
         x0=[1.0] * n,
         rt=0.85,  # Standard cooling rate
-        t0=1.0,  # Initial temperature
+        t0=0.0,  # Initial temperature
         vm=[2.0] * n,  # Fixed step size for each variable
     )
 
@@ -254,3 +272,28 @@ if __name__ == "__main__":
     # Required for multiprocessing on macOS
     mp.set_start_method('spawn', force=True)
     main()
+
+    if PLOT_ITERATIONS:
+        ##################################################################
+        # now, lets plot the function_evaluations.csv file that was
+        # generated during the optimization run to visualize the
+        # search process:
+
+        df = pd.read_csv('function_evaluations.csv', header=None)
+        x_values = df.iloc[:, 0].values
+        f_values = df.iloc[:, 1].values
+        i_values = np.arange(len(f_values))
+
+        # for f_values, geneerate an array of the best function value found so far at each evaluation to visualize the convergence:
+        f_best_so_far = np.minimum.accumulate(f_values)
+
+        plt.figure(figsize=(10, 6))
+        plt.plot(i_values, f_best_so_far, 'r-', linewidth=2, label='Best so far')
+        plt.xlabel('Evaluation index')
+        plt.ylabel('f(x)')
+        plt.title('Best Solution During Optimization')
+        # use a log scan for y:
+        plt.yscale('log')
+        plt.grid()
+        plt.show()
+        ##################################################################
