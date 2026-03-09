@@ -1,7 +1,7 @@
 ![simulated-annealing](media/logo.png)
 ============
 
-A modern Fortran simulated annealing optimization method. ***A work in progress.***
+A modern Fortran simulated annealing optimization method.
 
 ## Status
 
@@ -26,6 +26,18 @@ simulated-annealing = { git="https://github.com/jacobwilliams/simulated-annealin
 ```
 
 To generate the documentation using [ford](https://github.com/Fortran-FOSS-Programmers/ford), run: ```ford ford.md```
+
+## Features
+
+The library contains an implemented of a simulated annealing optimization method. See the references for more details. The main class is `simulated_annealing_type`. It also includes the ability to submit function evaluations to parallel workers (the exact parallel implementation is up to the user to implement).
+
+The library also exports a C interface, which can also be called from Python. A Python package is also included (see the `sa_fortran` class). To use the Python interface, first build and install the shared library using:
+
+```
+fpm install --prefix ./simulated_annealing_fortran/lib --profile release
+```
+
+Then refer to the two python examples `python_example.py` and `parallel_example.py` for how to use it.
 
 ## See also
 
