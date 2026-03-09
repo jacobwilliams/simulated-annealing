@@ -16,6 +16,7 @@ import numpy as np
 import multiprocessing as mp
 from multiprocessing import Queue, Process
 import time
+import sys
 
 # Import the class and callback types
 from simulated_annealing_fortran import (sa_fortran,
@@ -175,15 +176,15 @@ def main():
         maximize=False,
         eps=1e-2,  # Convergence tolerance
         ns=20,  # Cycles before step adjustment
-        nt=100,  # Iterations before temperature reduction (reduced to prevent hangs)
+        nt=100,  # Iterations before temperature reduction
         neps=4,  # Number of final function values for convergence check
-        maxevl=20000,  # Function evaluations budget (reduced)
-        iprint=1,
+        maxevl=10000,  # Function evaluations budget
+        iprint=2,
         iseed1=1234,
         iseed2=5678,
-        step_mode=2,  # 2=constant step size (no adjustment)
+        step_mode=1,  # 1=adaptive step size (default)
         cooling_schedule=2,  # 2=fast annealing (terminates quicker)
-        n_resets=1,  # Restart search from best point found
+        n_resets=4,  # Restart search from best point found
         optimal_f_specified=False,  # Don't use optimal stopping criterion
         # Parallel mode callbacks
         n_inputs_to_send=n_inputs_callback,
@@ -196,14 +197,16 @@ def main():
 
     # Solve
     start_time = time.time()
+    sys.stdout.flush()  # Flush Python output before Fortran writes
 
     result = optimizer.solve(
-        x0=[3.0] * n,
+        x0=[1.0] * n,
         rt=0.85,  # Standard cooling rate
         t0=1.0,  # Initial temperature
         vm=[2.0] * n,  # Fixed step size for each variable
     )
 
+    sys.stdout.flush()  # Flush after Fortran is done
     elapsed = time.time() - start_time
 
     # Results

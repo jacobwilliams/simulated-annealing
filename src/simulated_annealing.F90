@@ -202,7 +202,11 @@ module simulated_annealing_module
       procedure(sa_func_parallel_inputs_func),pointer :: fcn_parallel_input => null()  !! this function receives the input points for evaluation
       procedure(sa_func_parallel_output_func),pointer :: fcn_parallel_output => null()  !! this function receives the output points from the parallel evaluation. The `x` here will be one of the ones sent via `sa_func_parallel_inputs_func`, The algorithm will only process one at the time.
 
-   contains
+      ! termination safeguards (to prevent freezing/hanging):
+      real(wp) :: vm_min = 1.0e-12_wp  !! minimum allowable step size. if all vm values
+                                       !! fall below this, terminate with ier=6
+
+      contains
 
       private
 
@@ -589,6 +593,7 @@ contains
                                                            !!    greater than the maximum number (maxevl).
                                                            !!  * 3 - the initial temperature is not positive.
                                                            !!  * 4 - user stop in problem function.
+                                                           !!  * 5 - step sizes collapsed below `vm_min` threshold.
                                                            !!  * 99 - should not be seen; only used internally.
 
       real(wp),dimension(:),allocatable :: xp           !! perturbed `x` vector (size `n`)
@@ -863,6 +868,19 @@ contains
                else
                   exit
                end if
+            end if
+
+            ! check if step sizes have collapsed
+            if (maxval(vm) < me%vm_min) then
+               if (me%iprint >= 1) then
+                  write(unit,'(/A)') '-----------------------------------------------------'
+                  write(unit,'(A)')  '  Step sizes collapsed below vm_min threshold'
+                  write(unit,'(A/)') '-----------------------------------------------------'
+               end if
+               x = xopt
+               fopt = me%func(fopt)
+               ier = 5  ! error code for "step collapse"
+               exit main  ! exit main loop to try next reset if available
             end if
 
             !  if termination criteria is not met, prepare for another loop.
