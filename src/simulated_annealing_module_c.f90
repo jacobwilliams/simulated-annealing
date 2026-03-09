@@ -24,36 +24,36 @@ module simulated_annealing_module_c
             import :: c_double, c_int, c_intptr_t
             implicit none
             integer(c_intptr_t), value :: iproblem
-            integer(c_int), value :: n
-            real(c_double), dimension(n) :: x
-            real(c_double) :: f
-            integer(c_int) :: istat
+            integer(c_int), intent(in), value :: n
+            real(c_double), dimension(n), intent(in) :: x
+            real(c_double), intent(out) :: f
+            integer(c_int), intent(out) :: istat
         end subroutine c_sa_func
 
         subroutine c_sa_func_parallel_inputs(iproblem, n_inputs) bind(c)
             import :: c_int, c_intptr_t
             implicit none
             integer(c_intptr_t), value :: iproblem
-            integer(c_int) :: n_inputs
+            integer(c_int), intent(out) :: n_inputs
         end subroutine c_sa_func_parallel_inputs
 
         subroutine c_sa_func_parallel_inputs_func(iproblem, x, n, n_inputs) bind(c)
             import :: c_double, c_int, c_intptr_t
             implicit none
             integer(c_intptr_t), value :: iproblem
-            integer(c_int), value :: n
-            integer(c_int), value :: n_inputs
-            real(c_double), dimension(n, n_inputs) :: x  !! C's x[n_inputs][n] maps to Fortran's x(n,n_inputs) due to row/column-major difference
+            integer(c_int), intent(in), value :: n
+            integer(c_int), intent(in), value :: n_inputs
+            real(c_double), dimension(n, n_inputs), intent(in) :: x  !! C's x[n_inputs][n] maps to Fortran's x(n,n_inputs) due to row/column-major difference
         end subroutine c_sa_func_parallel_inputs_func
 
         subroutine c_sa_func_parallel_output_func(iproblem, x, n, f, istat) bind(c)
             import :: c_double, c_int, c_intptr_t
             implicit none
             integer(c_intptr_t), value :: iproblem
-            integer(c_int), value :: n
-            real(c_double), dimension(n) :: x
-            real(c_double) :: f
-            integer(c_int) :: istat
+            integer(c_int), intent(in), value :: n
+            real(c_double), dimension(n), intent(out) :: x
+            real(c_double), intent(out) :: f
+            integer(c_int), intent(out) :: istat
         end subroutine c_sa_func_parallel_output_func
     end interface
 
@@ -293,7 +293,8 @@ contains
 !>
 !  solve optimization problem using simulated annealing from C
 
-    subroutine solve_simulated_annealing(iproblem, n, x, rt, t, vm, xopt, fopt, nacc, nfcnev, ier) &
+    subroutine solve_simulated_annealing(iproblem, n, x, rt, t, vm, &
+                                         xopt, fopt, nacc, nfcnev, ier) &
       bind(C, name="solve_simulated_annealing")
 
         integer(c_intptr_t), intent(in), value :: iproblem
