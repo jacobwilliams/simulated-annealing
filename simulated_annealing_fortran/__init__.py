@@ -9,8 +9,7 @@ import os
 import numpy as np
 import platform
 from pathlib import Path
-
-__all__ = ['sa_fortran']
+__all__ = ['sa_fortran', 'CALLBACK_FUNC', 'CALLBACK_N_INPUTS', 'CALLBACK_PARALLEL_INPUT', 'CALLBACK_PARALLEL_OUTPUT']
 
 
 if platform.system() == "Windows":
@@ -31,6 +30,31 @@ CALLBACK_FUNC = ctypes.CFUNCTYPE(
     ctypes.POINTER(ctypes.c_double),  # f
     ctypes.POINTER(ctypes.c_int)  # istat
         )
+
+# Define callback types for parallel mode
+CALLBACK_N_INPUTS = ctypes.CFUNCTYPE(
+    None,
+    ctypes.c_size_t,  # iproblem
+    ctypes.POINTER(ctypes.c_int)  # n_inputs
+)
+
+CALLBACK_PARALLEL_INPUT = ctypes.CFUNCTYPE(
+    None,
+    ctypes.c_size_t,  # iproblem
+    ctypes.POINTER(ctypes.c_double),  # x array
+    ctypes.c_int,  # n
+    ctypes.c_int  # n_inputs
+)
+
+CALLBACK_PARALLEL_OUTPUT = ctypes.CFUNCTYPE(
+    None,
+    ctypes.c_size_t,  # iproblem
+    ctypes.POINTER(ctypes.c_double),  # x
+    ctypes.c_int,  # n
+    ctypes.POINTER(ctypes.c_double),  # f
+    ctypes.POINTER(ctypes.c_int)  # istat
+)
+
 
 class sa_fortran():
     """
@@ -110,13 +134,14 @@ class sa_fortran():
         self.callback_ref = None  # Keep reference to prevent garbage collection
         self.n = None
 
-    def initialize(self, n, lb, ub, fcn, c=None, maximize=False, eps=1e-6,
+    def initialize(self, n, lb, ub, fcn=None, c=None, maximize=False, eps=1e-6,
                    ns=20, nt=None, neps=4, maxevl=100000, iprint=1,
                    iseed1=1234, iseed2=5678, step_mode=1, vms=0.1, iunit=6,
                    use_initial_guess=True, n_resets=1, cooling_schedule=1,
                    cooling_param=1.0, optimal_f_specified=False, optimal_f=0.0,
                    optimal_f_tol=1e-4, distribution_mode=None, dist_std_dev=None,
-                   dist_scale=None, dist_shape=None):
+                   dist_scale=None, dist_shape=None,
+                   n_inputs_to_send=None, fcn_parallel_input=None, fcn_parallel_output=None):
         """
         Initialize the simulated annealing optimizer.
 
@@ -128,9 +153,10 @@ class sa_fortran():
             Lower bounds (size n)
         ub : array-like
             Upper bounds (size n)
-        fcn : callable
+        fcn : callable, optional
             Objective function with signature: fcn(x) -> f
-            where x is array of size n, returns scalar f
+            where x is array of size n, returns scalar f.
+            Required for serial mode, should be None for parallel mode.
         c : array-like, optional
             Step adjustment parameter (default: 2.0 for all variables)
         maximize : bool, optional
@@ -177,6 +203,15 @@ class sa_fortran():
             Scale for cauchy/bipareto (default: 1.0 for all)
         dist_shape : array-like, optional
             Shape for bipareto (default: 1.0 for all)
+        n_inputs_to_send : callable, optional
+            Callback for parallel mode: n_inputs_to_send(iproblem) -> n_inputs
+            Returns number of inputs ready to evaluate. Required for parallel mode.
+        fcn_parallel_input : callable, optional
+            Callback for parallel mode: fcn_parallel_input(iproblem, x, n, n_inputs)
+            Receives batch of inputs to evaluate. Required for parallel mode.
+        fcn_parallel_output : callable, optional
+            Callback for parallel mode: fcn_parallel_output(iproblem, x, n, f, istat)
+            Returns one completed result. Required for parallel mode.
         """
         self.n = n
 
@@ -213,20 +248,47 @@ class sa_fortran():
         else:
             dist_shape = np.asarray(dist_shape, dtype=np.float64)
 
-        # Create callback wrapper
-        @CALLBACK_FUNC
-        def callback_wrapper(iproblem, x_ptr, n_val, f_ptr, istat_ptr):
-            try:
-                x = np.ctypeslib.as_array(x_ptr, shape=(n_val,))
-                f = fcn(x)
-                f_ptr[0] = float(f)
-                istat_ptr[0] = 0
-            except Exception as e:
-                print(f"Error in objective function: {e}")
-                istat_ptr[0] = -1
+        # Determine mode: serial or parallel
+        is_parallel = (n_inputs_to_send is not None and
+                      fcn_parallel_input is not None and
+                      fcn_parallel_output is not None)
 
-        # Keep reference to prevent garbage collection
-        self.callback_ref = callback_wrapper
+        if is_parallel:
+            # Parallel mode: use provided callbacks directly
+            if fcn is not None:
+                print("Warning: fcn is ignored in parallel mode")
+
+            # Keep references to prevent garbage collection
+            self.callback_ref = (n_inputs_to_send, fcn_parallel_input, fcn_parallel_output)
+
+            fcn_ptr = ctypes.c_void_p(0)
+            n_inputs_ptr = ctypes.cast(n_inputs_to_send, ctypes.c_void_p)
+            parallel_input_ptr = ctypes.cast(fcn_parallel_input, ctypes.c_void_p)
+            parallel_output_ptr = ctypes.cast(fcn_parallel_output, ctypes.c_void_p)
+
+        else:
+            # Serial mode: create callback wrapper for fcn
+            if fcn is None:
+                raise ValueError("fcn is required for serial mode")
+
+            @CALLBACK_FUNC
+            def callback_wrapper(iproblem, x_ptr, n_val, f_ptr, istat_ptr):
+                try:
+                    x = np.ctypeslib.as_array(x_ptr, shape=(n_val,))
+                    f = fcn(x)
+                    f_ptr[0] = float(f)
+                    istat_ptr[0] = 0
+                except Exception as e:
+                    print(f"Error in objective function: {e}")
+                    istat_ptr[0] = -1
+
+            # Keep reference to prevent garbage collection
+            self.callback_ref = callback_wrapper
+
+            fcn_ptr = ctypes.cast(callback_wrapper, ctypes.c_void_p)
+            n_inputs_ptr = ctypes.c_void_p(0)
+            parallel_input_ptr = ctypes.c_void_p(0)
+            parallel_output_ptr = ctypes.c_void_p(0)
 
         # Initialize iproblem
         self.iproblem = ctypes.c_size_t()
@@ -261,10 +323,10 @@ class sa_fortran():
             dist_std_dev.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
             dist_scale.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
             dist_shape.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
-            ctypes.cast(self.callback_ref, ctypes.c_void_p),
-            ctypes.c_void_p(0),  # n_inputs_to_send (NULL for serial)
-            ctypes.c_void_p(0),  # fcn_parallel_input (NULL)
-            ctypes.c_void_p(0),  # fcn_parallel_output (NULL)
+            fcn_ptr,
+            n_inputs_ptr,
+            parallel_input_ptr,
+            parallel_output_ptr,
         )
 
     def destroy(self):
