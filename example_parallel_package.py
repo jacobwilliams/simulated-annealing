@@ -33,6 +33,23 @@ def rastrigin(x):
     n = len(x)
     return A * n + sum(xi**2 - A * np.cos(2 * np.pi * xi) for xi in x)
 
+################
+# from scipy:
+################
+# import numpy as np
+# from scipy.optimize import dual_annealing
+# func = lambda x: np.sum(x*x - 10*np.cos(2*np.pi*x)) + 10*np.size(x)
+# lw = [-5.12] * 10
+# up = [5.12] * 10
+# ret = dual_annealing(func, bounds=list(zip(lw, up)))
+# ret.x
+# array([-4.26437714e-09, -3.91699361e-09, -1.86149218e-09, -3.97165720e-09,
+#        -6.29151648e-09, -6.53145322e-09, -3.93616815e-09, -6.55623025e-09,
+#        -6.05775280e-09, -5.00668935e-09]) # random
+# ret.fun
+# 0.000000
+
+
 
 def worker_process(input_queue, output_queue):
     """
@@ -121,7 +138,7 @@ class ParallelEvaluator:
 
 
 def main():
-    n = 10  # Problem dimension
+    n = 1  # Problem dimension
     n_workers = 4  # Number of parallel workers
 
     print(f"Solving {n}-dimensional Rastrigin function with {n_workers} parallel workers")
@@ -184,7 +201,7 @@ def main():
         iseed2=5678,
         step_mode=1,  # 1=adaptive step size (default)
         cooling_schedule=2,  # 2=fast annealing (terminates quicker)
-        n_resets=4,  # Restart search from best point found
+        n_resets=3,  # Restart search from best point found
         optimal_f_specified=False,  # Don't use optimal stopping criterion
         # Parallel mode callbacks
         n_inputs_to_send=n_inputs_callback,

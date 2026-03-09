@@ -856,7 +856,6 @@ contains
             if (quit) then
                x = xopt
                ier = 0
-               fopt = me%func(fopt)
                if (me%iprint >= 1) then
                   write(unit,'(/A)') '----------------------------------------------'
                   write(unit,'(A)')  '  sa achieved termination criteria. ier = 0.  '
@@ -866,7 +865,7 @@ contains
                   exit reset ! the solution has been found, so can ignore
                   ! the reset loop if that is being used
                else
-                  exit
+                  exit main ! exit the main loop but continue resets
                end if
             end if
 
@@ -878,7 +877,6 @@ contains
                   write(unit,'(A/)') '-----------------------------------------------------'
                end if
                x = xopt
-               fopt = me%func(fopt)
                ier = 5  ! error code for "step collapse"
                exit main  ! exit main loop to try next reset if available
             end if
@@ -917,6 +915,9 @@ contains
          end do main
 
       end do reset
+
+      ! convert fopt back to user space before returning
+      fopt = me%func(fopt)
 
    end subroutine sa
 !********************************************************************************
