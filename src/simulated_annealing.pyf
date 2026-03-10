@@ -1,0 +1,68 @@
+!    -*- f90 -*-
+! Note: the context of this file is case sensitive.
+
+python module simulated_annealing_f2py ! in
+    interface  ! in :simulated_annealing_f2py
+        module simulated_annealing_module_c ! in :simulated_annealing_f2py:src/simulated_annealing_module_c.f90
+            use iso_c_binding
+
+            subroutine initialize_simulated_annealing(iproblem,n,lb,ub,c,maximize,eps,ns,nt,neps,maxevl,iprint,iseed1,iseed2,step_mode,vms,iunit,use_initial_guess,n_resets,cooling_schedule,cooling_param,optimal_f_specified,optimal_f,optimal_f_tol,distribution_mode,dist_std_dev,dist_scale,dist_shape,fcn,n_inputs_to_send,fcn_parallel_input,fcn_parallel_output) ! in :simulated_annealing_f2py:src/simulated_annealing_module_c.f90:simulated_annealing_module_c
+                integer(c_intptr_t) intent(out) :: iproblem
+                integer(c_int) intent(in) :: n
+                real(c_double) dimension(n),intent(in) :: lb
+                real(c_double) dimension(n),intent(in) :: ub
+                real(c_double) dimension(n),intent(in) :: c
+                integer intent(in) :: maximize
+                real(c_double) intent(in) :: eps
+                integer(c_int) intent(in) :: ns
+                integer(c_int) intent(in) :: nt
+                integer(c_int) intent(in) :: neps
+                integer(c_int) intent(in) :: maxevl
+                integer(c_int) intent(in) :: iprint
+                integer(c_int) intent(in) :: iseed1
+                integer(c_int) intent(in) :: iseed2
+                integer(c_int) intent(in) :: step_mode
+                real(c_double) intent(in) :: vms
+                integer(c_int) intent(in) :: iunit
+                integer intent(in) :: use_initial_guess
+                integer(c_int) intent(in) :: n_resets
+                integer(c_int) intent(in) :: cooling_schedule
+                real(c_double) intent(in) :: cooling_param
+                integer intent(in) :: optimal_f_specified
+                real(c_double) intent(in) :: optimal_f
+                real(c_double) intent(in) :: optimal_f_tol
+                integer(c_int) dimension(n),intent(in),depend(n) :: distribution_mode
+                real(c_double) dimension(n),intent(in),depend(n) :: dist_std_dev
+                real(c_double) dimension(n),intent(in),depend(n) :: dist_scale
+                real(c_double) dimension(n),intent(in),depend(n) :: dist_shape
+                integer(c_intptr_t) intent(in) :: fcn
+                integer(c_intptr_t) intent(in) :: n_inputs_to_send
+                integer(c_intptr_t) intent(in) :: fcn_parallel_input
+                integer(c_intptr_t) intent(in) :: fcn_parallel_output
+            end subroutine initialize_simulated_annealing
+
+            subroutine destroy_simulated_annealing(iproblem) ! in :simulated_annealing_f2py:src/simulated_annealing_module_c.f90:simulated_annealing_module_c
+                integer(c_intptr_t) intent(in) :: iproblem
+            end subroutine destroy_simulated_annealing
+
+            subroutine solve_simulated_annealing(iproblem,n,x,rt,t,vm,xopt,fopt,nacc,nfcnev,ier) ! in :simulated_annealing_f2py:src/simulated_annealing_module_c.f90:simulated_annealing_module_c
+                integer(c_intptr_t) intent(in) :: iproblem
+                integer(c_int) intent(in) :: n
+                real(c_double) dimension(n),intent(in,out),depend(n) :: x
+                real(c_double) intent(in) :: rt
+                real(c_double) intent(in,out) :: t
+                real(c_double) dimension(n),intent(in,out),depend(n) :: vm
+                real(c_double) dimension(n),intent(out),depend(n) :: xopt
+                real(c_double) intent(out) :: fopt
+                integer(c_int) intent(out) :: nacc
+                integer(c_int) intent(out) :: nfcnev
+                integer(c_int) intent(out) :: ier
+            end subroutine solve_simulated_annealing
+
+        end module simulated_annealing_module_c
+    end interface
+end python module simulated_annealing_f2py
+
+! This file was auto-generated with f2py (version:2).
+! See:
+! https://web.archive.org/web/20140822061353/http://cens.ioc.ee/projects/f2py2e

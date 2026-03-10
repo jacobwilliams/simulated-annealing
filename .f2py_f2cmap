@@ -1,0 +1,16 @@
+dict(
+    real=dict(
+        real64="double",
+        real32="float",
+        c_double="double",
+        c_float="float"),
+    integer=dict(
+        int64="long long",
+        int32="int",
+        c_int="int",
+        c_long="long",
+        c_intptr_t="long long",
+        c_long_long="long long"),
+    logical=dict(
+        c_bool="int"),
+)
