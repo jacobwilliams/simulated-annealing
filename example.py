@@ -4,11 +4,11 @@ Example using the Pythonic sa_fortran class interface.
 Solves the Rosenbrock function minimization problem.
 
 Note: the shared library must be built first using:
-`fpm install --prefix ./simulated_annealing_fortran/lib --profile release`
+`fpm install --prefix ./sa_fortran/lib --profile release`
 """
 
 import numpy as np
-from simulated_annealing_fortran import sa_fortran
+from sa_fortran import sa_fortran
 
 
 def rosenbrock(x):

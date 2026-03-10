@@ -9,7 +9,7 @@ This example shows how to implement custom parallelization by:
 3. Passing the callbacks to sa_fortran.initialize()
 
 Note: the shared library must be built first using:
-`fpm install --prefix ./simulated_annealing_fortran/lib --profile release`
+`fpm install --prefix ./sa_fortran/lib --profile release`
 """
 
 import numpy as np
@@ -22,7 +22,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 # Import the class and callback types
-from simulated_annealing_fortran import (sa_fortran,
+from sa_fortran import (sa_fortran,
                                          CALLBACK_N_INPUTS,
                                          CALLBACK_PARALLEL_INPUT,
                                          CALLBACK_PARALLEL_OUTPUT)

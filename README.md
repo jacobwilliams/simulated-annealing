@@ -34,7 +34,7 @@ The library contains an implemented of a simulated annealing optimization method
 The library also exports a C interface, which can also be called from Python. A Python package is also included (see the `sa_fortran` class). To use the Python interface, first build and install the shared library using:
 
 ```
-fpm install --prefix ./simulated_annealing_fortran/lib --profile release
+fpm install --prefix ./sa_fortran/lib --profile release
 ```
 
 Then refer to the two python examples `python_example.py` and `parallel_example.py` for how to use it.

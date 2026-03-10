@@ -1,7 +1,7 @@
 """Python interface to the Fortran simulated annealing library using ctypes.
 
 Note: the shared lib must be built using:
-`fpm install --prefix ./simulated_annealing_fortran/lib --profile release`
+`fpm install --prefix ./sa_fortran/lib --profile release`
 """
 
 from .interface import (sa_fortran,
