@@ -10,10 +10,13 @@ from .ctypes_interface import (sa_fortran,
                                CALLBACK_PARALLEL_INPUT,
                                CALLBACK_PARALLEL_OUTPUT)
 
+from . import simulated_annealing_f2py as sa_f2py
+
 __version__ = '0.0.1'
 
 __all__ = ['sa_fortran',
            'CALLBACK_FUNC',
            'CALLBACK_N_INPUTS',
            'CALLBACK_PARALLEL_INPUT',
-           'CALLBACK_PARALLEL_OUTPUT']
+           'CALLBACK_PARALLEL_OUTPUT',
+           'sa_f2py']
