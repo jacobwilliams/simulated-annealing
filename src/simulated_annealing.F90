@@ -577,8 +577,9 @@ contains
                                                            !! interest given the starting value x.  for point x(i), the next
                                                            !! trial point is selected is from x(i) - vm(i)  to  x(i) + vm(i).
                                                            !! since vm is adjusted so that about half of all points are accepted,
-                                                           !! the input value is not very important (i.e. is the value is off,
+                                                           !! the input value is not very important (i.e. if the value is off,
                                                            !! sa adjusts vm to the correct value).
+                                                           !! note: if `vm=0.0`, then it is set to abs(xu-xl)`.
       real(wp), dimension(me%n), intent(out)  :: xopt      !! the variables that optimize the function.
       real(wp), intent(out)                   :: fopt      !! the optimal value of the function.
       integer, intent(out)                    :: nacc      !! the number of accepted function evaluations.
@@ -629,6 +630,9 @@ contains
       xopt        = x
       fopt        = huge(1.0_wp)
       vm          = abs(vm)
+      where (vm == 0.0_wp)
+         vm = abs(me%ub - me%lb)
+      end where
       t_original  = t
       vm_original = vm
       abort       = .false.
