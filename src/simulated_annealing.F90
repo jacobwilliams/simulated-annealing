@@ -888,6 +888,7 @@ contains
             !  if termination criteria is not met, prepare for another loop.
             temp_iter = temp_iter + 1
 
+            if (t_original /= 0.0_wp) then
             ! apply the selected cooling schedule
             select case (me%cooling_schedule)
              case (1)
@@ -909,6 +910,7 @@ contains
                ! fallback to geometric
                t = abs(rt)*t
             end select
+            end if
 
             do i = me%neps, 2, -1
                fstar(i) = fstar(i-1)
