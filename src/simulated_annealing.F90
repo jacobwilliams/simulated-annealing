@@ -196,6 +196,15 @@ module simulated_annealing_module
       ! serial function evaluation:
       procedure(sa_func),pointer :: fcn => null()  !! the user's function
 
+      ! function to report intermediate results to the user:
+      integer :: ireport = 0 !! how often to report intermediate results to the user via `report` function:
+                            !!
+                            !! * 0 : no intermediate reports
+                            !! * 1 : report each function evaluation
+                            !! * 2 : report after each new optimal value is found
+                            !! * 3 : report each function evaluation and each new optimal value found
+      procedure(sa_report_func),pointer :: report => null() !! if associated, this function is called to report intermediate results to the user.
+
       ! parallel function evaluation (optional):
       logical :: parallel_mode = .false. !! if true, the user wants to evaluate multiple points in parallel (e.g. on a GPU or with OpenMP). if false, the user will evaluate one point at a time. if true, the user must provide all of n_inputs_to_send, fcn_parallel_input and fcn_parallel_output.
       procedure(sa_func_parallel_inputs),pointer :: n_inputs_to_send => null()  !! if the user wants to evaluate multiple points in parallel, this function should return the number of input points that will be sent for evaluation at a time.
@@ -237,6 +246,20 @@ module simulated_annealing_module
                                                    !!   try a different input vector.
                                                    !! * -2 : stop the optimization process
       end subroutine sa_func
+
+      subroutine sa_report_func(me, x, f, istat)
+         !! interface for reporting intermediate results to the user.
+         !! This is called when iprint > 0. See iprint for when this is called.
+         import :: wp, simulated_annealing_type
+         implicit none
+         class(simulated_annealing_type),intent(inout) :: me
+         real(wp), dimension(:), intent(in) :: x
+         real(wp), intent(in) :: f
+         integer, intent(in) :: istat !! status flag:
+                                      !!
+                                      !! * 1 : intermediate report for a function evaluation
+                                      !! * 2 : intermediate report for a new optimal value found
+      end subroutine sa_report_func
 
       subroutine sa_func_parallel_inputs(me, n_inputs)
          !! interface for parallel function evaluations.
@@ -319,7 +342,8 @@ contains
                             optimal_f_specified,optimal_f,optimal_f_tol,&
                             distribution_mode,dist_std_dev,&
                             dist_scale,dist_shape,&
-                            fcn,n_inputs_to_send,fcn_parallel_input,fcn_parallel_output)
+                            fcn,n_inputs_to_send,fcn_parallel_input,fcn_parallel_output,&
+                            ireport,report)
 
       class(simulated_annealing_type),intent(inout) :: me
       integer, intent(in)                           :: n
@@ -372,6 +396,14 @@ contains
                                                                                 !! evaluation. The `x` here will be one of the ones sent via
                                                                                 !! `sa_func_parallel_inputs_func`,
                                                                                 !! The algorithm will only process one at the time.
+      integer, intent(in), optional      :: ireport    !! how often to report intermediate results to the user via `report` function:
+                                                       !!
+                                                       !! * 0 : no intermediate reports
+                                                       !! * 1 : report each function evaluation
+                                                       !! * 2 : report after each new optimal value is found
+                                                       !! * 3 : report each function evaluation and each new optimal value found
+      procedure(sa_report_func),optional :: report     !! if associated, this function is called to report intermediate
+                                                       !! results to the user.
 
       if (present(fcn)) then
          ! serial function evaluation:
@@ -389,6 +421,10 @@ contains
          error stop 'Error: either fcn (serial mode) or all of n_inputs_to_send, '//&
                     'fcn_parallel_input and fcn_parallel_output (parallel mode) must be provided.'
       end if
+
+      ! function evaluation reporting:
+      if (present(report)) me%report => report
+      if (present(ireport)) me%ireport = ireport
 
       me%n  = n
       me%lb = lb
@@ -740,6 +776,9 @@ contains
                         xopt = xp
                         fopt = fp
                         nnew = nnew + 1
+                        if (me%ireport == 2 .or. me%ireport == 3) then ! report this value to the user
+                           call me%report(xopt, me%func(fopt), istat=2) ! convert f back to user's sign if necessary
+                        end if
                      end if
 
                   else
@@ -889,27 +928,27 @@ contains
             temp_iter = temp_iter + 1
 
             if (t_original /= 0.0_wp) then
-            ! apply the selected cooling schedule
-            select case (me%cooling_schedule)
-             case (1)
-               ! geometric (classical): T(k+1) = rt * T(k)
-               t = abs(rt)*t
-             case (2)
-               ! fast annealing (Cauchy): T(k) = T0 / (1 + k)
-               t = t_original / real(1 + temp_iter, wp)
-             case (3)
-               ! huang: T(k) = T0 / (1 + c*k)^n
-               t = t_original / (1.0_wp + me%cooling_param * real(temp_iter, wp))**me%n
-             case (4)
-               ! boltzmann: T(k) = T0 / log(1 + k + e)
-               t = t_original / log(1.0_wp + real(temp_iter, wp) + exp(1.0_wp))
-             case (5)
-               ! logarithmic: T(k) = T0 / (1 + c*log(1+k))
-               t = t_original / (1.0_wp + me%cooling_param * log(1.0_wp + real(temp_iter, wp)))
-             case default
-               ! fallback to geometric
-               t = abs(rt)*t
-            end select
+               ! apply the selected cooling schedule
+               select case (me%cooling_schedule)
+               case (1)
+                  ! geometric (classical): T(k+1) = rt * T(k)
+                  t = abs(rt)*t
+               case (2)
+                  ! fast annealing (Cauchy): T(k) = T0 / (1 + k)
+                  t = t_original / real(1 + temp_iter, wp)
+               case (3)
+                  ! huang: T(k) = T0 / (1 + c*k)^n
+                  t = t_original / (1.0_wp + me%cooling_param * real(temp_iter, wp))**me%n
+               case (4)
+                  ! boltzmann: T(k) = T0 / log(1 + k + e)
+                  t = t_original / log(1.0_wp + real(temp_iter, wp) + exp(1.0_wp))
+               case (5)
+                  ! logarithmic: T(k) = T0 / (1 + c*log(1+k))
+                  t = t_original / (1.0_wp + me%cooling_param * log(1.0_wp + real(temp_iter, wp)))
+               case default
+                  ! fallback to geometric
+                  t = abs(rt)*t
+               end select
             end if
 
             do i = me%neps, 2, -1
@@ -987,6 +1026,11 @@ contains
             xp = get_xp()  ! single funciton evaluation
             call me%fcn(xp, fp, istat)  ! evaluate the function with the trial point xp and return as fp.
          end if
+
+         if (istat==0 .and. (me%ireport == 1 .or. me%ireport == 3)) then ! report this value to the user
+            call me%report(xp, fp, istat=1) ! convert f back to user's sign if necessary
+         end if
+
          nfcnev = nfcnev + 1  ! function eval counter (note: for parallel runs,
                               ! only count one evaluation per returned values.
                               ! others can still be running)
