@@ -26,19 +26,20 @@ i_values_all = np.arange(len(f_values_all))
 ##################################################################
 
 # 2D Gradient Plot: All function evaluations with best curve overlay
-plt.figure(figsize=(12, 10))
+plt.figure(figsize=(10, 5))
 
 # Create scatter plot of all evaluations with color representing function value
 scatter = plt.scatter(x_values_all, y_values_all, c=f_values_all,
-                     cmap='viridis', alpha=0.6, s=20, edgecolors='none')
+                     cmap='coolwarm', alpha=0.6, s=20, edgecolors='none')
 plt.colorbar(scatter, label='Function Value f(x1, x2)')
+plt.plot(x_values_all, y_values_all, '-', color='lightgray', linewidth=0.5, alpha=0.6, label='All Evaluations Path', zorder=-1)
 
 # Overlay the best curve (path of best solutions)
-plt.plot(x_values, y_values, 'r-', linewidth=2, label='Best Solution Path', zorder=10)
-plt.plot(x_values, y_values, 'ro', markersize=4, zorder=11)  # Add markers
+plt.plot(x_values, y_values, 'k-', linewidth=2, label='Best Solution Path', zorder=10)
+plt.plot(x_values, y_values, 'ko', markersize=4, zorder=11)  # Add markers
 
 # Mark the final best solution
-plt.plot(x_values[-1], y_values[-1], 'r*', markersize=20,
+plt.plot(x_values[-1], y_values[-1], 'r*', markersize=10,
          label=f'Final Best: ({x_values[-1]:.3f}, {y_values[-1]:.3f})', zorder=12)
 
 plt.xlabel('x1')
