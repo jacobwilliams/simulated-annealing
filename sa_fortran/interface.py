@@ -56,6 +56,16 @@ CALLBACK_PARALLEL_OUTPUT = ctypes.CFUNCTYPE(
     ctypes.POINTER(ctypes.c_int)  # istat
 )
 
+# Define callback type for reporting intermediate results
+CALLBACK_REPORT = ctypes.CFUNCTYPE(
+    None,
+    ctypes.c_size_t,  # iproblem
+    ctypes.POINTER(ctypes.c_double),  # x
+    ctypes.c_int,  # n
+    ctypes.c_double,  # f (value, not pointer)
+    ctypes.c_int  # istat (value, not pointer)
+)
+
 
 class sa_fortran():
     """
@@ -109,6 +119,8 @@ class sa_fortran():
             ctypes.c_void_p,  # n_inputs_to_send (NULL for serial)
             ctypes.c_void_p,  # fcn_parallel_input (NULL for serial)
             ctypes.c_void_p,  # fcn_parallel_output (NULL for serial)
+            ctypes.c_int,  # ireport
+            ctypes.c_void_p,  # report (function pointer, NULL if not used)
         ]
         self.lib.initialize_simulated_annealing.restype = None
 
@@ -142,7 +154,8 @@ class sa_fortran():
                    cooling_param=1.0, optimal_f_specified=False, optimal_f=0.0,
                    optimal_f_tol=1e-4, distribution_mode=None, dist_std_dev=None,
                    dist_scale=None, dist_shape=None,
-                   n_inputs_to_send=None, fcn_parallel_input=None, fcn_parallel_output=None):
+                   n_inputs_to_send=None, fcn_parallel_input=None, fcn_parallel_output=None,
+                   ireport=0, report=None):
         """
         Initialize the simulated annealing optimizer.
 
@@ -213,6 +226,18 @@ class sa_fortran():
         fcn_parallel_output : callable, optional
             Callback for parallel mode: fcn_parallel_output(iproblem, x, n, f, istat)
             Returns one completed result. Required for parallel mode.
+        ireport : int, optional
+            How often to report intermediate results (default: 0):
+
+            * 0 : no intermediate reports
+            * 1 : report each function evaluation
+            * 2 : report after each new optimal value is found
+            * 3 : report each function evaluation and each new optimal value found
+        report : callable, optional
+            Callback for reporting: report(x, f, istat)
+            where x is array of size n, f is scalar function value,
+            and istat indicates: 1=function evaluation, 2=new optimal found.
+            Only called if ireport > 0.
         """
         self.n = n
 
@@ -260,7 +285,7 @@ class sa_fortran():
                 print("Warning: fcn is ignored in parallel mode")
 
             # Keep references to prevent garbage collection
-            self.callback_ref = (n_inputs_to_send, fcn_parallel_input, fcn_parallel_output)
+            self.callback_ref = [n_inputs_to_send, fcn_parallel_input, fcn_parallel_output]
 
             fcn_ptr = ctypes.c_void_p(0)
             n_inputs_ptr = ctypes.cast(n_inputs_to_send, ctypes.c_void_p)
@@ -284,12 +309,28 @@ class sa_fortran():
                     istat_ptr[0] = -1
 
             # Keep reference to prevent garbage collection
-            self.callback_ref = callback_wrapper
+            self.callback_ref = [callback_wrapper]
 
             fcn_ptr = ctypes.cast(callback_wrapper, ctypes.c_void_p)
             n_inputs_ptr = ctypes.c_void_p(0)
             parallel_input_ptr = ctypes.c_void_p(0)
             parallel_output_ptr = ctypes.c_void_p(0)
+
+        # Create report callback wrapper if provided
+        if report is not None and ireport > 0:
+            @CALLBACK_REPORT
+            def report_wrapper(iproblem, x_ptr, n_val, f_val, istat_val):
+                try:
+                    x = np.ctypeslib.as_array(x_ptr, shape=(n_val,))
+                    report(x, f_val, istat_val)
+                except Exception as e:
+                    print(f"Error in report function: {e}")
+
+            # Keep reference
+            self.callback_ref.append(report_wrapper)
+            report_ptr = ctypes.cast(report_wrapper, ctypes.c_void_p)
+        else:
+            report_ptr = ctypes.c_void_p(0)
 
         # Initialize iproblem
         self.iproblem = ctypes.c_size_t()
@@ -328,6 +369,8 @@ class sa_fortran():
             n_inputs_ptr,
             parallel_input_ptr,
             parallel_output_ptr,
+            ctypes.c_int(ireport),
+            report_ptr,
         )
 
     def destroy(self):

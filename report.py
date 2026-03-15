@@ -9,15 +9,18 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 
+PREFIX = 'python_'  # process python test files
+# PREFIX = ''  # process fortran test files.
+
 # file with only the best solution found so far at each evaluation, with columns x1,x2,f
-df = pd.read_csv('report_best.csv', header='infer')
+df = pd.read_csv(f'{PREFIX}report_best.csv', header='infer')
 x_values = df.iloc[:, 0].values
 y_values = df.iloc[:, 1].values
 f_values = df.iloc[:, 2].values
 i_values = np.arange(len(f_values))
 
 # file with ALL the solutions evaluated, with columns x1,x2,f
-df_all = pd.read_csv('report_all.csv', header='infer')
+df_all = pd.read_csv(f'{PREFIX}report_all.csv', header='infer')
 x_values_all = df_all.iloc[:, 0].values
 y_values_all = df_all.iloc[:, 1].values
 f_values_all = df_all.iloc[:, 2].values
