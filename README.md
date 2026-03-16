@@ -29,7 +29,7 @@ To generate the documentation using [ford](https://github.com/Fortran-FOSS-Progr
 
 ## Features
 
-The library contains an implemented of a simulated annealing optimization method. See the references for more details. The main class is `simulated_annealing_type`. It also includes the ability to submit function evaluations to parallel workers (the exact parallel implementation is up to the user to implement).
+The library contains an implementation of a simulated annealing optimization method. See the references for more details. The main class is `simulated_annealing_type`. It also includes the ability to submit function evaluations to parallel workers (the exact parallel implementation is up to the user to implement).
 
 The library also exports a C interface, which can also be called from Python. A Python package is also included (see the `sa_fortran` class). To use the Python interface, first build and install the shared library using:
 
