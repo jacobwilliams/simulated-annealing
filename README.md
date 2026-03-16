@@ -39,6 +39,10 @@ fpm install --prefix ./sa_fortran/lib --profile release
 
 Then refer to the two python examples `python_example.py` and `parallel_example.py` for how to use it.
 
+## Example
+
+![2D Optimization Visualization](media/report_2d.jpg)
+
 ## See also
 
   *  https://www.netlib.org/opt/simann.f
