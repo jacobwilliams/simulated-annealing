@@ -1,0 +1,795 @@
+<!-- -*- mode: jinja2 -*- -->
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+      <meta name="description" content="A modern Fortran simulated annealing optimization method">
+    <meta name="author" content="Jacob Williams" >
+    <link rel="icon" href="../favicon.png">
+
+    <title>solve_simulated_annealing &ndash; simulated-annealing</title>
+
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+            integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    <!-- Font Awesome -->
+    <link href="../css/fontawesome.min.css" rel="stylesheet">
+    <link href="../css/brands.min.css" rel="stylesheet">
+    <link href="../css/regular.min.css" rel="stylesheet">
+    <link href="../css/solid.min.css" rel="stylesheet">
+    <link href="../css/v4-font-face.min.css" rel="stylesheet">
+    <link href="../css/v4-shims.min.css" rel="stylesheet">
+    <!-- MathJax -->
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Config({
+        TeX: { equationNumbers: { autoNumber: "AMS" } }
+      });
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@2.7.9/MathJax.js?config=TeX-AMS-MML_HTMLorMML" async
+            integrity="sha256-DViIOMYdwlM/axqoGDPeUyf0urLoHMN4QACBKyB58Uw=" crossorigin="anonymous"></script>
+    <!-- Other scripts and stylesheets -->
+    <link href="../css/local.css" rel="stylesheet">
+    <link href="../css/pygments.css" rel="stylesheet">
+    <script src="../js/svg-pan-zoom.min.js"></script>
+  </head>
+
+  <body>
+
+    <!-- Fixed navbar -->
+    <div class="container-fluid mb-sm-4 mb-xl-2">
+      <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+        <div class="container">
+          <a class="navbar-brand" href="../index.html">simulated-annealing </a>
+          <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbar"
+                  aria-expanded="false" aria-controls="navbar" aria-label="Toggle navigation">
+                  <span class="navbar-toggler-icon">
+          </button>
+
+          <div id="navbar" class="navbar-collapse collapse">
+            <ul class="navbar-nav">
+                  <li class="nav-item">
+                    <a class="nav-link" href="../lists/files.html">Source Files</a>
+                  </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/modules.html">Modules</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/procedures.html">Procedures</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/absint.html">Abstract Interfaces</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/types.html">Derived Types</a>
+                </li>
+            </ul>
+              <div class="d-flex align-items-end flex-grow-1">
+                <form action="../search.html" role="search" class="ms-auto">
+                  <input type="text" class="form-control" aria-label="Search" placeholder="Search" name="q" id="tipue_search_input" autocomplete="off" required>
+                </form>
+              </div>
+          </div><!--/.nav-collapse -->
+        </div>
+      </nav>
+    </div>
+
+    <div class="container">
+  <div class="row">
+    <h1>solve_simulated_annealing
+      <small>Subroutine</small>
+      
+    </h1>
+      <div class="container p-2 mb-4 bg-light border rounded-3">
+    <div class="row align-items-center justify-content-between" id="info-bar">
+      <div class="col">
+        <ul class="list-inline" style="margin-bottom:0px;display:inline">
+
+            <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
+              <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
+                 title=" 2.4% of total for procedures.">20 statements</a>
+            </li>
+
+            <li class="list-inline-item" id="source-file">
+              <i class="fa fa-code"></i>
+              <a href="../src/simulated_annealing_module_c.f90"> Source File</a>
+            </li>
+        </ul>
+      </div>
+      <div class="col">
+        <nav aria-label="breadcrumb">
+          <ol class="breadcrumb justify-content-end mb-0">
+                <li class="breadcrumb-item"><a href='../sourcefile/simulated_annealing_module_c.f90.html'>simulated_annealing_module_c.f90</a></li>
+                <li class="breadcrumb-item"><a href='../module/simulated_annealing_module_c.html'>simulated_annealing_module_c</a></li>
+            <li class="breadcrumb-item active" aria-current="page">solve_simulated_annealing</li>
+          </ol>
+        </nav>
+      </div>
+    </div>
+  </div>
+  <script>
+    // Enable Bootstrap tooltips
+    (function () {
+      const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
+      const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
+    })();
+  </script>
+
+  </div>
+  
+  <div class="row">
+    <div class="col-md-3 hidden-xs hidden-sm visible-md visible-lg">
+      <div id="sidebar">
+      <h3>Contents</h3>
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+    <div class="card card-primary">
+      <div class="card-header text-left"><h3 class="card-title">Source Code</h3></div>
+      <div class="list-group">
+        <a class="list-group-item" href="../proc/solve_simulated_annealing.html#src">solve_simulated_annealing</a>
+      </div>
+    </div>
+
+
+  </div>
+
+    </div>
+    
+    <div class="col-md-9" id='text'>
+    <h2>public  subroutine solve_simulated_annealing(iproblem, n, x, rt, t, vm, xopt, fopt, nacc, nfcnev, ier) bind(C, name="solve_simulated_annealing")  
+</h2>
+    
+
+    <p>solve optimization problem using simulated annealing from C</p>
+
+
+    <h3>Arguments</h3>
+        <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-iproblem~10"></span>
+              integer(kind=c_intptr_t),
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              value
+            </td>
+            <td>::</td>
+            <td><strong>iproblem</strong></td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-n~9"></span>
+              integer(kind=c_int),
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              value
+            </td>
+            <td>::</td>
+            <td><strong>n</strong></td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-x~17"></span>
+              real(kind=c_double),
+            </td>
+<td>intent(inout),</td>
+              <td></td>            <td>
+              dimension(n)
+            </td>
+            <td>::</td>
+            <td><strong>x</strong></td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-rt~2"></span>
+              real(kind=c_double),
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              value
+            </td>
+            <td>::</td>
+            <td><strong>rt</strong></td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-t~2"></span>
+              real(kind=c_double),
+            </td>
+<td>intent(inout)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>t</strong></td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-vm~3"></span>
+              real(kind=c_double),
+            </td>
+<td>intent(inout),</td>
+              <td></td>            <td>
+              dimension(n)
+            </td>
+            <td>::</td>
+            <td><strong>vm</strong></td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-xopt~2"></span>
+              real(kind=c_double),
+            </td>
+<td>intent(out),</td>
+              <td></td>            <td>
+              dimension(n)
+            </td>
+            <td>::</td>
+            <td><strong>xopt</strong></td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-fopt~2"></span>
+              real(kind=c_double),
+            </td>
+<td>intent(out)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>fopt</strong></td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-nacc~2"></span>
+              integer(kind=c_int),
+            </td>
+<td>intent(out)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>nacc</strong></td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-nfcnev~3"></span>
+              integer(kind=c_int),
+            </td>
+<td>intent(out)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>nfcnev</strong></td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-ier~3"></span>
+              integer(kind=c_int),
+            </td>
+<td>intent(out)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>ier</strong></td>
+            <td>
+                
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <br>
+    <div class="card">
+      <div class="card-header">
+  <h3 class="card-title">Calls</h3>
+      </div>
+      <div class="card-body">
+  <div class="depgraph"><?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.43.0 (0)
+ -->
+<!-- Title: proc~~solve_simulated_annealing~~CallsGraph Pages: 1 -->
+<svg id="procsolve_simulated_annealingCallsGraph" width="641pt" height="111pt"
+ viewBox="0.00 0.00 641.00 111.47" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="proc~~solve_simulated_annealing~~CallsGraph" class="graph" transform="scale(0.46 0.46) rotate(0) translate(4 238.77)">
+<title>proc~~solve_simulated_annealing~~CallsGraph</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-238.77 1392,-238.77 1392,4 -4,4"/>
+<!-- proc~solve_simulated_annealing -->
+<g id="proc~~solve_simulated_annealing~~CallsGraph_node1" class="node">
+<title>proc~solve_simulated_annealing</title>
+<polygon fill="none" stroke="black" points="157,-150.77 0,-150.77 0,-126.77 157,-126.77 157,-150.77"/>
+<text text-anchor="middle" x="78.5" y="-136.37" font-family="Helvetica,sans-Serif" font-size="10.50">solve_simulated_annealing</text>
+</g>
+<!-- proc~int_pointer_to_f_pointer -->
+<g id="proc~~solve_simulated_annealing~~CallsGraph_node2" class="node">
+<title>proc~int_pointer_to_f_pointer</title>
+<g id="a_proc~~solve_simulated_annealing~~CallsGraph_node2"><a xlink:href="../proc/int_pointer_to_f_pointer.html" xlink:title="int_pointer_to_f_pointer">
+<polygon fill="#d9534f" stroke="#d9534f" points="349,-171.77 211,-171.77 211,-147.77 349,-147.77 349,-171.77"/>
+<text text-anchor="middle" x="280" y="-157.37" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">int_pointer_to_f_pointer</text>
+</a>
+</g>
+</g>
+<!-- proc~solve_simulated_annealing&#45;&gt;proc~int_pointer_to_f_pointer -->
+<g id="proc~~solve_simulated_annealing~~CallsGraph_edge1" class="edge">
+<title>proc~solve_simulated_annealing&#45;&gt;proc~int_pointer_to_f_pointer</title>
+<path fill="none" stroke="#000000" d="M157.2,-146.95C171.47,-148.45 186.36,-150.02 200.64,-151.52"/>
+<polygon fill="#000000" stroke="#000000" points="200.6,-155.04 210.91,-152.6 201.34,-148.08 200.6,-155.04"/>
+</g>
+<!-- proc~sa -->
+<g id="proc~~solve_simulated_annealing~~CallsGraph_node3" class="node">
+<title>proc~sa</title>
+<g id="a_proc~~solve_simulated_annealing~~CallsGraph_node3"><a xlink:href="../proc/sa.html" xlink:title="simulated_annealing_type%sa">
+<polygon fill="#d9534f" stroke="#d9534f" points="367,-129.77 193,-129.77 193,-105.77 367,-105.77 367,-129.77"/>
+<text text-anchor="middle" x="280" y="-115.37" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">simulated_annealing_type%sa</text>
+</a>
+</g>
+</g>
+<!-- proc~solve_simulated_annealing&#45;&gt;proc~sa -->
+<g id="proc~~solve_simulated_annealing~~CallsGraph_edge2" class="edge">
+<title>proc~solve_simulated_annealing&#45;&gt;proc~sa</title>
+<path fill="none" stroke="#000000" d="M157.2,-130.59C165.62,-129.71 174.25,-128.8 182.85,-127.89"/>
+<polygon fill="#000000" stroke="#000000" points="183.33,-131.36 192.91,-126.83 182.6,-124.4 183.33,-131.36"/>
+</g>
+<!-- proc~exprep -->
+<g id="proc~~solve_simulated_annealing~~CallsGraph_node4" class="node">
+<title>proc~exprep</title>
+<g id="a_proc~~solve_simulated_annealing~~CallsGraph_node4"><a xlink:href="../proc/exprep.html" xlink:title="exprep">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="569.5,-234.77 515.5,-234.77 515.5,-210.77 569.5,-210.77 569.5,-234.77"/>
+<text text-anchor="middle" x="542.5" y="-220.37" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">exprep</text>
+</a>
+</g>
+</g>
+<!-- proc~sa&#45;&gt;proc~exprep -->
+<g id="proc~~solve_simulated_annealing~~CallsGraph_edge3" class="edge">
+<title>proc~sa&#45;&gt;proc~exprep</title>
+<path fill="none" stroke="#000000" d="M351.73,-129.88C357.16,-132.32 362.34,-135.26 367,-138.77 392.76,-158.17 376.4,-183.53 403,-201.77 433.05,-222.38 475.37,-226.06 505.3,-225.56"/>
+<polygon fill="#000000" stroke="#000000" points="505.45,-229.06 515.33,-225.24 505.22,-222.06 505.45,-229.06"/>
+</g>
+<!-- proc~func -->
+<g id="proc~~solve_simulated_annealing~~CallsGraph_node5" class="node">
+<title>proc~func</title>
+<g id="a_proc~~solve_simulated_annealing~~CallsGraph_node5"><a xlink:href="../proc/func.html" xlink:title="simulated_annealing_type%func">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="635,-192.77 450,-192.77 450,-168.77 635,-168.77 635,-192.77"/>
+<text text-anchor="middle" x="542.5" y="-178.37" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">simulated_annealing_type%func</text>
+</a>
+</g>
+</g>
+<!-- proc~sa&#45;&gt;proc~func -->
+<g id="proc~~solve_simulated_annealing~~CallsGraph_edge4" class="edge">
+<title>proc~sa&#45;&gt;proc~func</title>
+<path fill="none" stroke="#000000" d="M340.01,-129.78C349.18,-132.33 358.45,-135.32 367,-138.77 384.18,-145.71 385.53,-153.61 403,-159.77 414.67,-163.89 427.18,-167.2 439.72,-169.86"/>
+<polygon fill="#000000" stroke="#000000" points="439.29,-173.34 449.78,-171.86 440.65,-166.48 439.29,-173.34"/>
+</g>
+<!-- proc~perturb_and_evaluate -->
+<g id="proc~~solve_simulated_annealing~~CallsGraph_node6" class="node">
+<title>proc~perturb_and_evaluate</title>
+<g id="a_proc~~solve_simulated_annealing~~CallsGraph_node6"><a xlink:href="../proc/perturb_and_evaluate.html" xlink:title="simulated_annealing_type%perturb_and_evaluate">
+<polygon fill="#d9534f" stroke="#d9534f" points="682,-150.77 403,-150.77 403,-126.77 682,-126.77 682,-150.77"/>
+<text text-anchor="middle" x="542.5" y="-136.37" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">simulated_annealing_type%perturb_and_evaluate</text>
+</a>
+</g>
+</g>
+<!-- proc~sa&#45;&gt;proc~perturb_and_evaluate -->
+<g id="proc~~solve_simulated_annealing~~CallsGraph_edge5" class="edge">
+<title>proc~sa&#45;&gt;proc~perturb_and_evaluate</title>
+<path fill="none" stroke="#000000" d="M367.02,-124.7C375.33,-125.37 383.91,-126.07 392.6,-126.77"/>
+<polygon fill="#000000" stroke="#000000" points="392.6,-130.28 402.85,-127.59 393.16,-123.3 392.6,-130.28"/>
+</g>
+<!-- proc~print_vector -->
+<g id="proc~~solve_simulated_annealing~~CallsGraph_node7" class="node">
+<title>proc~print_vector</title>
+<g id="a_proc~~solve_simulated_annealing~~CallsGraph_node7"><a xlink:href="../proc/print_vector.html" xlink:title="print_vector">
+<polygon fill="#d9534f" stroke="#d9534f" points="580.5,-108.77 504.5,-108.77 504.5,-84.77 580.5,-84.77 580.5,-108.77"/>
+<text text-anchor="middle" x="542.5" y="-94.37" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">print_vector</text>
+</a>
+</g>
+</g>
+<!-- proc~sa&#45;&gt;proc~print_vector -->
+<g id="proc~~solve_simulated_annealing~~CallsGraph_edge6" class="edge">
+<title>proc~sa&#45;&gt;proc~print_vector</title>
+<path fill="none" stroke="#000000" d="M367.02,-110.84C409.37,-107.42 458.81,-103.44 494.22,-100.58"/>
+<polygon fill="#000000" stroke="#000000" points="494.59,-104.06 504.28,-99.77 494.03,-97.09 494.59,-104.06"/>
+</g>
+<!-- proc~rand_init -->
+<g id="proc~~solve_simulated_annealing~~CallsGraph_node8" class="node">
+<title>proc~rand_init</title>
+<g id="a_proc~~solve_simulated_annealing~~CallsGraph_node8"><a xlink:href="../proc/rand_init.html" xlink:title="rand_init">
+<polygon fill="#d9534f" stroke="#d9534f" points="572,-66.77 513,-66.77 513,-42.77 572,-42.77 572,-66.77"/>
+<text text-anchor="middle" x="542.5" y="-52.37" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">rand_init</text>
+</a>
+</g>
+</g>
+<!-- proc~sa&#45;&gt;proc~rand_init -->
+<g id="proc~~solve_simulated_annealing~~CallsGraph_edge7" class="edge">
+<title>proc~sa&#45;&gt;proc~rand_init</title>
+<path fill="none" stroke="#000000" d="M311.13,-105.69C335.54,-96.31 371.02,-83.63 403,-75.77 436.19,-67.61 474.68,-62.08 502.65,-58.75"/>
+<polygon fill="#000000" stroke="#000000" points="503.29,-62.2 512.82,-57.58 502.49,-55.25 503.29,-62.2"/>
+</g>
+<!-- proc~uniform_random_number -->
+<g id="proc~~solve_simulated_annealing~~CallsGraph_node9" class="node">
+<title>proc~uniform_random_number</title>
+<g id="a_proc~~solve_simulated_annealing~~CallsGraph_node9"><a xlink:href="../proc/uniform_random_number.html" xlink:title="uniform_random_number">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="1388,-127.77 1239,-127.77 1239,-103.77 1388,-103.77 1388,-127.77"/>
+<text text-anchor="middle" x="1313.5" y="-113.37" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">uniform_random_number</text>
+</a>
+</g>
+</g>
+<!-- proc~sa&#45;&gt;proc~uniform_random_number -->
+<g id="proc~~solve_simulated_annealing~~CallsGraph_edge8" class="edge">
+<title>proc~sa&#45;&gt;proc~uniform_random_number</title>
+<path fill="none" stroke="#000000" d="M293.2,-105.77C313.79,-86.42 357.64,-48.96 403,-33.77 588.19,28.24 646.71,-14.77 842,-14.77 842,-14.77 842,-14.77 1059,-14.77 1147.86,-14.77 1242.6,-69 1286.9,-97.98"/>
+<polygon fill="#000000" stroke="#000000" points="1285.05,-100.96 1295.32,-103.59 1288.93,-95.13 1285.05,-100.96"/>
+</g>
+<!-- proc~perturb_variable -->
+<g id="proc~~solve_simulated_annealing~~CallsGraph_node10" class="node">
+<title>proc~perturb_variable</title>
+<g id="a_proc~~solve_simulated_annealing~~CallsGraph_node10"><a xlink:href="../proc/perturb_variable.html" xlink:title="simulated_annealing_type%perturb_variable">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="968,-149.77 718,-149.77 718,-125.77 968,-125.77 968,-149.77"/>
+<text text-anchor="middle" x="843" y="-135.37" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">simulated_annealing_type%perturb_variable</text>
+</a>
+</g>
+</g>
+<!-- proc~perturb_and_evaluate&#45;&gt;proc~perturb_variable -->
+<g id="proc~~solve_simulated_annealing~~CallsGraph_edge9" class="edge">
+<title>proc~perturb_and_evaluate&#45;&gt;proc~perturb_variable</title>
+<path fill="none" stroke="#000000" d="M682.26,-138.31C690.71,-138.28 699.19,-138.25 707.62,-138.22"/>
+<polygon fill="#000000" stroke="#000000" points="707.87,-141.72 717.85,-138.19 707.84,-134.72 707.87,-141.72"/>
+</g>
+<!-- proc~bipareto -->
+<g id="proc~~solve_simulated_annealing~~CallsGraph_node11" class="node">
+<title>proc~bipareto</title>
+<g id="a_proc~~solve_simulated_annealing~~CallsGraph_node11"><a xlink:href="../proc/bipareto.html" xlink:title="bipareto">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="1086.5,-147.77 1029.5,-147.77 1029.5,-123.77 1086.5,-123.77 1086.5,-147.77"/>
+<text text-anchor="middle" x="1058" y="-133.37" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">bipareto</text>
+</a>
+</g>
+</g>
+<!-- proc~perturb_variable&#45;&gt;proc~bipareto -->
+<g id="proc~~solve_simulated_annealing~~CallsGraph_edge10" class="edge">
+<title>proc~perturb_variable&#45;&gt;proc~bipareto</title>
+<path fill="none" stroke="#000000" d="M968.21,-136.6C986.72,-136.43 1004.5,-136.26 1019.22,-136.12"/>
+<polygon fill="#000000" stroke="#000000" points="1019.39,-139.62 1029.36,-136.03 1019.33,-132.62 1019.39,-139.62"/>
+</g>
+<!-- proc~cauchy -->
+<g id="proc~~solve_simulated_annealing~~CallsGraph_node12" class="node">
+<title>proc~cauchy</title>
+<g id="a_proc~~solve_simulated_annealing~~CallsGraph_node12"><a xlink:href="../proc/cauchy.html" xlink:title="cauchy">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="1202.5,-107.77 1148.5,-107.77 1148.5,-83.77 1202.5,-83.77 1202.5,-107.77"/>
+<text text-anchor="middle" x="1175.5" y="-93.37" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">cauchy</text>
+</a>
+</g>
+</g>
+<!-- proc~perturb_variable&#45;&gt;proc~cauchy -->
+<g id="proc~~solve_simulated_annealing~~CallsGraph_edge11" class="edge">
+<title>proc~perturb_variable&#45;&gt;proc~cauchy</title>
+<path fill="none" stroke="#000000" d="M924.1,-125.75C949.61,-122.05 977.97,-118.09 1004,-114.77 1050.32,-108.86 1103.85,-103.06 1138.39,-99.46"/>
+<polygon fill="#000000" stroke="#000000" points="1138.89,-102.92 1148.47,-98.41 1138.16,-95.96 1138.89,-102.92"/>
+</g>
+<!-- proc~triangular_dist -->
+<g id="proc~~solve_simulated_annealing~~CallsGraph_node13" class="node">
+<title>proc~triangular_dist</title>
+<g id="a_proc~~solve_simulated_annealing~~CallsGraph_node13"><a xlink:href="../proc/triangular_dist.html" xlink:title="triangular_dist">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="1102.5,-67.77 1013.5,-67.77 1013.5,-43.77 1102.5,-43.77 1102.5,-67.77"/>
+<text text-anchor="middle" x="1058" y="-53.37" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">triangular_dist</text>
+</a>
+</g>
+</g>
+<!-- proc~perturb_variable&#45;&gt;proc~triangular_dist -->
+<g id="proc~~solve_simulated_annealing~~CallsGraph_edge12" class="edge">
+<title>proc~perturb_variable&#45;&gt;proc~triangular_dist</title>
+<path fill="none" stroke="#000000" d="M875.43,-125.67C912.82,-111.28 975.32,-87.21 1016.36,-71.42"/>
+<polygon fill="#000000" stroke="#000000" points="1017.71,-74.64 1025.79,-67.79 1015.2,-68.11 1017.71,-74.64"/>
+</g>
+<!-- proc~truncated_normal -->
+<g id="proc~~solve_simulated_annealing~~CallsGraph_node14" class="node">
+<title>proc~truncated_normal</title>
+<g id="a_proc~~solve_simulated_annealing~~CallsGraph_node14"><a xlink:href="../proc/truncated_normal.html" xlink:title="truncated_normal">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="1112,-227.77 1004,-227.77 1004,-203.77 1112,-203.77 1112,-227.77"/>
+<text text-anchor="middle" x="1058" y="-213.37" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">truncated_normal</text>
+</a>
+</g>
+</g>
+<!-- proc~perturb_variable&#45;&gt;proc~truncated_normal -->
+<g id="proc~~solve_simulated_annealing~~CallsGraph_edge13" class="edge">
+<title>proc~perturb_variable&#45;&gt;proc~truncated_normal</title>
+<path fill="none" stroke="#000000" d="M876.81,-149.79C913.79,-163.33 974.02,-185.38 1014.55,-200.22"/>
+<polygon fill="#000000" stroke="#000000" points="1013.55,-203.59 1024.15,-203.74 1015.96,-197.01 1013.55,-203.59"/>
+</g>
+<!-- proc~uniform -->
+<g id="proc~~solve_simulated_annealing~~CallsGraph_node15" class="node">
+<title>proc~uniform</title>
+<g id="a_proc~~solve_simulated_annealing~~CallsGraph_node15"><a xlink:href="../proc/uniform.html" xlink:title="uniform">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="1203,-187.77 1148,-187.77 1148,-163.77 1203,-163.77 1203,-187.77"/>
+<text text-anchor="middle" x="1175.5" y="-173.37" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">uniform</text>
+</a>
+</g>
+</g>
+<!-- proc~perturb_variable&#45;&gt;proc~uniform -->
+<g id="proc~~solve_simulated_annealing~~CallsGraph_edge14" class="edge">
+<title>proc~perturb_variable&#45;&gt;proc~uniform</title>
+<path fill="none" stroke="#000000" d="M944.27,-149.79C964.07,-152.13 984.69,-154.55 1004,-156.77 1050.12,-162.08 1103.29,-167.97 1137.82,-171.76"/>
+<polygon fill="#000000" stroke="#000000" points="1137.59,-175.26 1147.91,-172.87 1138.36,-168.3 1137.59,-175.26"/>
+</g>
+<!-- proc~bipareto&#45;&gt;proc~uniform_random_number -->
+<g id="proc~~solve_simulated_annealing~~CallsGraph_edge16" class="edge">
+<title>proc~bipareto&#45;&gt;proc~uniform_random_number</title>
+<path fill="none" stroke="#000000" d="M1086.61,-133.59C1120.53,-130.92 1179.62,-126.25 1228.86,-122.37"/>
+<polygon fill="#000000" stroke="#000000" points="1229.19,-125.85 1238.88,-121.58 1228.64,-118.88 1229.19,-125.85"/>
+</g>
+<!-- proc~bipareto&#45;&gt;proc~uniform -->
+<g id="proc~~solve_simulated_annealing~~CallsGraph_edge15" class="edge">
+<title>proc~bipareto&#45;&gt;proc~uniform</title>
+<path fill="none" stroke="#000000" d="M1086.67,-145.35C1102.17,-150.72 1121.7,-157.48 1138.4,-163.27"/>
+<polygon fill="#000000" stroke="#000000" points="1137.26,-166.58 1147.86,-166.54 1139.55,-159.96 1137.26,-166.58"/>
+</g>
+<!-- proc~cauchy&#45;&gt;proc~uniform_random_number -->
+<g id="proc~~solve_simulated_annealing~~CallsGraph_edge17" class="edge">
+<title>proc~cauchy&#45;&gt;proc~uniform_random_number</title>
+<path fill="none" stroke="#000000" d="M1202.72,-99.63C1210.51,-100.77 1219.5,-102.09 1228.91,-103.48"/>
+<polygon fill="#000000" stroke="#000000" points="1228.43,-106.94 1238.83,-104.94 1229.44,-100.02 1228.43,-106.94"/>
+</g>
+<!-- proc~triangular_dist&#45;&gt;proc~uniform_random_number -->
+<g id="proc~~solve_simulated_annealing~~CallsGraph_edge18" class="edge">
+<title>proc~triangular_dist&#45;&gt;proc~uniform_random_number</title>
+<path fill="none" stroke="#000000" d="M1102.64,-58.93C1131.45,-61.65 1169.85,-66.49 1203,-74.77 1227.99,-81.01 1255.11,-91.14 1276.11,-99.77"/>
+<polygon fill="#000000" stroke="#000000" points="1275.02,-103.1 1285.6,-103.73 1277.72,-96.65 1275.02,-103.1"/>
+</g>
+<!-- proc~truncated_normal&#45;&gt;proc~uniform -->
+<g id="proc~~solve_simulated_annealing~~CallsGraph_edge20" class="edge">
+<title>proc~truncated_normal&#45;&gt;proc~uniform</title>
+<path fill="none" stroke="#000000" d="M1093.65,-203.77C1107.8,-198.87 1124.16,-193.2 1138.44,-188.26"/>
+<polygon fill="#000000" stroke="#000000" points="1139.65,-191.54 1147.95,-184.97 1137.36,-184.93 1139.65,-191.54"/>
+</g>
+<!-- proc~normal -->
+<g id="proc~~solve_simulated_annealing~~CallsGraph_node16" class="node">
+<title>proc~normal</title>
+<g id="a_proc~~solve_simulated_annealing~~CallsGraph_node16"><a xlink:href="../proc/normal.html" xlink:title="normal">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="1202.5,-229.77 1148.5,-229.77 1148.5,-205.77 1202.5,-205.77 1202.5,-229.77"/>
+<text text-anchor="middle" x="1175.5" y="-215.37" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">normal</text>
+</a>
+</g>
+</g>
+<!-- proc~truncated_normal&#45;&gt;proc~normal -->
+<g id="proc~~solve_simulated_annealing~~CallsGraph_edge19" class="edge">
+<title>proc~truncated_normal&#45;&gt;proc~normal</title>
+<path fill="none" stroke="#000000" d="M1112.02,-216.69C1120.86,-216.84 1129.85,-217 1138.15,-217.14"/>
+<polygon fill="#000000" stroke="#000000" points="1138.17,-220.64 1148.23,-217.32 1138.29,-213.64 1138.17,-220.64"/>
+</g>
+<!-- proc~uniform&#45;&gt;proc~uniform_random_number -->
+<g id="proc~~solve_simulated_annealing~~CallsGraph_edge21" class="edge">
+<title>proc~uniform&#45;&gt;proc~uniform_random_number</title>
+<path fill="none" stroke="#000000" d="M1203.05,-164.06C1223.74,-154.93 1252.73,-142.14 1275.67,-132.02"/>
+<polygon fill="#000000" stroke="#000000" points="1277.35,-135.1 1285.09,-127.86 1274.53,-128.7 1277.35,-135.1"/>
+</g>
+<!-- proc~normal&#45;&gt;proc~uniform_random_number -->
+<g id="proc~~solve_simulated_annealing~~CallsGraph_edge22" class="edge">
+<title>proc~normal&#45;&gt;proc~uniform_random_number</title>
+<path fill="none" stroke="#000000" d="M1192.64,-205.67C1216.25,-187.96 1260.42,-154.83 1288.05,-134.11"/>
+<polygon fill="#000000" stroke="#000000" points="1290.49,-136.66 1296.39,-127.86 1286.29,-131.06 1290.49,-136.66"/>
+</g>
+</g>
+</svg>
+</div>                <script>
+                  var panprocsolve_simulated_annealingCallsGraph = svgPanZoom('#procsolve_simulated_annealingCallsGraph',
+                    {zoomEnabled: true, controlIconsEnabled: true, fit: true, center: true,}
+                  );
+                </script>          <div>
+            <a type="button" class="graph-help" data-bs-toggle="modal" href="#CallsGraph-help-text">Help</a>
+          </div>
+          <div class="modal fade" id="CallsGraph-help-text" tabindex="-1" role="dialog">
+            <div class="modal-dialog modal-lg" role="document">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h4 class="modal-title" id="-graph-help-label">Graph Key</h4>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+<p>Nodes of different colours represent the following: </p>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.43.0 (0)
+ -->
+<!-- Title: Graph Key Pages: 1 -->
+<svg width="641pt" height="28pt"
+ viewBox="0.00 0.00 641.00 27.51" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(0.86 0.86) rotate(0) translate(4 28)">
+<title>Graph Key</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-28 741.5,-28 741.5,4 -4,4"/>
+<!-- Subroutine -->
+<g id="node1" class="node">
+<title>Subroutine</title>
+<polygon fill="#d9534f" stroke="#d9534f" points="70,-24 0,-24 0,0 70,0 70,-24"/>
+<text text-anchor="middle" x="35" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Subroutine</text>
+</g>
+<!-- Function -->
+<g id="node2" class="node">
+<title>Function</title>
+<polygon fill="#d94e8f" stroke="#d94e8f" points="146,-24 88,-24 88,0 146,0 146,-24"/>
+<text text-anchor="middle" x="117" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Function</text>
+</g>
+<!-- Interface -->
+<g id="node3" class="node">
+<title>Interface</title>
+<polygon fill="#a7506f" stroke="#a7506f" points="225.5,-24 164.5,-24 164.5,0 225.5,0 225.5,-24"/>
+<text text-anchor="middle" x="195" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Interface</text>
+</g>
+<!-- Type Bound Procedure -->
+<g id="node4" class="node">
+<title>Type Bound Procedure</title>
+<polygon fill="#a7506f" stroke="#a7506f" points="374,-24 244,-24 244,0 374,0 374,-24"/>
+<text text-anchor="middle" x="309" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Type Bound Procedure</text>
+</g>
+<!-- Unknown Procedure Type -->
+<g id="node5" class="node">
+<title>Unknown Procedure Type</title>
+<polygon fill="#777777" stroke="#777777" points="537.5,-24 392.5,-24 392.5,0 537.5,0 537.5,-24"/>
+<text text-anchor="middle" x="465" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Unknown Procedure Type</text>
+</g>
+<!-- Program -->
+<g id="node6" class="node">
+<title>Program</title>
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="614,-24 556,-24 556,0 614,0 614,-24"/>
+<text text-anchor="middle" x="585" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Program</text>
+</g>
+<!-- This Page&#39;s Entity -->
+<g id="node7" class="node">
+<title>This Page&#39;s Entity</title>
+<polygon fill="none" stroke="black" points="737.5,-24 632.5,-24 632.5,0 737.5,0 737.5,-24"/>
+<text text-anchor="middle" x="685" y="-9.6" font-family="Helvetica,sans-Serif" font-size="10.50">This Page&#39;s Entity</text>
+</g>
+</g>
+</svg>
+
+<p>Solid arrows point from a procedure to one which it calls. Dashed 
+arrows point from an interface to procedures which implement that interface.
+This could include the module procedures in a generic interface or the
+implementation in a submodule of an interface in a parent module.
+</p>
+ </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <br>
+
+
+    
+    
+
+    
+    
+
+
+
+    
+    <section>
+    <h2><span class="anchor" id="src"></span>Source Code</h2>
+    <div class="hl codehilite"><pre><span></span><span class="w">    </span><span class="k">subroutine </span><span class="n">solve_simulated_annealing</span><span class="p">(</span><span class="n">iproblem</span><span class="p">,</span><span class="w"> </span><span class="n">n</span><span class="p">,</span><span class="w"> </span><span class="n">x</span><span class="p">,</span><span class="w"> </span><span class="n">rt</span><span class="p">,</span><span class="w"> </span><span class="n">t</span><span class="p">,</span><span class="w"> </span><span class="n">vm</span><span class="p">,</span><span class="w"> </span><span class="p">&amp;</span>
+<span class="w">                                         </span><span class="n">xopt</span><span class="p">,</span><span class="w"> </span><span class="n">fopt</span><span class="p">,</span><span class="w"> </span><span class="n">nacc</span><span class="p">,</span><span class="w"> </span><span class="n">nfcnev</span><span class="p">,</span><span class="w"> </span><span class="n">ier</span><span class="p">)</span><span class="w"> </span><span class="p">&amp;</span>
+<span class="w">      </span><span class="k">bind</span><span class="p">(</span><span class="n">C</span><span class="p">,</span><span class="w"> </span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;solve_simulated_annealing&quot;</span><span class="p">)</span>
+
+<span class="w">        </span><span class="kt">integer</span><span class="p">(</span><span class="kt">c_intptr_t</span><span class="p">),</span><span class="w"> </span><span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">),</span><span class="w"> </span><span class="k">value</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">iproblem</span>
+<span class="w">        </span><span class="kt">integer</span><span class="p">(</span><span class="kt">c_int</span><span class="p">),</span><span class="w"> </span><span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">),</span><span class="w"> </span><span class="k">value</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">n</span>
+<span class="w">        </span><span class="kt">real</span><span class="p">(</span><span class="kt">c_double</span><span class="p">),</span><span class="w"> </span><span class="k">dimension</span><span class="p">(</span><span class="n">n</span><span class="p">),</span><span class="w"> </span><span class="k">intent</span><span class="p">(</span><span class="n">inout</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">x</span>
+<span class="w">        </span><span class="kt">real</span><span class="p">(</span><span class="kt">c_double</span><span class="p">),</span><span class="w"> </span><span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">),</span><span class="w"> </span><span class="k">value</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">rt</span>
+<span class="w">        </span><span class="kt">real</span><span class="p">(</span><span class="kt">c_double</span><span class="p">),</span><span class="w"> </span><span class="k">intent</span><span class="p">(</span><span class="n">inout</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">t</span>
+<span class="w">        </span><span class="kt">real</span><span class="p">(</span><span class="kt">c_double</span><span class="p">),</span><span class="w"> </span><span class="k">dimension</span><span class="p">(</span><span class="n">n</span><span class="p">),</span><span class="w"> </span><span class="k">intent</span><span class="p">(</span><span class="n">inout</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">vm</span>
+<span class="w">        </span><span class="kt">real</span><span class="p">(</span><span class="kt">c_double</span><span class="p">),</span><span class="w"> </span><span class="k">dimension</span><span class="p">(</span><span class="n">n</span><span class="p">),</span><span class="w"> </span><span class="k">intent</span><span class="p">(</span><span class="n">out</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">xopt</span>
+<span class="w">        </span><span class="kt">real</span><span class="p">(</span><span class="kt">c_double</span><span class="p">),</span><span class="w"> </span><span class="k">intent</span><span class="p">(</span><span class="n">out</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">fopt</span>
+<span class="w">        </span><span class="kt">integer</span><span class="p">(</span><span class="kt">c_int</span><span class="p">),</span><span class="w"> </span><span class="k">intent</span><span class="p">(</span><span class="n">out</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">nacc</span>
+<span class="w">        </span><span class="kt">integer</span><span class="p">(</span><span class="kt">c_int</span><span class="p">),</span><span class="w"> </span><span class="k">intent</span><span class="p">(</span><span class="n">out</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">nfcnev</span>
+<span class="w">        </span><span class="kt">integer</span><span class="p">(</span><span class="kt">c_int</span><span class="p">),</span><span class="w"> </span><span class="k">intent</span><span class="p">(</span><span class="n">out</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">ier</span>
+
+<span class="w">        </span><span class="k">type</span><span class="p">(</span><span class="n">c_sa_wrapper_type</span><span class="p">),</span><span class="w"> </span><span class="k">pointer</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">wrapper</span>
+
+<span class="w">        </span><span class="k">call </span><span class="n">int_pointer_to_f_pointer</span><span class="p">(</span><span class="n">iproblem</span><span class="p">,</span><span class="w"> </span><span class="n">wrapper</span><span class="p">)</span>
+
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nb">associated</span><span class="p">(</span><span class="n">wrapper</span><span class="p">))</span><span class="w"> </span><span class="k">then</span>
+<span class="k">            call </span><span class="n">wrapper</span><span class="p">%</span><span class="n">optimize</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">x</span><span class="p">,</span><span class="w"> </span><span class="n">rt</span><span class="o">=</span><span class="n">rt</span><span class="p">,</span><span class="w"> </span><span class="n">t</span><span class="o">=</span><span class="n">t</span><span class="p">,</span><span class="w"> </span><span class="n">vm</span><span class="o">=</span><span class="n">vm</span><span class="p">,</span><span class="w"> </span><span class="p">&amp;</span>
+<span class="w">                                  </span><span class="n">xopt</span><span class="o">=</span><span class="n">xopt</span><span class="p">,</span><span class="w"> </span><span class="n">fopt</span><span class="o">=</span><span class="n">fopt</span><span class="p">,</span><span class="w"> </span><span class="n">nacc</span><span class="o">=</span><span class="n">nacc</span><span class="p">,</span><span class="w"> </span><span class="p">&amp;</span>
+<span class="w">                                  </span><span class="n">nfcnev</span><span class="o">=</span><span class="n">nfcnev</span><span class="p">,</span><span class="w"> </span><span class="n">ier</span><span class="o">=</span><span class="n">ier</span><span class="p">)</span>
+<span class="w">        </span><span class="k">else</span>
+<span class="k">            error stop</span><span class="w"> </span><span class="s1">&#39;error in solve_simulated_annealing: wrapper or SA class is not associated&#39;</span>
+<span class="w">        </span><span class="k">end if</span>
+
+<span class="k">    end subroutine </span><span class="n">solve_simulated_annealing</span>
+</pre></div>
+
+    </section>
+    <br>
+    
+    </div>
+  </div>
+
+      <hr>
+    </div> <!-- /container -->
+    <footer>
+      <div class="container">
+        <div class="row justify-content-between">
+          <div class="col">
+            <p>
+              simulated-annealing
+ was developed by Jacob Williams<br>              &copy; 2026 
+</p>
+          </div>
+          <div class="col">
+            <p class="text-end">
+              Documentation generated by
+              <a href="https://github.com/Fortran-FOSS-Programmers/ford">FORD</a>
+            </p>
+          </div>
+        </div>
+        <br>
+      </div> <!-- /container -->
+    </footer>
+  </body>
+</html>
