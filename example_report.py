@@ -19,7 +19,7 @@ def rosenbrock(x):
 def report_callback(x, f, istat):
     """
     Callback function to capture intermediate results.
-    
+
     Parameters:
     -----------
     x : array

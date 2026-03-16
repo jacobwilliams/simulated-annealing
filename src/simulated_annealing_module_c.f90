@@ -10,7 +10,7 @@ module simulated_annealing_module_c
                              c_intptr_t, c_ptr, c_loc, c_f_pointer, &
                              c_null_ptr, c_associated, c_bool, c_funptr, &
                              c_f_procpointer, c_null_funptr
-    use simulated_annealing_module, only: simulated_annealing_type, wp => simann_wp
+    use simulated_annealing_module, wp => simann_wp
 
     implicit none
 
@@ -256,87 +256,20 @@ contains
         ! Initialize the class with appropriate function pointers
         if (use_serial_mode) then
             if (use_report) then
-                call wrapper%initialize(n=n, lb=lb, ub=ub, c=c, &
-                                 maximize=logical(maximize), &
-                                 eps=eps, ns=ns, nt=nt, neps=neps, maxevl=maxevl, &
-                                 iprint=iprint, iseed1=iseed1, iseed2=iseed2, &
-                                 step_mode=step_mode, vms=vms, iunit=iunit, &
-                                 use_initial_guess=logical(use_initial_guess), &
-                                 n_resets=n_resets, &
-                                 cooling_schedule=cooling_schedule, &
-                                 cooling_param=cooling_param, &
-                                 optimal_f_specified=logical(optimal_f_specified), &
-                                 optimal_f=optimal_f, &
-                                 optimal_f_tol=optimal_f_tol, &
-                                 distribution_mode=distribution_mode, &
-                                 dist_std_dev=dist_std_dev, &
-                                 dist_scale=dist_scale, &
-                                 dist_shape=dist_shape, &
-                                 fcn=fcn_wrapper, &
-                                 ireport=ireport, &
-                                 report=report_wrapper)
+                call init(fcn=fcn_wrapper, report=report_wrapper)
             else
-                call wrapper%initialize(n=n, lb=lb, ub=ub, c=c, &
-                                 maximize=logical(maximize), &
-                                 eps=eps, ns=ns, nt=nt, neps=neps, maxevl=maxevl, &
-                                 iprint=iprint, iseed1=iseed1, iseed2=iseed2, &
-                                 step_mode=step_mode, vms=vms, iunit=iunit, &
-                                 use_initial_guess=logical(use_initial_guess), &
-                                 n_resets=n_resets, &
-                                 cooling_schedule=cooling_schedule, &
-                                 cooling_param=cooling_param, &
-                                 optimal_f_specified=logical(optimal_f_specified), &
-                                 optimal_f=optimal_f, &
-                                 optimal_f_tol=optimal_f_tol, &
-                                 distribution_mode=distribution_mode, &
-                                 dist_std_dev=dist_std_dev, &
-                                 dist_scale=dist_scale, &
-                                 dist_shape=dist_shape, &
-                                 fcn=fcn_wrapper)
+                call init(fcn=fcn_wrapper)
             end if
         else if (use_parallel_mode) then
             if (use_report) then
-                call wrapper%initialize(n=n, lb=lb, ub=ub, c=c, &
-                                 maximize=logical(maximize), &
-                                 eps=eps, ns=ns, nt=nt, neps=neps, maxevl=maxevl, &
-                                 iprint=iprint, iseed1=iseed1, iseed2=iseed2, &
-                                 step_mode=step_mode, vms=vms, iunit=iunit, &
-                                 use_initial_guess=logical(use_initial_guess), &
-                                 n_resets=n_resets, &
-                                 cooling_schedule=cooling_schedule, &
-                                 cooling_param=cooling_param, &
-                                 optimal_f_specified=logical(optimal_f_specified), &
-                                 optimal_f=optimal_f, &
-                                 optimal_f_tol=optimal_f_tol, &
-                                 distribution_mode=distribution_mode, &
-                                 dist_std_dev=dist_std_dev, &
-                                 dist_scale=dist_scale, &
-                                 dist_shape=dist_shape, &
-                                 n_inputs_to_send=n_inputs_wrapper, &
-                                 fcn_parallel_input=fcn_parallel_input_wrapper, &
-                                 fcn_parallel_output=fcn_parallel_output_wrapper, &
-                                 ireport=ireport, &
-                                 report=report_wrapper)
+                call init(n_inputs_to_send=n_inputs_wrapper, &
+                          fcn_parallel_input=fcn_parallel_input_wrapper, &
+                          fcn_parallel_output=fcn_parallel_output_wrapper, &
+                          report=report_wrapper)
             else
-                call wrapper%initialize(n=n, lb=lb, ub=ub, c=c, &
-                                 maximize=logical(maximize), &
-                                 eps=eps, ns=ns, nt=nt, neps=neps, maxevl=maxevl, &
-                                 iprint=iprint, iseed1=iseed1, iseed2=iseed2, &
-                                 step_mode=step_mode, vms=vms, iunit=iunit, &
-                                 use_initial_guess=logical(use_initial_guess), &
-                                 n_resets=n_resets, &
-                                 cooling_schedule=cooling_schedule, &
-                                 cooling_param=cooling_param, &
-                                 optimal_f_specified=logical(optimal_f_specified), &
-                                 optimal_f=optimal_f, &
-                                 optimal_f_tol=optimal_f_tol, &
-                                 distribution_mode=distribution_mode, &
-                                 dist_std_dev=dist_std_dev, &
-                                 dist_scale=dist_scale, &
-                                 dist_shape=dist_shape, &
-                                 n_inputs_to_send=n_inputs_wrapper, &
-                                 fcn_parallel_input=fcn_parallel_input_wrapper, &
-                                 fcn_parallel_output=fcn_parallel_output_wrapper)
+                call init(n_inputs_to_send=n_inputs_wrapper, &
+                          fcn_parallel_input=fcn_parallel_input_wrapper, &
+                          fcn_parallel_output=fcn_parallel_output_wrapper)
             end if
         else
             error stop 'Error: either fcn (serial mode) or all of n_inputs_to_send, '//&
@@ -345,6 +278,39 @@ contains
 
         ! Return converted pointer to C (pointer to the wrapper)
         iproblem = wrapper%iproblem
+
+        contains
+            subroutine init(fcn, n_inputs_to_send, fcn_parallel_input, fcn_parallel_output, report)
+                !! this is just a wrapper to initialize, to eliminate
+                !! some duplicated code depending on which callbacks are provided.
+                procedure(sa_func),optional                       :: fcn
+                procedure(sa_func_parallel_inputs),optional       :: n_inputs_to_send
+                procedure(sa_func_parallel_inputs_func),optional  :: fcn_parallel_input
+                procedure(sa_func_parallel_output_func),optional  :: fcn_parallel_output
+                procedure(sa_report_func),optional                :: report
+                call wrapper%initialize(n=n, lb=lb, ub=ub, c=c, &
+                                        maximize=logical(maximize), &
+                                        eps=eps, ns=ns, nt=nt, neps=neps, maxevl=maxevl, &
+                                        iprint=iprint, iseed1=iseed1, iseed2=iseed2, &
+                                        step_mode=step_mode, vms=vms, iunit=iunit, &
+                                        use_initial_guess=logical(use_initial_guess), &
+                                        n_resets=n_resets, &
+                                        cooling_schedule=cooling_schedule, &
+                                        cooling_param=cooling_param, &
+                                        optimal_f_specified=logical(optimal_f_specified), &
+                                        optimal_f=optimal_f, &
+                                        optimal_f_tol=optimal_f_tol, &
+                                        distribution_mode=distribution_mode, &
+                                        dist_std_dev=dist_std_dev, &
+                                        dist_scale=dist_scale, &
+                                        dist_shape=dist_shape, &
+                                        fcn=fcn,&
+                                        n_inputs_to_send=n_inputs_to_send, &
+                                        fcn_parallel_input=fcn_parallel_input, &
+                                        fcn_parallel_output=fcn_parallel_output, &
+                                        ireport=ireport, &
+                                        report=report)
+            end subroutine init
 
     end subroutine initialize_simulated_annealing
 

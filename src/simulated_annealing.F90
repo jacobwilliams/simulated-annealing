@@ -309,6 +309,12 @@ module simulated_annealing_module
          real(wp) :: r  !! random value within [lower, upper]
       end function dist_func
    end interface
+   ! these are public so we can use them in the C interface:
+   public :: sa_func
+   public :: sa_report_func
+   public :: sa_func_parallel_inputs
+   public :: sa_func_parallel_inputs_func
+   public :: sa_func_parallel_output_func
    !*******************************************************
 
    public :: print_vector
