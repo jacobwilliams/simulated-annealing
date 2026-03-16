@@ -9,8 +9,8 @@ module simulated_annealing_module_c
     use iso_c_binding, only: c_double, c_int, c_char, c_null_char, &
                              c_intptr_t, c_ptr, c_loc, c_f_pointer, &
                              c_null_ptr, c_associated, c_bool, c_funptr, &
-                             c_f_procpointer
-    use simulated_annealing_module, only: simulated_annealing_type, wp => simann_wp
+                             c_f_procpointer, c_null_funptr
+    use simulated_annealing_module, wp => simann_wp
 
     implicit none
 
@@ -55,6 +55,16 @@ module simulated_annealing_module_c
             real(c_double), intent(out) :: f
             integer(c_int), intent(out) :: istat
         end subroutine c_sa_func_parallel_output_func
+
+        subroutine c_sa_report_func(iproblem, x, n, f, istat) bind(c)
+            import :: c_double, c_int, c_intptr_t
+            implicit none
+            integer(c_intptr_t), value :: iproblem
+            integer(c_int), intent(in), value :: n
+            real(c_double), dimension(n), intent(in) :: x
+            real(c_double), intent(in), value :: f
+            integer(c_int), intent(in), value :: istat
+        end subroutine c_sa_report_func
     end interface
 
     type,extends(simulated_annealing_type) :: c_sa_wrapper_type
@@ -64,6 +74,7 @@ module simulated_annealing_module_c
         procedure(c_sa_func_parallel_inputs), pointer, nopass :: c_n_inputs_ptr => null()
         procedure(c_sa_func_parallel_inputs_func), pointer, nopass :: c_fcn_parallel_input_ptr => null()
         procedure(c_sa_func_parallel_output_func), pointer, nopass :: c_fcn_parallel_output_ptr => null()
+        procedure(c_sa_report_func), pointer, nopass :: c_report_ptr => null()
         integer(c_intptr_t) :: iproblem = 0  !! pointer to this wrapper (for callbacks)
     end type c_sa_wrapper_type
 
@@ -143,6 +154,19 @@ contains
 
     end subroutine fcn_parallel_output_wrapper
 
+    subroutine report_wrapper(me, x, f, istat)
+        class(simulated_annealing_type), intent(inout) :: me
+        real(wp), dimension(:), intent(in) :: x
+        real(wp), intent(in) :: f
+        integer, intent(in) :: istat
+
+        select type (me)
+         type is (c_sa_wrapper_type)
+            call me%c_report_ptr(me%iproblem, x, size(x), f, istat)
+        end select
+
+    end subroutine report_wrapper
+
 !*****************************************************************************************
 !>
 !  create a [[simulated_annealing_type]] from C
@@ -155,7 +179,8 @@ contains
                                               optimal_f_specified, optimal_f, optimal_f_tol, &
                                               distribution_mode, dist_std_dev, &
                                               dist_scale, dist_shape, &
-                                              fcn, n_inputs_to_send, fcn_parallel_input, fcn_parallel_output) &
+                                              fcn, n_inputs_to_send, fcn_parallel_input, fcn_parallel_output, &
+                                              ireport, report) &
       bind(C, name="initialize_simulated_annealing")
 
         integer(c_intptr_t), intent(out) :: iproblem
@@ -190,10 +215,12 @@ contains
         type(c_funptr), intent(in), value :: n_inputs_to_send  !! C function pointer (can be C_NULL_FUNPTR)
         type(c_funptr), intent(in), value :: fcn_parallel_input  !! C function pointer (can be C_NULL_FUNPTR)
         type(c_funptr), intent(in), value :: fcn_parallel_output  !! C function pointer (can be C_NULL_FUNPTR)
+        integer(c_int), intent(in), value :: ireport  !! how often to report
+        type(c_funptr), intent(in), value :: report  !! C function pointer for reporting (can be C_NULL_FUNPTR)
 
         type(c_sa_wrapper_type), pointer :: wrapper
         type(c_ptr) :: cp
-        logical :: use_serial_mode, use_parallel_mode
+        logical :: use_serial_mode, use_parallel_mode, use_report
 
         ! Allocate the wrapper
         allocate (wrapper)
@@ -220,45 +247,30 @@ contains
             use_parallel_mode = .true.
         end if
 
+        use_report = .false.
+        if (c_associated(report)) then
+            call c_f_procpointer(report, wrapper%c_report_ptr)
+            use_report = .true.
+        end if
+
         ! Initialize the class with appropriate function pointers
         if (use_serial_mode) then
-            call wrapper%initialize(n=n, lb=lb, ub=ub, c=c, &
-                             maximize=logical(maximize), &
-                             eps=eps, ns=ns, nt=nt, neps=neps, maxevl=maxevl, &
-                             iprint=iprint, iseed1=iseed1, iseed2=iseed2, &
-                             step_mode=step_mode, vms=vms, iunit=iunit, &
-                             use_initial_guess=logical(use_initial_guess), &
-                             n_resets=n_resets, &
-                             cooling_schedule=cooling_schedule, &
-                             cooling_param=cooling_param, &
-                             optimal_f_specified=logical(optimal_f_specified), &
-                             optimal_f=optimal_f, &
-                             optimal_f_tol=optimal_f_tol, &
-                             distribution_mode=distribution_mode, &
-                             dist_std_dev=dist_std_dev, &
-                             dist_scale=dist_scale, &
-                             dist_shape=dist_shape, &
-                             fcn=fcn_wrapper)
+            if (use_report) then
+                call init(fcn=fcn_wrapper, report=report_wrapper)
+            else
+                call init(fcn=fcn_wrapper)
+            end if
         else if (use_parallel_mode) then
-            call wrapper%initialize(n=n, lb=lb, ub=ub, c=c, &
-                             maximize=logical(maximize), &
-                             eps=eps, ns=ns, nt=nt, neps=neps, maxevl=maxevl, &
-                             iprint=iprint, iseed1=iseed1, iseed2=iseed2, &
-                             step_mode=step_mode, vms=vms, iunit=iunit, &
-                             use_initial_guess=logical(use_initial_guess), &
-                             n_resets=n_resets, &
-                             cooling_schedule=cooling_schedule, &
-                             cooling_param=cooling_param, &
-                             optimal_f_specified=logical(optimal_f_specified), &
-                             optimal_f=optimal_f, &
-                             optimal_f_tol=optimal_f_tol, &
-                             distribution_mode=distribution_mode, &
-                             dist_std_dev=dist_std_dev, &
-                             dist_scale=dist_scale, &
-                             dist_shape=dist_shape, &
-                             n_inputs_to_send=n_inputs_wrapper, &
-                             fcn_parallel_input=fcn_parallel_input_wrapper, &
-                             fcn_parallel_output=fcn_parallel_output_wrapper)
+            if (use_report) then
+                call init(n_inputs_to_send=n_inputs_wrapper, &
+                          fcn_parallel_input=fcn_parallel_input_wrapper, &
+                          fcn_parallel_output=fcn_parallel_output_wrapper, &
+                          report=report_wrapper)
+            else
+                call init(n_inputs_to_send=n_inputs_wrapper, &
+                          fcn_parallel_input=fcn_parallel_input_wrapper, &
+                          fcn_parallel_output=fcn_parallel_output_wrapper)
+            end if
         else
             error stop 'Error: either fcn (serial mode) or all of n_inputs_to_send, '//&
                        'fcn_parallel_input and fcn_parallel_output (parallel mode) must be provided.'
@@ -266,6 +278,39 @@ contains
 
         ! Return converted pointer to C (pointer to the wrapper)
         iproblem = wrapper%iproblem
+
+        contains
+            subroutine init(fcn, n_inputs_to_send, fcn_parallel_input, fcn_parallel_output, report)
+                !! this is just a wrapper to initialize, to eliminate
+                !! some duplicated code depending on which callbacks are provided.
+                procedure(sa_func),optional                       :: fcn
+                procedure(sa_func_parallel_inputs),optional       :: n_inputs_to_send
+                procedure(sa_func_parallel_inputs_func),optional  :: fcn_parallel_input
+                procedure(sa_func_parallel_output_func),optional  :: fcn_parallel_output
+                procedure(sa_report_func),optional                :: report
+                call wrapper%initialize(n=n, lb=lb, ub=ub, c=c, &
+                                        maximize=logical(maximize), &
+                                        eps=eps, ns=ns, nt=nt, neps=neps, maxevl=maxevl, &
+                                        iprint=iprint, iseed1=iseed1, iseed2=iseed2, &
+                                        step_mode=step_mode, vms=vms, iunit=iunit, &
+                                        use_initial_guess=logical(use_initial_guess), &
+                                        n_resets=n_resets, &
+                                        cooling_schedule=cooling_schedule, &
+                                        cooling_param=cooling_param, &
+                                        optimal_f_specified=logical(optimal_f_specified), &
+                                        optimal_f=optimal_f, &
+                                        optimal_f_tol=optimal_f_tol, &
+                                        distribution_mode=distribution_mode, &
+                                        dist_std_dev=dist_std_dev, &
+                                        dist_scale=dist_scale, &
+                                        dist_shape=dist_shape, &
+                                        fcn=fcn,&
+                                        n_inputs_to_send=n_inputs_to_send, &
+                                        fcn_parallel_input=fcn_parallel_input, &
+                                        fcn_parallel_output=fcn_parallel_output, &
+                                        ireport=ireport, &
+                                        report=report)
+            end subroutine init
 
     end subroutine initialize_simulated_annealing
 

@@ -1,7 +1,9 @@
 """
-    Main code for the Python interface to the Fortran simulated annealing library.
+    Main code for the Python interface to the Fortran simulated
+    annealing library.
     This module defines the sa_fortran class, which provides methods to
-    initialize the optimizer, solve optimization problems, and clean up resources.
+    initialize the optimizer, solve optimization problems, and clean
+    up resources.
     It uses ctypes to call the Fortran library functions and to define callback
     function signatures for both serial and parallel modes.
 """
@@ -56,13 +58,26 @@ CALLBACK_PARALLEL_OUTPUT = ctypes.CFUNCTYPE(
     ctypes.POINTER(ctypes.c_int)  # istat
 )
 
+# Define callback type for reporting intermediate results
+CALLBACK_REPORT = ctypes.CFUNCTYPE(
+    None,
+    ctypes.c_size_t,  # iproblem
+    ctypes.POINTER(ctypes.c_double),  # x
+    ctypes.c_int,  # n
+    ctypes.c_double,  # f (value, not pointer)
+    ctypes.c_int  # istat (value, not pointer)
+)
+
 
 class sa_fortran():
     """
-    This module provides an interface to the Fortran simulated annealing library.
+    This module provides an interface to the Fortran simulated
+    annealing library.
     It allows users to call the Fortran library from Python using ctypes.
-    The Fortran library is built as a shared library and can be used in Python by loading it with ctypes.
-    The example provided demonstrates how to use the library to minimize the Rosenbrock function.
+    The Fortran library is built as a shared library and can be used in
+    Python by loading it with ctypes.
+    The example provided demonstrates how to use the library to minimize
+    the Rosenbrock function.
     """
 
     def __init__(self):
@@ -109,6 +124,8 @@ class sa_fortran():
             ctypes.c_void_p,  # n_inputs_to_send (NULL for serial)
             ctypes.c_void_p,  # fcn_parallel_input (NULL for serial)
             ctypes.c_void_p,  # fcn_parallel_output (NULL for serial)
+            ctypes.c_int,  # ireport
+            ctypes.c_void_p,  # report (function pointer, NULL if not used)
         ]
         self.lib.initialize_simulated_annealing.restype = None
 
@@ -127,12 +144,14 @@ class sa_fortran():
         ]
         self.lib.solve_simulated_annealing.restype = None
 
-        self.lib.destroy_simulated_annealing.argtypes = [ctypes.c_size_t]  # iproblem (pass by value)
+        # iproblem (pass by value):
+        self.lib.destroy_simulated_annealing.argtypes = [ctypes.c_size_t]
         self.lib.destroy_simulated_annealing.restype = None
 
         # Instance variables
         self.iproblem = None
-        self.callback_ref = None  # Keep reference to prevent garbage collection
+        # Keep reference to prevent garbage collection
+        self.callback_ref = None
         self.n = None
 
     def initialize(self, n, lb, ub, fcn=None, c=None, maximize=False, eps=1e-6,
@@ -140,9 +159,12 @@ class sa_fortran():
                    iseed1=1234, iseed2=5678, step_mode=1, vms=0.1, iunit=6,
                    use_initial_guess=True, n_resets=1, cooling_schedule=1,
                    cooling_param=1.0, optimal_f_specified=False, optimal_f=0.0,
-                   optimal_f_tol=1e-4, distribution_mode=None, dist_std_dev=None,
+                   optimal_f_tol=1e-4, distribution_mode=None,
+                   dist_std_dev=None,
                    dist_scale=None, dist_shape=None,
-                   n_inputs_to_send=None, fcn_parallel_input=None, fcn_parallel_output=None):
+                   n_inputs_to_send=None, fcn_parallel_input=None,
+                   fcn_parallel_output=None,
+                   ireport=0, report=None):
         """
         Initialize the simulated annealing optimizer.
 
@@ -167,7 +189,8 @@ class sa_fortran():
         ns : int, optional
             Number of cycles before step adjustment (default: 20)
         nt : int, optional
-            Number of iterations before temperature reduction (default: max(100, 5*n))
+            Number of iterations before temperature reduction
+            (default: max(100, 5*n))
         neps : int, optional
             Number of final values for termination check (default: 4)
         maxevl : int, optional
@@ -187,7 +210,8 @@ class sa_fortran():
         n_resets : int, optional
             Number of main loop resets (default: 1)
         cooling_schedule : int, optional
-            Temperature schedule: 1=geometric, 2=fast, 3=huang, 4=boltzmann, 5=logarithmic (default: 1)
+            Temperature schedule: 1=geometric, 2=fast, 3=huang, 4=boltzmann,
+            5=logarithmic (default: 1)
         cooling_param : float, optional
             Parameter for cooling schedules 3 and 5 (default: 1.0)
         optimal_f_specified : bool, optional
@@ -197,7 +221,8 @@ class sa_fortran():
         optimal_f_tol : float, optional
             Tolerance for optimal_f check (default: 1e-4)
         distribution_mode : array-like, optional
-            Distribution for perturbations per variable: 1=uniform, 2=normal, 3=cauchy, 4=triangular, 5=bipareto (default: 1 for all)
+            Distribution for perturbations per variable: 1=uniform, 2=normal,
+            3=cauchy, 4=triangular, 5=bipareto (default: 1 for all)
         dist_std_dev : array-like, optional
             Standard deviation for normal distribution (default: 1.0 for all)
         dist_scale : array-like, optional
@@ -206,13 +231,29 @@ class sa_fortran():
             Shape for bipareto (default: 1.0 for all)
         n_inputs_to_send : callable, optional
             Callback for parallel mode: n_inputs_to_send(iproblem) -> n_inputs
-            Returns number of inputs ready to evaluate. Required for parallel mode.
+            Returns number of inputs ready to evaluate.
+            Required for parallel mode.
         fcn_parallel_input : callable, optional
-            Callback for parallel mode: fcn_parallel_input(iproblem, x, n, n_inputs)
+            Callback for parallel mode:
+            fcn_parallel_input(iproblem, x, n, n_inputs)
             Receives batch of inputs to evaluate. Required for parallel mode.
         fcn_parallel_output : callable, optional
-            Callback for parallel mode: fcn_parallel_output(iproblem, x, n, f, istat)
+            Callback for parallel mode:
+            fcn_parallel_output(iproblem, x, n, f, istat)
             Returns one completed result. Required for parallel mode.
+        ireport : int, optional
+            How often to report intermediate results (default: 0):
+
+            * 0 : no intermediate reports
+            * 1 : report each function evaluation
+            * 2 : report after each new optimal value is found
+            * 3 : report each function evaluation and each new
+              optimal value found
+        report : callable, optional
+            Callback for reporting: report(x, f, istat)
+            where x is array of size n, f is scalar function value,
+            and istat indicates: 1=function evaluation, 2=new optimal found.
+            Only called if ireport > 0.
         """
         self.n = n
 
@@ -251,8 +292,8 @@ class sa_fortran():
 
         # Determine mode: serial or parallel
         is_parallel = (n_inputs_to_send is not None and
-                      fcn_parallel_input is not None and
-                      fcn_parallel_output is not None)
+                       fcn_parallel_input is not None and
+                       fcn_parallel_output is not None)
 
         if is_parallel:
             # Parallel mode: use provided callbacks directly
@@ -260,12 +301,17 @@ class sa_fortran():
                 print("Warning: fcn is ignored in parallel mode")
 
             # Keep references to prevent garbage collection
-            self.callback_ref = (n_inputs_to_send, fcn_parallel_input, fcn_parallel_output)
+            self.callback_ref = [n_inputs_to_send,
+                                 fcn_parallel_input,
+                                 fcn_parallel_output]
 
             fcn_ptr = ctypes.c_void_p(0)
-            n_inputs_ptr = ctypes.cast(n_inputs_to_send, ctypes.c_void_p)
-            parallel_input_ptr = ctypes.cast(fcn_parallel_input, ctypes.c_void_p)
-            parallel_output_ptr = ctypes.cast(fcn_parallel_output, ctypes.c_void_p)
+            n_inputs_ptr = ctypes.cast(n_inputs_to_send,
+                                       ctypes.c_void_p)
+            parallel_input_ptr = ctypes.cast(fcn_parallel_input,
+                                             ctypes.c_void_p)
+            parallel_output_ptr = ctypes.cast(fcn_parallel_output,
+                                              ctypes.c_void_p)
 
         else:
             # Serial mode: create callback wrapper for fcn
@@ -284,12 +330,28 @@ class sa_fortran():
                     istat_ptr[0] = -1
 
             # Keep reference to prevent garbage collection
-            self.callback_ref = callback_wrapper
+            self.callback_ref = [callback_wrapper]
 
             fcn_ptr = ctypes.cast(callback_wrapper, ctypes.c_void_p)
             n_inputs_ptr = ctypes.c_void_p(0)
             parallel_input_ptr = ctypes.c_void_p(0)
             parallel_output_ptr = ctypes.c_void_p(0)
+
+        # Create report callback wrapper if provided
+        if report is not None and ireport > 0:
+            @CALLBACK_REPORT
+            def report_wrapper(iproblem, x_ptr, n_val, f_val, istat_val):
+                try:
+                    x = np.ctypeslib.as_array(x_ptr, shape=(n_val,))
+                    report(x, f_val, istat_val)
+                except Exception as e:
+                    print(f"Error in report function: {e}")
+
+            # Keep reference
+            self.callback_ref.append(report_wrapper)
+            report_ptr = ctypes.cast(report_wrapper, ctypes.c_void_p)
+        else:
+            report_ptr = ctypes.c_void_p(0)
 
         # Initialize iproblem
         self.iproblem = ctypes.c_size_t()
@@ -328,6 +390,8 @@ class sa_fortran():
             n_inputs_ptr,
             parallel_input_ptr,
             parallel_output_ptr,
+            ctypes.c_int(ireport),
+            report_ptr,
         )
 
     def destroy(self):
@@ -419,4 +483,3 @@ class sa_fortran():
     def __del__(self):
         """Destructor to ensure cleanup."""
         self.destroy()
-

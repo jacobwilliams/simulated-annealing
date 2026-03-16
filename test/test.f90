@@ -9,7 +9,7 @@ integer, parameter :: n = 2, neps = 4
 
 real (dp)   :: lb(n), ub(n), x(n), xopt(n), c(n), vm(n), t, eps, rt, fopt, vms
 integer     :: ns, nt, nfcnev, ier, iseed1, iseed2, i, maxevl, iprint,  &
-               nacc, nobds, step_mode, iunit
+               nacc, nobds, step_mode, iunit, ireport, iunit_report, iunit_report_all
 logical     :: max
 
 type(simulated_annealing_type) :: sa
@@ -29,6 +29,7 @@ do i = 1, n
   ub(i) =  1.0e25_dp
   c(i) = 2.0_dp
 end do
+ireport = 3 ! report each function evaluation and each new optimal value found
 
 nobds = 0 ! JW : no longer used
 
@@ -71,9 +72,19 @@ write(output_unit, '(A)') '  ****   before call to sa.             ****'
 
 call sa%initialize(n,lb,ub,c,&
                    max,eps,ns,nt,neps,maxevl,&
-                   iprint,iseed1,iseed2,step_mode,vms,iunit, fcn=fcn)
+                   iprint,iseed1,iseed2,step_mode,vms,iunit, &
+                   fcn=fcn, &
+                   report=report, ireport=ireport)
+
+open(newunit=iunit_report, file='report_best.csv', status='replace', action='write', iostat=ier)
+open(newunit=iunit_report_all, file='report_all.csv', status='replace', action='write', iostat=ier)
+write(iunit_report, '(A)') 'x1,x2,f'
+write(iunit_report_all, '(A)') 'x1,x2,f'
 
 call sa%optimize(x, rt, t, vm, xopt, fopt, nacc, nfcnev, ier)
+
+close(iunit_report)
+close(iunit_report_all)
 
 write(output_unit, '(A)') '  ****   results after sa   ****   '
 call print_vector(output_unit,xopt, n, 'solution')
@@ -173,6 +184,26 @@ contains
     istat = 0
 
     end subroutine fcn
+
+    subroutine report(me, x, f, istat)
+        !! this is an example of a user-defined reporting function.
+        !! it is called by the simulated annealing algorithm to report
+        !! intermediate results to the user. see `iprint` for when this is called.
+
+        class(simulated_annealing_type),intent(inout) :: me
+        real(dp), dimension(:), intent(in) :: x
+        real(dp), intent(in) :: f
+        integer, intent(in) :: istat
+
+        integer :: i
+        select case (istat)
+        case(1) !! called after each function evaluation
+            write(iunit_report_all, '(2(F20.13,","),F20.13)') (x(i), i=1, size(x)), f
+        case(2) !! called after each new optimal value is found
+            write(iunit_report, '(2(F20.13,","),F20.13)') (x(i), i=1, size(x)), f
+        end select
+
+    end subroutine report
 
 end program simann
 
