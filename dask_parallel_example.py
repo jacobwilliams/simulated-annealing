@@ -554,7 +554,7 @@ def main(mode: str = "local", n_workers: int = None, problem_dim: int = 10):
             iseed2=5678,
             step_mode=1,  # Adaptive step size
             cooling_schedule=2,  # Fast annealing
-            n_resets=3,
+            n_resets=5,
             optimal_f_specified=True,
             optimal_f=0.0,
             ireport=3,  # Report all evaluations and new optima
