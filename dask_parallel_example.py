@@ -497,8 +497,8 @@ def main(mode: str = "local", n_workers: int = None, problem_dim: int = 10):
             """Tell Fortran how many inputs we can process at once (idle workers only)."""
             n_idle = evaluator.get_num_idle_workers()
             # DEBUG: Monitor idle worker count
-            if evaluator.job_counter < 20 or evaluator.job_counter % 500 == 0:
-                print(f"DEBUG: n_inputs returning {n_idle} idle workers (pending={evaluator.pending_count})")
+            # if evaluator.job_counter < 20 or evaluator.job_counter % 500 == 0:
+            #     print(f"DEBUG: n_inputs returning {n_idle} idle workers (pending={evaluator.pending_count})")
             n_inputs_ptr[0] = n_idle
 
         @CALLBACK_PARALLEL_INPUT
