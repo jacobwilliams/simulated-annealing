@@ -549,7 +549,7 @@ def main(mode: str = "local", n_workers: int = None, problem_dim: int = 10):
             nt=100,
             neps=4,
             maxevl=10000,
-            iprint=2,
+            iprint=0,
             iseed1=1234,
             iseed2=5678,
             step_mode=1,  # Adaptive step size
@@ -575,9 +575,11 @@ def main(mode: str = "local", n_workers: int = None, problem_dim: int = 10):
         sys.stdout.flush()
 
         result = optimizer.solve(
-            x0=[1.0] * problem_dim,
+            x0=[-1.0] * problem_dim,
             rt=0.85,
-            t0=5.0,
+            # t0=5.0,
+            t0=10.0,
+            # t0=0.0,  # monotonic test
             vm=[5.0] * problem_dim,
         )
 
