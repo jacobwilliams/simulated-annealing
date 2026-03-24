@@ -270,6 +270,7 @@ def worker_function_evaluator(worker_id: int, work_queue_name: str,
             try:
                 f = rastrigin(x)
                 istat = 0  # Success
+                # time.sleep(0.01)  # Simulate longer evaluation time for testing
             except Exception as e:
                 print(f"Worker {worker_id} error evaluating job {job_id}: {e}")
                 f = 0.0

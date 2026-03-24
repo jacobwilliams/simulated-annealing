@@ -39,7 +39,17 @@ fpm install --prefix ./sa_fortran/lib --profile release
 
 Then refer to the two python examples `python_example.py` and `parallel_example.py` for how to use it.
 
-## Example
+## Using with dask
+
+An example is given (`dask_parallel_example.py`) of using the parallel interface with Dask.
+
+Example to run locally with 8 workers:
+
+```
+python dask_parallel_example.py --workers 8 --dimension 2
+```
+
+## Example output
 
 ![2D Optimization Visualization](media/report_2d.jpg)
 
