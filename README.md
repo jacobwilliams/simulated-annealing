@@ -41,7 +41,7 @@ Then refer to the two python examples `python_example.py` and `parallel_example.
 
 ## Using with dask
 
-An example is given (`dask_parallel_example.py`) of using the parallel interface with Dask.
+An example is given (`dask_parallel_example.py`) of using the parallel interface with [Dask](https://www.dask.org).
 
 Example to run locally with 8 workers:
 
