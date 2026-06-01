@@ -158,10 +158,11 @@ def create_slurm_cluster(n_workers: int = 12):
     print(f"Configuring SLURM cluster for {n_workers} workers...")
 
     # Adjust these parameters for YOUR cluster!
+    processes_per_job = 4
     cluster = SLURMCluster(
         cores=4,
         memory="8GB",
-        processes=4,
+        processes=processes_per_job,
         walltime="00:30:00",
         queue="regular",  # CHANGE THIS to your partition name!
         name="dask-sa",
@@ -175,10 +176,9 @@ def create_slurm_cluster(n_workers: int = 12):
     )
 
     # Calculate number of SLURM jobs needed
-    workers_per_job = cluster.worker_spec['options']['processes']
-    n_jobs = max(1, (n_workers + workers_per_job - 1) // workers_per_job)
+    n_jobs = max(1, (n_workers + processes_per_job - 1) // processes_per_job)
 
-    print(f"Submitting {n_jobs} SLURM jobs ({workers_per_job} workers/job)...")
+    print(f"Submitting {n_jobs} SLURM jobs ({processes_per_job} workers/job)...")
     cluster.scale(jobs=n_jobs)
 
     print(f"\nConnecting to cluster...")
