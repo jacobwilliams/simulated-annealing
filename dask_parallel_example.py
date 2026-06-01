@@ -51,7 +51,7 @@ import sys
 import logging
 from dask.distributed import Client, Queue
 
-# Suppress expected Dask timeout warnings
+# Suppress expected Dask warnings
 logging.getLogger('distributed.core').setLevel(logging.CRITICAL)
 logging.getLogger('distributed.queues').setLevel(logging.CRITICAL)
 
@@ -63,6 +63,17 @@ from sa_fortran import (sa_fortran,
 
 # Configuration
 PLOT_ITERATIONS = True  # Log function evaluations to CSV for later analysis
+
+
+def _encode_array(arr: np.ndarray) -> dict:
+    """Serialize a numpy array to bytes for efficient Dask queue transport."""
+    return {'b': arr.tobytes(), 'd': arr.dtype.str, 's': arr.shape}
+
+
+def _decode_array(enc: dict) -> np.ndarray:
+    """Reconstruct a numpy array from the encoded form produced by _encode_array."""
+    return np.frombuffer(enc['b'], dtype=np.dtype(enc['d'])).reshape(enc['s']).copy()
+
 
 # Lists to store intermediate results
 all_evaluations = []
@@ -264,7 +275,7 @@ def worker_function_evaluator(worker_id: int, work_queue_name: str,
 
             # Extract job information
             job_id = work_item['job_id']
-            x = work_item['x']
+            x = _decode_array(work_item['x'])
 
             # Evaluate objective function
             try:
@@ -280,7 +291,7 @@ def worker_function_evaluator(worker_id: int, work_queue_name: str,
             result_queue.put({
                 'type': 'result',
                 'job_id': job_id,
-                'x': x,
+                'x': _encode_array(x),
                 'f': f,
                 'istat': istat,
                 'worker_id': worker_id,
@@ -385,7 +396,7 @@ class DaskParallelEvaluator:
             # Submit to work queue
             self.work_queue.put({
                 'job_id': job_id,
-                'x': x
+                'x': _encode_array(x)
             })
 
             self.pending_jobs[job_id] = True
@@ -421,7 +432,7 @@ class DaskParallelEvaluator:
                         del self.pending_jobs[job_id]
                         self.pending_count -= 1  # Worker is now idle
 
-                    return msg['x'], msg['f'], msg['istat']
+                    return _decode_array(msg['x']), msg['f'], msg['istat']
                 else:
                     # Skip non-result messages (ready, shutdown, etc.)
                     # Keep looping to find a result message
