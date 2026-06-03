@@ -12,15 +12,17 @@ implicit none
 type(simulated_annealing_type) :: sa
 integer, parameter :: n_samples = 100000  !! number of samples to generate per distribution
 integer, parameter :: n_dists = n_distribution_modes      !! number of distribution types
-real(dp), dimension(n_samples, n_dists) :: samples
+real(dp), dimension(n_samples, 0:n_dists-1) :: samples
 real(dp) :: lower, upper, val
 integer :: i, j, k, iunit, mode
-character(len=100), dimension(n_dists) :: dist_names
-integer, dimension(n_dists),parameter :: dist_modes = [sa_mode_uniform, sa_mode_normal, sa_mode_cauchy, &
-                            sa_mode_triangular, sa_mode_bipareto]
+character(len=100), dimension(0:n_dists-1) :: dist_names
+integer, dimension(0:n_dists-1),parameter :: dist_modes = [sa_mode_constant, sa_mode_uniform, &
+                                                           sa_mode_normal, sa_mode_cauchy, &
+                                                           sa_mode_triangular, sa_mode_bipareto]
 character(len=*), parameter :: csv_file = 'distribution_samples.csv'
 
 ! Distribution names for header
+dist_names(sa_mode_constant)    = 'constant'
 dist_names(sa_mode_uniform)     = 'uniform'
 dist_names(sa_mode_normal)      = 'normal'
 dist_names(sa_mode_cauchy)      = 'cauchy'
@@ -38,7 +40,7 @@ write(output_unit, '(A,F0.2,A,F0.2,A)') 'Bounds: [', lower, ', ', upper, ']'
 write(output_unit, '(A)') ''
 
 ! Generate samples for each distribution
-do j = 1, n_dists
+do j = 0, n_dists - 1
     mode = dist_modes(j)
     write(output_unit, '(A,I0,A,A)') 'Generating samples for distribution ', j, ': ', trim(dist_names(j))
 
@@ -78,7 +80,7 @@ open(newunit=iunit, file=csv_file, status='replace', action='write')
 
 ! Write header
 write(iunit, '(A)', advance='no') 'sample'
-do k = 1, n_dists
+do k = 0, n_dists-1
     write(iunit, '(A,A)', advance='no') ',', trim(dist_names(k))
 end do
 write(iunit, '(A)') ''
@@ -86,7 +88,7 @@ write(iunit, '(A)') ''
 ! Write data
 do i = 1, n_samples
     write(iunit, '(I0)', advance='no') i
-    do k = 1, n_dists
+    do k = 0, n_dists-1
         write(iunit, '(A,ES15.8)', advance='no') ',', samples(i, k)
     end do
     write(iunit, '(A)') ''
@@ -98,7 +100,7 @@ write(output_unit, '(A)') 'Done!'
 write(output_unit, '(A)') ''
 write(output_unit, '(A)') 'Statistics summary:'
 write(output_unit, '(A)') '-------------------'
-do k = 1, n_dists
+do k = 0, n_dists-1
         write(output_unit, '(A,A)') trim(dist_names(k)), ':'
         write(output_unit, '(A,F10.4)') '  Mean:   ', sum(samples(:, k)) / n_samples
         write(output_unit, '(A,F10.4)') '  Min:    ', minval(samples(:, k))

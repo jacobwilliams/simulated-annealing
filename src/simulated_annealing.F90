@@ -31,9 +31,6 @@
 !  * Jacob Williams, 8/26/2019 : modernized Fortran
 !
 !### TODO
-!  * input rand distributation option
-!  * a way to specify that some variables are not to be changed... this could be part of the distributation
-!    selection (a constant option). each variable can have a different distribution.
 !  * get ideas from: https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.basinhopping.html
 
 module simulated_annealing_module
@@ -59,7 +56,8 @@ module simulated_annealing_module
    real(wp),parameter :: pi = acos(-1.0_wp)  !! value of pi for this module's real kind
    real(wp),parameter :: twopi = 2.0_wp * pi
 
-   integer,parameter,public :: n_distribution_modes = 5  !! number of modes
+   integer,parameter,public :: n_distribution_modes = 6  !! number of modes
+   integer,parameter,public :: sa_mode_constant = 0
    integer,parameter,public :: sa_mode_uniform = 1
    integer,parameter,public :: sa_mode_normal = 2
    integer,parameter,public :: sa_mode_cauchy = 3
@@ -182,6 +180,7 @@ module simulated_annealing_module
       ! distribution selection for perturbations (per-variable):
       integer, dimension(:), allocatable :: distribution_mode !! distribution to use for perturbations for each variable:
                                                               !!
+                                                              !! * `sa_mode_constant` : constant (no perturbation)
                                                               !! * `sa_mode_uniform` : uniform (default)
                                                               !! * `sa_mode_normal` : normal (Gaussian)
                                                               !! * `sa_mode_cauchy` : cauchy
@@ -380,6 +379,7 @@ contains
       real(wp), intent(in), optional  :: optimal_f_tol      !! absolute tolerance for the `optimal_f` check
       integer, dimension(:), intent(in), optional   :: distribution_mode  !! distribution for perturbations (per variable):
                                                                           !!
+                                                                          !! * `sa_mode_constant` : constant (no perturbation)
                                                                           !! * `sa_mode_uniform` : uniform (default)
                                                                           !! * `sa_mode_normal` : normal (Gaussian)
                                                                           !! * `sa_mode_cauchy` : cauchy
@@ -525,7 +525,7 @@ contains
       end if
 
       ! validate distribution modes:
-      if (any(me%distribution_mode < 1 .or. me%distribution_mode > n_distribution_modes)) then
+      if (any(me%distribution_mode < 0 .or. me%distribution_mode > n_distribution_modes-1)) then
          error stop 'Error: invalid distribution_mode.'
       end if
 
@@ -1148,6 +1148,9 @@ contains
 
       ! select distribution based on the variable's distribution_mode:
       select case (mode)
+
+      case(sa_mode_constant)  ! constant (no perturbation)
+         r = x
 
        case(sa_mode_uniform)  ! uniform
          r = uniform(lower, upper)

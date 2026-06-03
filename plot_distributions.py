@@ -25,7 +25,7 @@ if not Path(csv_file).exists():
 df = pd.read_csv(csv_file)
 
 # Get distribution names (all columns except 'sample')
-dist_names = [col for col in df.columns if col != 'sample']
+dist_names = [col for col in df.columns if col != 'sample' and col != 'constant']
 n_dists = len(dist_names)
 
 # Convert all distribution columns to numeric, handling any formatting issues
