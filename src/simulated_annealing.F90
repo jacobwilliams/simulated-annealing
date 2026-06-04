@@ -299,15 +299,15 @@ module simulated_annealing_module
                                                    !! * -2 : stop the optimization process
       end subroutine sa_func_parallel_output_func
 
-      function dist_func(me, lower, upper) result(r)
-         !! interface for distribution functions used for perturbations
-         import :: wp, simulated_annealing_type
-         implicit none
-         class(simulated_annealing_type),intent(inout) :: me
-         real(wp),intent(in) :: lower  !! lower bound
-         real(wp),intent(in) :: upper  !! upper bound
-         real(wp) :: r  !! random value within [lower, upper]
-      end function dist_func
+      ! function dist_func(me, lower, upper) result(r)
+      !    !! interface for distribution functions used for perturbations
+      !    import :: wp, simulated_annealing_type
+      !    implicit none
+      !    class(simulated_annealing_type),intent(inout) :: me
+      !    real(wp),intent(in) :: lower  !! lower bound
+      !    real(wp),intent(in) :: upper  !! upper bound
+      !    real(wp) :: r  !! random value within [lower, upper]
+      ! end function dist_func
    end interface
    ! these are public so we can use them in the C interface:
    public :: sa_func
@@ -1092,8 +1092,9 @@ contains
                ! a random point in the bounds:
                ! [if it fails, a new random one is tried next time]
                do ii = 1, me%n
-                  xp_result(ii) = me%perturb_variable(ii, x(ii), me%distribution_mode(ii), &
-                                              me%lb(ii), me%ub(ii))
+                  xp_result(ii) = me%perturb_variable(ii, x(ii), &
+                                                      me%distribution_mode(ii), &
+                                                      me%lb(ii), me%ub(ii))
                end do
             end if
          else
@@ -1101,8 +1102,9 @@ contains
             do ii = 1, me%n
                lower = max( me%lb(ii), x(ii) - vm(ii) )
                upper = min( me%ub(ii), x(ii) + vm(ii) )
-               xp_result(ii) = me%perturb_variable(ii, x(ii), me%distribution_mode(ii), &
-                                           lower, upper)
+               xp_result(ii) = me%perturb_variable(ii, x(ii), &
+                                                   me%distribution_mode(ii), &
+                                                   lower, upper)
             end do
          end if
       end function get_xp
