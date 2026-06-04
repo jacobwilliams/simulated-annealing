@@ -113,6 +113,7 @@ class sa_fortran():
             ctypes.c_int,  # n_resets
             ctypes.c_int,  # cooling_schedule
             ctypes.c_double,  # cooling_param
+            ctypes.c_double,  # cooling_exponent
             ctypes.c_bool,  # optimal_f_specified
             ctypes.c_double,  # optimal_f
             ctypes.c_double,  # optimal_f_tol
@@ -158,7 +159,8 @@ class sa_fortran():
                    ns=20, nt=None, neps=4, maxevl=100000, iprint=1,
                    iseed1=1234, iseed2=5678, step_mode=1, vms=0.1, iunit=6,
                    use_initial_guess=True, n_resets=1, cooling_schedule=1,
-                   cooling_param=1.0, optimal_f_specified=False, optimal_f=0.0,
+                   cooling_param=1.0, cooling_exponent=1.0,
+                   optimal_f_specified=False, optimal_f=0.0,
                    optimal_f_tol=1e-4, distribution_mode=None,
                    dist_std_dev=None,
                    dist_scale=None, dist_shape=None,
@@ -214,6 +216,8 @@ class sa_fortran():
             5=logarithmic (default: 1)
         cooling_param : float, optional
             Parameter for cooling schedules 3 and 5 (default: 1.0)
+        cooling_exponent : float, optional
+            Exponent for cooling schedule 3 (huang) (default: 1.0)
         optimal_f_specified : bool, optional
             Whether optimal value is known (default: False)
         optimal_f : float, optional
@@ -379,6 +383,7 @@ class sa_fortran():
             ctypes.c_int(n_resets),
             ctypes.c_int(cooling_schedule),
             ctypes.c_double(cooling_param),
+            ctypes.c_double(cooling_exponent),
             ctypes.c_bool(optimal_f_specified),
             ctypes.c_double(optimal_f),
             ctypes.c_double(optimal_f_tol),

@@ -175,7 +175,7 @@ contains
                                               maximize, eps, ns, nt, neps, maxevl, &
                                               iprint, iseed1, iseed2, step_mode, vms, iunit, &
                                               use_initial_guess, n_resets, &
-                                              cooling_schedule, cooling_param, &
+                                              cooling_schedule, cooling_param, cooling_exponent, &
                                               optimal_f_specified, optimal_f, optimal_f_tol, &
                                               distribution_mode, dist_std_dev, &
                                               dist_scale, dist_shape, &
@@ -204,6 +204,7 @@ contains
         integer(c_int), intent(in), value :: n_resets
         integer(c_int), intent(in), value :: cooling_schedule
         real(c_double), intent(in), value :: cooling_param
+        real(c_double), intent(in), value :: cooling_exponent
         logical(c_bool), intent(in), value :: optimal_f_specified
         real(c_double), intent(in), value :: optimal_f
         real(c_double), intent(in), value :: optimal_f_tol
@@ -297,6 +298,7 @@ contains
                                         n_resets=n_resets, &
                                         cooling_schedule=cooling_schedule, &
                                         cooling_param=cooling_param, &
+                                        cooling_exponent=cooling_exponent, &
                                         optimal_f_specified=logical(optimal_f_specified), &
                                         optimal_f=optimal_f, &
                                         optimal_f_tol=optimal_f_tol, &

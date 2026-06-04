@@ -165,10 +165,11 @@ module simulated_annealing_module
                                         !!
                                         !! * 1 : geometric (default): T(k+1) = rt * T(k)
                                         !! * 2 : fast annealing (Cauchy): T(k) = T0 / (1 + k)
-                                        !! * 3 : huang: T(k) = T0 / (1 + cooling_param * k)^n
+                                        !! * 3 : huang: T(k) = T0 / (1 + cooling_param * k)^cooling_exponent
                                         !! * 4 : boltzmann: T(k) = T0 / log(1 + k + exp(1))
                                         !! * 5 : logarithmic: T(k) = T0 / (1 + cooling_param * log(1 + k))
       real(wp)  :: cooling_param = 1.0_wp !! parameter for cooling schedules 3 and 5. suggested value: 1.0
+      real(wp)  :: cooling_exponent = 1.0_wp !! exponent for cooling schedule 3 (huang). suggested value: 1.0
 
       ! option to specify the known answer, so the solver will stop if it finds it:
       logical :: optimal_f_specified = .false. !! if the optional `f` value is known,
@@ -343,7 +344,7 @@ contains
                             maximize,eps,ns,nt,neps,maxevl,&
                             iprint,iseed1,iseed2,step_mode,vms,iunit,&
                             use_initial_guess,n_resets,&
-                            cooling_schedule,cooling_param,&
+                            cooling_schedule,cooling_param,cooling_exponent,&
                             optimal_f_specified,optimal_f,optimal_f_tol,&
                             distribution_mode,dist_std_dev,&
                             dist_scale,dist_shape,&
@@ -371,6 +372,7 @@ contains
       integer, intent(in), optional                 :: n_resets
       integer, intent(in), optional                 :: cooling_schedule   !! temperature reduction schedule (1-5)
       real(wp), intent(in), optional                :: cooling_param      !! parameter for cooling schedules 3 and 5
+      real(wp), intent(in), optional                :: cooling_exponent   !! exponent for cooling schedule 3 (huang)
       logical, intent(in), optional  :: optimal_f_specified !! if the optional `f` value is known,
                                                             !! it can be specified by `optimal_f`.
                                                             !! [Default is False]
@@ -464,6 +466,7 @@ contains
       if (present(n_resets)            ) me%n_resets = n_resets
       if (present(cooling_schedule)    ) me%cooling_schedule = cooling_schedule
       if (present(cooling_param)       ) me%cooling_param = cooling_param
+      if (present(cooling_exponent)    ) me%cooling_exponent = cooling_exponent
       if (present(optimal_f_specified) ) me%optimal_f_specified = optimal_f_specified
       if (present(optimal_f)           ) me%optimal_f = optimal_f
       if (present(optimal_f_tol)       ) me%optimal_f_tol = abs(optimal_f_tol)
@@ -659,7 +662,6 @@ contains
       real(wp)  :: t_original    !! original input value of `t`
       logical   :: first         !! indicates first function eval
       logical   :: abort         !! indicates the known solution has been found
-      real(wp)  :: t0            !! initial temperature (for non-geometric cooling schedules)
       integer   :: temp_iter     !! temperature iteration counter (for non-geometric cooling schedules)
 
       ! initialize:
@@ -943,8 +945,8 @@ contains
                   ! fast annealing (Cauchy): T(k) = T0 / (1 + k)
                   t = t_original / real(1 + temp_iter, wp)
                case (3)
-                  ! huang: T(k) = T0 / (1 + c*k)^n
-                  t = t_original / (1.0_wp + me%cooling_param * real(temp_iter, wp))**me%n
+                  ! huang: T(k) = T0 / (1 + c*k)^d
+                  t = t_original / (1.0_wp + me%cooling_param * real(temp_iter, wp))**me%cooling_exponent
                case (4)
                   ! boltzmann: T(k) = T0 / log(1 + k + e)
                   t = t_original / log(1.0_wp + real(temp_iter, wp) + exp(1.0_wp))
@@ -1072,34 +1074,34 @@ contains
 
    contains
 
-      function get_xp() result(xp)
+      function get_xp() result(xp_result)
          !! get a perturbed `x` value
-         real(wp),dimension(me%n) :: xp     !! the perturbed `x` value
-         real(wp)                 :: lower  !! lower bound to use for random interval
-         real(wp)                 :: upper  !! upper bound to use for random interval
-         integer                  :: i      !! counter
+         real(wp),dimension(me%n) :: xp_result  !! the perturbed `x` value
+         real(wp)                 :: lower      !! lower bound to use for random interval
+         real(wp)                 :: upper      !! upper bound to use for random interval
+         integer                  :: ii         !! counter
 
          if (first_try) then
             if (me%use_initial_guess) then
                ! use the initial guess
                ! [note if this evauation fails, the subsequent ones
                !  are perturbed from this one]
-               xp = x
+               xp_result = x
                first_try = .false.
             else
                ! a random point in the bounds:
                ! [if it fails, a new random one is tried next time]
-               do i = 1, me%n
-                  xp(i) = me%perturb_variable(i, x(i), me%distribution_mode(i), &
-                                              me%lb(i), me%ub(i))
+               do ii = 1, me%n
+                  xp_result(ii) = me%perturb_variable(ii, x(ii), me%distribution_mode(ii), &
+                                              me%lb(ii), me%ub(ii))
                end do
             end if
          else
             ! perturb all of them using per-variable distributions:
-            do i = 1, me%n
-               lower = max( me%lb(i), x(i) - vm(i) )
-               upper = min( me%ub(i), x(i) + vm(i) )
-               xp(i) = me%perturb_variable(i, x(i), me%distribution_mode(i), &
+            do ii = 1, me%n
+               lower = max( me%lb(ii), x(ii) - vm(ii) )
+               upper = min( me%ub(ii), x(ii) + vm(ii) )
+               xp_result(ii) = me%perturb_variable(ii, x(ii), me%distribution_mode(ii), &
                                            lower, upper)
             end do
          end if
@@ -1150,7 +1152,7 @@ contains
       select case (mode)
 
       case(sa_mode_constant)  ! constant (no perturbation)
-         r = x
+         r = min(max(x, lower), upper)
 
        case(sa_mode_uniform)  ! uniform
          r = uniform(lower, upper)
