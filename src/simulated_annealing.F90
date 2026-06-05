@@ -1150,6 +1150,12 @@ contains
       integer :: i !! counter
       integer,parameter :: max_tries = 1000 !! max tries for rejection sampling
 
+      if (upper == lower) then
+         ! interval has collapsed to a point: always return that value
+         r = lower
+         return
+      end if
+
       ! select distribution based on the variable's distribution_mode:
       select case (mode)
 
@@ -1175,14 +1181,8 @@ contains
 
        case(sa_mode_triangular)  ! triangular
          ! center the peak at the current value of the variable
-         ! handle degenerate interval to avoid division by zero
-         if (upper == lower) then
-            ! interval has collapsed to a point: always return that value
-            r = lower
-         else
-            ! compute normalized position of x in [lower, upper]
-            r = lower + (upper - lower) * triangular_dist((x - lower) / (upper - lower))
-         end if
+         ! compute normalized position of x in [lower, upper]
+         r = lower + (upper - lower) * triangular_dist((x - lower) / (upper - lower))
 
        case(sa_mode_bipareto)  ! bipareto
          ! center the distribution on the current value of the variable
