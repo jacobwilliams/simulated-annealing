@@ -452,14 +452,33 @@ class DaskParallelEvaluator:
 
         # Wait for acknowledgments
         time.sleep(2)
-        try:
-            for _ in range(self.n_workers):
-                msg = self.result_queue.get(timeout=1.0)
+
+        # Collect shutdown messages from all workers
+        shutdown_received = 0
+        total_timeout = 5.0  # Total time to wait for all workers
+        start_time = time.time()
+
+        while shutdown_received < self.n_workers:
+            remaining = total_timeout - (time.time() - start_time)
+            if remaining <= 0:
+                print(f"  Warning: Timeout waiting for {self.n_workers - shutdown_received} workers")
+                break
+
+            try:
+                msg = self.result_queue.get(timeout=min(1.0, remaining))
+
                 if msg['type'] == 'shutdown':
                     print(f"  Worker {msg['worker_id']} [{msg['hostname']}] "
                           f"processed {msg['processed']} evaluations")
-        except:
-            pass
+                    shutdown_received += 1
+                # Skip other message types (result, ready, etc.)
+
+            except TimeoutError:
+                # No message available, keep trying if we have time
+                continue
+            except Exception as e:
+                print(f"  Warning: Error receiving shutdown message: {e}")
+                continue
 
         print("✓ Workers shutdown complete")
 
