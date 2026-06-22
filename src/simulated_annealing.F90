@@ -758,7 +758,7 @@ contains
                   call me%perturb_and_evaluate(x,vm,xp,fp,nfcnev,ier,first=first)
                   first = .false.
                   select case (ier)
-                   case(1,4)
+                  case(1,4)
                      x    = xopt
                      fopt = me%func(fopt)
                      return
@@ -996,7 +996,9 @@ contains
       real(wp),dimension(:),intent(out) :: xp      !! the perturbed `x` value
       real(wp),intent(out)              :: fp      !! the value of the user function at `xp`
       integer,intent(inout)             :: nfcnev  !! total number of function evaluations
-      integer,intent(inout)             :: ier     !! status output code
+      integer,intent(inout)             :: ier     !! status output code:
+                                                   !! set to 1 for too many function evaluations,
+                                                   !! and 4 for user stop in function.
       logical,intent(in),optional       :: first   !! to use the input `x` the first time
 
       integer :: i            !! counter
