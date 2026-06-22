@@ -251,8 +251,11 @@ class sa_fortran():
             * 0 : no intermediate reports
             * 1 : report each function evaluation
             * 2 : report after each new optimal value is found
-            * 3 : report each function evaluation and each new
+            * 3 : report each valid function evaluation and each new
               optimal value found
+            * 4 : report each function evaluation (valid or invalid)
+            * 5 : report each function evaluation (valid or invalid),
+              and each new optimal value found
         report : callable, optional
             Callback for reporting: report(x, f, istat)
             where x is array of size n, f is scalar function value,

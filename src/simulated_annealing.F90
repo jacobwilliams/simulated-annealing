@@ -200,9 +200,11 @@ module simulated_annealing_module
       integer :: ireport = 0 !! how often to report intermediate results to the user via `report` function:
                             !!
                             !! * 0 : no intermediate reports
-                            !! * 1 : report each function evaluation
+                            !! * 1 : report each valid function evaluation
                             !! * 2 : report after each new optimal value is found
-                            !! * 3 : report each function evaluation and each new optimal value found
+                            !! * 3 : report each valid function evaluation and each new optimal value found
+                            !! * 4 : report each function evaluation (valid or invalid)
+                            !! * 5 : report each function evaluation (valid or invalid) and each new optimal value found
       procedure(sa_report_func),pointer :: report => null() !! if associated, this function is called to report intermediate results to the user.
 
       ! parallel function evaluation (optional):
@@ -259,6 +261,7 @@ module simulated_annealing_module
                                       !!
                                       !! * 1 : intermediate report for a function evaluation
                                       !! * 2 : intermediate report for a new optimal value found
+                                      !! * 3 : invalid function evaluation
       end subroutine sa_report_func
 
       subroutine sa_func_parallel_inputs(me, n_inputs)
@@ -407,9 +410,11 @@ contains
       integer, intent(in), optional      :: ireport    !! how often to report intermediate results to the user via `report` function:
                                                        !!
                                                        !! * 0 : no intermediate reports
-                                                       !! * 1 : report each function evaluation
+                                                       !! * 1 : report each valid function evaluation
                                                        !! * 2 : report after each new optimal value is found
-                                                       !! * 3 : report each function evaluation and each new optimal value found
+                                                       !! * 3 : report each valid function evaluation and each new optimal value found
+                                                       !! * 4 : report each function evaluation (valid or invalid)
+                                                       !! * 5 : report each function evaluation (valid or invalid) and each new optimal value found
       procedure(sa_report_func),optional :: report     !! if associated, this function is called to report intermediate
                                                        !! results to the user.
 
@@ -753,7 +758,7 @@ contains
                   call me%perturb_and_evaluate(x,vm,xp,fp,nfcnev,ier,first=first)
                   first = .false.
                   select case (ier)
-                   case(1,4)
+                  case(1,4)
                      x    = xopt
                      fopt = me%func(fopt)
                      return
@@ -784,7 +789,7 @@ contains
                         xopt = xp
                         fopt = fp
                         nnew = nnew + 1
-                        if (me%ireport == 2 .or. me%ireport == 3) then ! report this value to the user
+                        if (me%ireport == 2 .or. me%ireport == 3 .or. me%ireport == 5) then ! report this value to the user
                            call me%report(xopt, me%func(fopt), istat=2) ! convert f back to user's sign if necessary
                         end if
                      end if
@@ -991,14 +996,17 @@ contains
       real(wp),dimension(:),intent(out) :: xp      !! the perturbed `x` value
       real(wp),intent(out)              :: fp      !! the value of the user function at `xp`
       integer,intent(inout)             :: nfcnev  !! total number of function evaluations
-      integer,intent(inout)             :: ier     !! status output code
+      integer,intent(inout)             :: ier     !! status output code:
+                                                   !! set to 1 for too many function evaluations,
+                                                   !! and 4 for user stop in function.
       logical,intent(in),optional       :: first   !! to use the input `x` the first time
 
-      integer :: i          !! counter
-      integer :: istat      !! user function status code
-      logical :: first_try  !! local copy of `first`
-      integer :: n_inputs   !! number of inputs to send to the user function for parallel evaluation
-      logical :: reallocate !! whether to reallocate `xp_mat` for parallel evaluation
+      integer :: i            !! counter
+      integer :: istat        !! user function status code
+      integer :: istat_report !! istat to report to user
+      logical :: first_try    !! local copy of `first`
+      integer :: n_inputs     !! number of inputs to send to the user function for parallel evaluation
+      logical :: reallocate   !! whether to reallocate `xp_mat` for parallel evaluation
       real(wp),dimension(:,:),allocatable :: xp_mat !! array of `xp` vectors for parallel evaluation
 
       if (present(first)) then
@@ -1035,8 +1043,14 @@ contains
             call me%fcn(xp, fp, istat)  ! evaluate the function with the trial point xp and return as fp.
          end if
 
-         if (istat==0 .and. (me%ireport == 1 .or. me%ireport == 3)) then ! report this value to the user
-            call me%report(xp, fp, istat=1) ! convert f back to user's sign if necessary
+         if ((istat == 0  .and. (me%ireport == 1 .or. me%ireport == 3)) .or. &
+             (istat == -1 .and. (me%ireport == 4 .or. me%ireport == 5))) then ! report this value to the user
+            if (istat == 0) then
+               istat_report = 1  ! valid function evaluation
+            else
+               istat_report = 3  ! invalid evaluation
+            end if
+            call me%report(xp, fp, istat=istat_report) ! convert f back to user's sign if necessary
          end if
 
          nfcnev = nfcnev + 1  ! function eval counter (note: for parallel runs,
